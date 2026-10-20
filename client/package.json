@@ -1,0 +1,14 @@
+{
+  "name": "@bc/client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 100.118.72.60 --port 5173",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@colyseus/sdk": "^0.18.5",
+    "phaser": "^4.2.1",
+    "@bc/shared": "*"
+  }
+}

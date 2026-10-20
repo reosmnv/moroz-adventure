@@ -1,0 +1,16 @@
+{
+  "name": "@bc/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "test:net": "tsx src/net-test.ts"
+  },
+  "dependencies": {
+    "@colyseus/schema": "^5.0.41",
+    "@colyseus/sdk": "^0.18.5",
+    "colyseus": "^0.18.9",
+    "@bc/shared": "*"
+  }
+}

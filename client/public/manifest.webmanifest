@@ -1,0 +1,9 @@
+{
+  "name": "Кооп: прототип",
+  "short_name": "Кооп",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#111111",
+  "theme_color": "#111111"
+}
