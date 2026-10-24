@@ -33,20 +33,20 @@ export const HEAVY: Record<Form, string[]> = {
 
 export const STRIKES: Record<Form, Record<string, Strike>> = {
   prime: {
-    jab: { range: 52, dmg: 6, kb: 2, stun: 250 },
-    cross: { range: 54, dmg: 8, kb: 3, stun: 250 },
-    teep: { range: 66, dmg: 12, kb: 14, stun: 400 },
-    superman: { range: 86, dmg: 18, kb: 28, stun: 500, down: true },
-    highkick: { range: 70, dmg: 20, kb: 30, stun: 500, down: true },
-    uppercut: { range: 58, dmg: 24, kb: 10, stun: 500, down: true, launch: true },
+    jab: { range: 52, dmg: 5, kb: 2, stun: 250 },
+    cross: { range: 54, dmg: 7, kb: 3, stun: 250 },
+    teep: { range: 66, dmg: 10, kb: 14, stun: 400 },
+    superman: { range: 86, dmg: 15, kb: 28, stun: 500, down: true },
+    highkick: { range: 70, dmg: 25, kb: 30, stun: 500, down: true },
+    uppercut: { range: 58, dmg: 25, kb: 10, stun: 500, down: true, launch: true },
   },
   ultimate: {
-    elbow: { range: 52, dmg: 9, kb: 2, stun: 250 },
-    knee: { range: 54, dmg: 11, kb: 3, stun: 250 },
-    roundhouse: { range: 72, dmg: 18, kb: 16, stun: 400 },
-    'spin-elbow': { range: 66, dmg: 24, kb: 24, stun: 500, down: true },
-    'flying-knee': { range: 86, dmg: 28, kb: 30, stun: 500, down: true },
-    hurricane: { range: 75, dmg: 12, kb: 1, stun: 400 }, // на каждое из трёх попаданий
+    elbow: { range: 52, dmg: 15, kb: 2, stun: 250 },
+    knee: { range: 54, dmg: 20, kb: 3, stun: 250 },
+    roundhouse: { range: 72, dmg: 25, kb: 16, stun: 400 },
+    'spin-elbow': { range: 66, dmg: 30, kb: 24, stun: 500, down: true },
+    'flying-knee': { range: 86, dmg: 35, kb: 30, stun: 500, down: true },
+    hurricane: { range: 75, dmg: 30, kb: 1, stun: 400 }, // на каждое из трёх попаданий
   },
 };
 

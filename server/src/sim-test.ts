@@ -38,7 +38,7 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   const { w } = setup(); dummy(w, 'e1', 24);
   const { log, hits } = run(w, 3000, press([0, 100, 250, 600, 800, 1000, 1200, 1400, 1600], 'attack'));
   check('серия A: jab > cross > teep', log.slice(0, 4).join() === 'jab,cross,teep,jab', log.join('>'));
-  check('каждый удар серии попал', hits.length >= 3 && hits[0] === 6 && hits[1] === 8 && hits[2] === 12, hits.join());
+  check('каждый удар серии попал', hits.length >= 3 && hits[0] === 5 && hits[1] === 7 && hits[2] === 10, hits.join());
 }
 // 2. B после одного A = highkick, после двух = uppercut, без серии = superman
 {
@@ -72,7 +72,7 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   const { w, p } = setup(); dummy(w, 'e1', 24);
   p.form = 'ultimate'; p.formMs = ULT_MS; p.combo = 2; p.comboMs = 700;
   const { hits } = run(w, 2000, press([0], 'heavy'));
-  check('hurricane: 3 попадания', hits.length === 3 && hits.every(h => h === 12), hits.join());
+  check('hurricane: 3 попадания', hits.length === 3 && hits.every(h => h === 30), hits.join());
   const { w: w2 } = setup(); dummy(w2, 'e1', 24);
   run(w2, 600, press([0], 'heavy'));
   check('superman сбивает врага с ног', w2.enemies.e1.anim === 'down');
