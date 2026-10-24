@@ -17,6 +17,7 @@ export const PlayerState = schema({
   move: t.string(),
   moveT: t.number(),
   formMs: t.number(),
+  combo: t.number(),
   invuln: t.boolean(),
   connected: t.boolean(),
   away: t.boolean(),
@@ -66,9 +67,9 @@ export class GameRoom extends Room<{ state: GameState }> {
       this.playerInputs[client.sessionId] = emptyInput();
     });
 
-    this.onMessage('move', (client: Client, m: { mx: number; my: number }) => {
+    this.onMessage('move', (client: Client, m: { mx: number; my: number; run?: boolean }) => {
       const inp = this.playerInputs[client.sessionId];
-      if (inp && typeof m?.mx === 'number' && typeof m?.my === 'number') { inp.mx = m.mx; inp.my = m.my; }
+      if (inp && typeof m?.mx === 'number' && typeof m?.my === 'number') { inp.mx = m.mx; inp.my = m.my; inp.run = !!m.run; }
     });
 
     // Кнопки копятся до ближайшего тика, чтобы короткое нажатие не терялось
@@ -111,7 +112,7 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (!ps) { ps = new PlayerState(); s.players.set(p.id, ps); }
       ps.char = p.char; ps.x = round(p.x); ps.y = round(p.y); ps.hp = p.hp; ps.facing = p.facing;
       ps.anim = p.anim; ps.ult = Math.floor(p.ult);
-      ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.invuln = p.invulnMs > 0;
+      ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.invuln = p.invulnMs > 0;
       ps.connected = p.connected; ps.away = p.away;
     }
     for (const id of [...s.enemies.keys()]) if (!w.enemies[id]) s.enemies.delete(id);

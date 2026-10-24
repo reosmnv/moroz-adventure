@@ -5,6 +5,11 @@ export const HERO_ID = 'anastasia';
 export const ULT_MS = 8000; // сколько длится Ultimate
 export const COMBO_MS = 700; // окно, в которое следующий удар продолжает серию
 export const HURT_INVULN_MS = 800;
+export const IMMUNE_INVULN_MS = 300; // в Ultimate удары по героине не прерывают её, но подряд не копятся
+export const KNOCK_MULT: Record<Form, number> = { prime: 2, ultimate: 4 }; // отбрасывание врагов по просьбе mr.R: зрелищность
+export const HITSTOP_MS = 50; // заморозка героини при попадании (один тик)
+export const HITSTOP_HEAVY_MS = 100; // при сбивании с ног
+export const RUN_MULT = 1.7; // бег: стик на максимум (или Shift)
 
 export interface Strike {
   range: number;
@@ -26,21 +31,27 @@ export const HEAVY: Record<Form, string[]> = {
 
 export const STRIKES: Record<Form, Record<string, Strike>> = {
   prime: {
-    jab: { range: 34, dmg: 6, kb: 4, stun: 350 },
-    cross: { range: 36, dmg: 8, kb: 6, stun: 350 },
-    teep: { range: 44, dmg: 12, kb: 32, stun: 500 },
-    superman: { range: 58, dmg: 18, kb: 28, stun: 500, down: true },
-    highkick: { range: 46, dmg: 20, kb: 30, stun: 500, down: true },
-    uppercut: { range: 38, dmg: 24, kb: 10, stun: 500, down: true },
+    jab: { range: 52, dmg: 6, kb: 2, stun: 250 },
+    cross: { range: 54, dmg: 8, kb: 3, stun: 250 },
+    teep: { range: 66, dmg: 12, kb: 14, stun: 400 },
+    superman: { range: 86, dmg: 18, kb: 28, stun: 500, down: true },
+    highkick: { range: 70, dmg: 20, kb: 30, stun: 500, down: true },
+    uppercut: { range: 58, dmg: 24, kb: 10, stun: 500, down: true },
   },
   ultimate: {
-    elbow: { range: 34, dmg: 9, kb: 4, stun: 350 },
-    knee: { range: 36, dmg: 11, kb: 6, stun: 350 },
-    roundhouse: { range: 48, dmg: 18, kb: 36, stun: 500 },
-    'spin-elbow': { range: 44, dmg: 24, kb: 24, stun: 500, down: true },
-    'flying-knee': { range: 58, dmg: 28, kb: 30, stun: 500, down: true },
-    hurricane: { range: 50, dmg: 12, kb: 6, stun: 400 }, // на каждое из трёх попаданий
+    elbow: { range: 52, dmg: 9, kb: 2, stun: 250 },
+    knee: { range: 54, dmg: 11, kb: 3, stun: 250 },
+    roundhouse: { range: 72, dmg: 18, kb: 16, stun: 400 },
+    'spin-elbow': { range: 66, dmg: 24, kb: 24, stun: 500, down: true },
+    'flying-knee': { range: 86, dmg: 28, kb: 30, stun: 500, down: true },
+    hurricane: { range: 75, dmg: 12, kb: 1, stun: 400 }, // на каждое из трёх попаданий
   },
+};
+
+// Подписи для кнопки B
+export const MOVE_NAMES: Record<string, string> = {
+  superman: 'Суперман', highkick: 'Хай-кик', uppercut: 'Апперкот',
+  'spin-elbow': 'Локоть с разворота', 'flying-knee': 'Колено в прыжке', hurricane: 'Ураган',
 };
 
 export const SPEED_MULT: Record<Form, number> = { prime: 1, ultimate: 1.25 };

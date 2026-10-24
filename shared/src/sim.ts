@@ -2,7 +2,7 @@
 // Чистые данные и функции, без Phaser и Colyseus.
 import type { Form } from './anims-data.ts';
 import {
-  CHAIN, COMBO_MS, HEAVY, HERO_ID, HURT_INVULN_MS, SPEED_MULT, STRIKES, ULT_MS,
+  CHAIN, COMBO_MS, HEAVY, HERO_ID, HURT_INVULN_MS, HITSTOP_HEAVY_MS, HITSTOP_MS, IMMUNE_INVULN_MS, KNOCK_MULT, RUN_MULT, SPEED_MULT, STRIKES, ULT_MS,
   hitTimesMs, isLoop, moveDurMs, type Strike,
 } from './hero-data.ts';
 
@@ -17,7 +17,7 @@ const ENEMY_SPEED = 45;
 const PLAYER_HP = 100;
 const REVIVE_MS = 5000;
 const TAUNT_CD_MS = 3000;
-const LANE_TOLERANCE = 14;
+const LANE_TOLERANCE = 24;
 
 export type Anim = 'idle' | 'walk' | 'attack' | 'heavy' | 'hurt' | 'down' | 'taunt' | 'ult';
 
@@ -61,6 +61,7 @@ export interface Player {
   queued: 'attack' | 'heavy' | null;
   formMs: number; // сколько осталось быть Ultimate
   invulnMs: number;
+  hitstopMs: number; // героиня замирает на мгновение после попадания
 }
 
 export interface Enemy {
@@ -91,9 +92,10 @@ export interface Input {
   heavy: boolean;
   taunt: boolean;
   ult: boolean;
+  run: boolean; // стик на максимуме или Shift
 }
 
-export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: false, taunt: false, ult: false });
+export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: false, taunt: false, ult: false, run: false });
 
 export type SimEvent =
   | { t: 'hit'; target: string; dmg: number; x: number; y: number }
@@ -131,7 +133,7 @@ export function addPlayer(w: World, id: string, char: string): Player {
     y: buddy ? clamp(buddy.y + 20, LANE_TOP, LANE_BOTTOM) : 200,
     hp: PLAYER_HP, facing: 1, anim: 'idle', animMs: 0, cdMs: 0, tauntCdMs: 0, ult: 0, downMs: 0,
     connected: true, away: false,
-    form: 'prime', move: 'idle', moveT: 0, combo: 0, comboMs: 0, queued: null, formMs: 0, invulnMs: 0,
+    form: 'prime', move: 'idle', moveT: 0, combo: 0, comboMs: 0, queued: null, formMs: 0, invulnMs: 0, hitstopMs: 0,
   };
   w.players[id] = p;
   return p;
@@ -161,7 +163,8 @@ function spawnWave(w: World, ev: SimEvent[]) {
 function hitEnemies(
   w: World, p: Player, range: number, dmg: number, ev: SimEvent[], allAround = false,
   opts: { kb?: number; stun?: number; down?: boolean } = {},
-) {
+): number {
+  let hits = 0;
   for (const e of Object.values(w.enemies)) {
     const dx = e.x - p.x;
     const inFront = allAround || Math.sign(dx) === p.facing || Math.abs(dx) < 6;
@@ -169,11 +172,13 @@ function hitEnemies(
       e.hp -= dmg;
       e.anim = opts.down ? 'down' : 'hurt';
       e.animMs = opts.down ? 900 : (opts.stun ?? 250);
-      e.x += Math.sign(dx || p.facing) * (opts.kb ?? (allAround ? 30 : 8));
+      e.x = clamp(e.x + Math.sign(dx || p.facing) * (opts.kb ?? (allAround ? 30 : 8)), -40, VIEW_W + 40);
+      hits++;
       if (p.form !== 'ultimate') p.ult = Math.min(100, p.ult + dmg); // в Ultimate шкала не копится
       ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y });
     }
   }
+  return hits;
 }
 
 
@@ -204,6 +209,8 @@ function damagePlayer(p: Player, dmg: number): boolean {
   if (p.invulnMs > 0) return false;
   p.hp = Math.max(0, p.hp - dmg);
   if (isHero(p) && p.hp > 0) {
+    // Ultimate: иммунитет к контролю, урон проходит, но героиню не сбивает с действия
+    if (p.form === 'ultimate') { p.invulnMs = IMMUNE_INVULN_MS; return true; }
     p.combo = 0; p.queued = null;
     if (p.move === 'hurricane' && moveBusy(p)) p.invulnMs = 300; // вихрь не прерывается
     else { startMove(p, 'hurt'); p.invulnMs = HURT_INVULN_MS; }
@@ -213,15 +220,24 @@ function damagePlayer(p: Player, dmg: number): boolean {
 
 function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[]) {
   const dt = dtMs / 1000;
+  p.invulnMs = Math.max(0, p.invulnMs - dtMs);
+  // Хитстоп: на тик-два всё замирает, нажатие запоминается
+  if (p.hitstopMs > 0) {
+    p.hitstopMs = Math.max(0, p.hitstopMs - dtMs);
+    if (inp.heavy) p.queued = 'heavy'; else if (inp.attack) p.queued = 'attack';
+    return;
+  }
   const prevT = p.moveT;
   p.moveT += dtMs;
-  p.invulnMs = Math.max(0, p.invulnMs - dtMs);
 
   // Попадания в кадрах удара
   const strike: Strike | undefined = STRIKES[p.form][p.move];
   if (strike) {
     for (const tm of hitTimesMs(p.form, p.move, p.facing)) {
-      if (prevT < tm && p.moveT >= tm) hitEnemies(w, p, strike.range, strike.dmg, ev, false, strike);
+      if (prevT < tm && p.moveT >= tm) {
+        const n = hitEnemies(w, p, strike.range, strike.dmg, ev, false, { ...strike, kb: strike.kb * KNOCK_MULT[p.form] });
+        if (n > 0) p.hitstopMs = strike.down ? HITSTOP_HEAVY_MS : HITSTOP_MS;
+      }
     }
   }
 
@@ -281,10 +297,13 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       p.animMs = 600; p.tauntCdMs = TAUNT_CD_MS;
       ev.push({ t: 'taunt', id: p.id, line: lines[Math.floor(rand(w) * lines.length)] });
     } else if (!busy) {
-      p.x = clamp(p.x + mx * PLAYER_SPEED * SPEED_MULT[p.form] * dt, 10, VIEW_W - 10);
-      p.y = clamp(p.y + my * PLAYER_SPEED * SPEED_MULT[p.form] * 0.7 * dt, LANE_TOP, LANE_BOTTOM);
+      const moving = mx !== 0 || my !== 0;
+      const run = moving && inp.run;
+      const speed = PLAYER_SPEED * SPEED_MULT[p.form] * (run ? RUN_MULT : 1);
+      p.x = clamp(p.x + mx * speed * dt, 10, VIEW_W - 10);
+      p.y = clamp(p.y + my * speed * 0.7 * dt, LANE_TOP, LANE_BOTTOM);
       if (mx !== 0) p.facing = mx > 0 ? 1 : -1;
-      const want2 = mx !== 0 || my !== 0 ? 'walk' : 'idle';
+      const want2 = run ? 'dash' : moving ? 'walk' : 'idle';
       if (p.move !== want2) startMove(p, want2);
     }
   }
@@ -293,7 +312,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
   if (STRIKES.prime[p.move] || STRIKES.ultimate[p.move]) p.anim = HEAVY[p.form].includes(p.move) ? 'heavy' : 'attack';
   else if (p.move === 'hurt') p.anim = 'hurt';
   else if (p.move.startsWith('transform')) p.anim = 'ult';
-  else if (p.move === 'walk') p.anim = 'walk';
+  else if (p.move === 'walk' || p.move === 'dash') p.anim = 'walk';
   else p.anim = p.animMs > 0 ? 'taunt' : 'idle';
 }
 
@@ -343,10 +362,10 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
         ev.push({ t: 'ult', id: p.id });
       } else if (inp.heavy && p.cdMs === 0) {
         p.anim = 'heavy'; p.animMs = 450; p.cdMs = 700;
-        hitEnemies(w, p, 38, 18, ev);
+        hitEnemies(w, p, 52, 18, ev);
       } else if (inp.attack && p.cdMs === 0) {
         p.anim = 'attack'; p.animMs = 200; p.cdMs = 250;
-        hitEnemies(w, p, 30, 8, ev);
+        hitEnemies(w, p, 44, 8, ev);
       } else if (inp.taunt && p.tauntCdMs === 0) {
         const ch = CHARACTERS.find(c => c.id === p.char);
         const lines = ch?.taunts ?? ['...'];
@@ -366,7 +385,7 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     if (targets.length === 0) { e.anim = 'idle'; continue; }
     const t = targets.reduce((a, b) => (Math.abs(a.x - e.x) + Math.abs(a.y - e.y) < Math.abs(b.x - e.x) + Math.abs(b.y - e.y) ? a : b));
     const side = e.x < t.x ? -1 : 1;
-    const gx = t.x + side * 24, gy = t.y;
+    const gx = t.x + side * 34, gy = t.y;
     const dx = gx - e.x, dy = gy - e.y;
     e.facing = t.x > e.x ? 1 : -1;
     if (Math.abs(dx) > 4 || Math.abs(dy) > 3) {

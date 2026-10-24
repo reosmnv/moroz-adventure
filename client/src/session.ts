@@ -8,7 +8,7 @@ import {
 
 export interface EntitySnap {
   x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number;
-  form?: Form; move?: string; moveT?: number; formMs?: number; invuln?: boolean;
+  form?: Form; move?: string; moveT?: number; formMs?: number; combo?: number; invuln?: boolean;
 }
 export interface Snapshot { t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
 export type Button = 'attack' | 'heavy' | 'taunt' | 'ult';
@@ -20,7 +20,7 @@ export interface GameSession {
   status: string;
   snapshots: Snapshot[];
   onEvents: (evs: SimEvent[]) => void;
-  move(mx: number, my: number): void;
+  move(mx: number, my: number, run: boolean): void;
   press(b: Button): void;
   pick(char: string): void;
   setPaused(on: boolean): void;
@@ -66,7 +66,7 @@ export class LocalSession implements GameSession {
     if (evs.length) this.onEvents(evs);
   }
 
-  move(mx: number, my: number) { this.input.mx = mx; this.input.my = my; }
+  move(mx: number, my: number, run: boolean) { this.input.mx = mx; this.input.my = my; this.input.run = run; }
   press(b: Button) { this.input[b] = true; }
   pick(char: string) { addPlayer(this.world, this.me, char); }
   setPaused(on: boolean) { this.paused = on; }
@@ -132,7 +132,7 @@ export class OnlineSession implements GameSession {
     sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ roomId: room.roomId, token: room.reconnectionToken }));
     room.onStateChange((state: any) => {
       const players = new Map<string, EntitySnap>();
-      state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, invuln: p.invuln, connected: p.connected, away: p.away }));
+      state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
       state.enemies.forEach((e: any, id: string) => enemies.set(id, { x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, facing: e.facing, anim: e.anim }));
       pushSnap(this.snapshots, { t: performance.now(), players, enemies, wave: state.wave, tick: state.tick });
@@ -168,11 +168,11 @@ export class OnlineSession implements GameSession {
   }
 
   private lastMove = '';
-  move(mx: number, my: number) {
-    const key = mx.toFixed(1) + ',' + my.toFixed(1);
+  move(mx: number, my: number, run: boolean) {
+    const key = mx.toFixed(1) + ',' + my.toFixed(1) + (run ? 'r' : '');
     if (key === this.lastMove) return;
     this.lastMove = key;
-    this.room.send('move', { mx, my });
+    this.room.send('move', { mx, my, run });
   }
   press(b: Button) { this.room.send('btn', b); }
   pick(char: string) { this.room.send('pick', char); }

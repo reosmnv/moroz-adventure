@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { CHARACTERS, HERO_ANIMS, HERO_ID, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { CHARACTERS, HEAVY, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import type { Button, EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
 
@@ -8,7 +8,9 @@ const JOY_RADIUS = 36;
 const BTN_HIT = 46; // зона касания больше видимой кнопки
 const CELL = 128; // кадр спрайта героини
 const FEET_Y = 112; // ступни в кадре
-const HEAD = 62; // высота над ступнями для полоски жизни и имени
+const SCALE = 1.5; // героиня крупнее исходных 128 px по просьбе mr.R
+const HEAD = 62 * SCALE; // высота над ступнями для полоски жизни и имени
+const RUN_STICK = 0.9; // стик отклонён почти до упора: бег
 
 interface View { sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
@@ -34,6 +36,10 @@ export class GameScene extends Phaser.Scene {
   private ultBg!: Phaser.GameObjects.Rectangle;
   private btnLabels = new Map<Button, Phaser.GameObjects.Text>();
   private waveText!: Phaser.GameObjects.Text;
+  private aHint!: Phaser.GameObjects.Text;
+  private bHint!: Phaser.GameObjects.Text;
+  private runKey!: Phaser.Input.Keyboard.Key;
+  private stickRun = false;
 
   constructor() { super('game'); }
 
@@ -65,6 +71,9 @@ export class GameScene extends Phaser.Scene {
       this.btnViews.set(b.id, c);
       this.btnLabels.set(b.id, t);
     }
+    const hint = { fontSize: '10px', color: '#fff', stroke: '#000', strokeThickness: 3 };
+    this.aHint = this.add.text(0, 0, '', hint).setOrigin(0.5, 0).setDepth(2001).setScrollFactor(0);
+    this.bHint = this.add.text(0, 0, '', hint).setOrigin(1, 0.5).setDepth(2001).setScrollFactor(0);
     this.layout();
     this.scale.on('resize', () => this.layout());
 
@@ -75,6 +84,7 @@ export class GameScene extends Phaser.Scene {
 
     const kb = this.input.keyboard!;
     this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as any;
+    this.runKey = kb.addKey('SHIFT');
     kb.on('keydown-J', () => this.press('attack'));
     kb.on('keydown-K', () => this.press('heavy'));
     kb.on('keydown-L', () => this.press('taunt'));
@@ -94,6 +104,8 @@ export class GameScene extends Phaser.Scene {
       const { x, y } = btnPos(b, w);
       this.btnViews.get(b.id)!.setPosition(x, y);
       this.btnLabels.get(b.id)!.setPosition(x, y);
+      if (b.id === 'attack') this.aHint.setPosition(x, y + 25);
+      if (b.id === 'heavy') this.bHint.setPosition(x - 26, y);
     }
   }
 
@@ -136,26 +148,30 @@ export class GameScene extends Phaser.Scene {
     this.joyKnob.setVisible(false);
   }
 
-  private readMove(): [number, number] {
+  private readMove(): [number, number, boolean] {
     let mx = 0, my = 0;
+    this.stickRun = false;
     if (this.joyId !== -1) {
       mx = (this.joyKnob.x - this.joyOrigin.x) / JOY_RADIUS;
       my = (this.joyKnob.y - this.joyOrigin.y) / JOY_RADIUS;
-      if (Math.hypot(mx, my) < 0.25) mx = my = 0; // мёртвая зона
+      const len = Math.hypot(mx, my);
+      if (len < 0.25) mx = my = 0; // мёртвая зона
+      else this.stickRun = len >= RUN_STICK; // стик до упора: бег
     }
     const k = this.keys;
     if (k.A.isDown || k.LEFT.isDown) mx = -1;
     if (k.D.isDown || k.RIGHT.isDown) mx = 1;
     if (k.W.isDown || k.UP.isDown) my = -1;
     if (k.S.isDown || k.DOWN.isDown) my = 1;
-    return [Math.round(mx * 10) / 10, Math.round(my * 10) / 10];
+    return [Math.round(mx * 10) / 10, Math.round(my * 10) / 10, this.stickRun || this.runKey.isDown];
   }
 
   private onEvents(evs: SimEvent[]) {
     for (const e of evs) {
       if (e.t === 'hit') {
-        const t = this.add.text(e.x, e.y - 40, '-' + e.dmg, { fontSize: '11px', color: '#ff6' }).setOrigin(0.5).setDepth(1500);
+        const t = this.add.text(e.x, e.y - 70, '-' + e.dmg, { fontSize: '11px', color: '#ff6' }).setOrigin(0.5).setDepth(1500);
         this.tweens.add({ targets: t, y: t.y - 16, alpha: 0, duration: 500, onComplete: () => t.destroy() });
+        if (e.target.startsWith('e') && e.dmg >= 18) this.cameras.main.shake(90, 0.004); // сильный удар встряхивает кадр
         beep(e.target.startsWith('e') ? 520 : 180, 0.05);
       } else if (e.t === 'taunt') {
         const v = this.views.get('p:' + e.id);
@@ -169,7 +185,7 @@ export class GameScene extends Phaser.Scene {
       } else if (e.t === 'ult') {
         const v = this.views.get('p:' + e.id);
         if (v) {
-          const c = this.add.circle(v.body.x, v.body.y - 30, 20, 0x9b59ff, 0.5).setDepth(1400);
+          const c = this.add.circle(v.body.x, v.body.y - 45, 20, 0x9b59ff, 0.5).setDepth(1400);
           this.tweens.add({ targets: c, scale: 7, alpha: 0, duration: 450, onComplete: () => c.destroy() });
         }
         beep(220, 0.3);
@@ -199,14 +215,14 @@ export class GameScene extends Phaser.Scene {
       const ch = CHARACTERS.find(c => c.id === snap.char);
       const color = isPlayer ? (ch?.color ?? 0xffffff) : 0x8a8f98;
       v = {
-        body: this.add.rectangle(0, 0, 20, isPlayer ? 54 : 50, color).setOrigin(0.5, 1),
+        body: this.add.rectangle(0, 0, 30, isPlayer ? 82 : 75, color).setOrigin(0.5, 1),
         fist: this.add.rectangle(0, 0, 10, 5, 0xffffff).setVisible(false),
-        hp: this.add.rectangle(0, 0, 30, 3, isPlayer ? 0x4cd964 : 0xff3b30).setOrigin(0, 0.5),
+        hp: this.add.rectangle(0, 0, 40, 3, isPlayer ? 0x4cd964 : 0xff3b30).setOrigin(0, 0.5),
       };
       if (isPlayer && snap.char === HERO_ID) {
         v.body.setVisible(false);
-        v.shadow = this.add.ellipse(0, 0, 38, 9, 0x000000, 0.3);
-        v.sprite = this.add.image(0, 0, 'prime/idle-east', 0).setOrigin(0.5, FEET_Y / CELL);
+        v.shadow = this.add.ellipse(0, 0, 38 * SCALE, 9 * SCALE, 0x000000, 0.3);
+        v.sprite = this.add.image(0, 0, 'prime/idle-east', 0).setOrigin(0.5, FEET_Y / CELL).setScale(SCALE);
       }
       if (isPlayer) {
         const me = key === 'p:' + this.session.me;
@@ -231,14 +247,14 @@ export class GameScene extends Phaser.Scene {
     const sprite = v.sprite!;
     sprite.setTexture(`${form}/${move}-${dir}`, frame).setPosition(x, y).setDepth(y);
     // Неуязвимость после удара мигает; во время превращения не мигает, там своя анимация
-    const blink = sb.invuln && !move.startsWith('transform') && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
+    const blink = sb.invuln && form === 'prime' && !move.startsWith('transform') && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
     sprite.setAlpha(away ? 0.35 : blink ? 0.45 : 1);
     v.shadow!.setPosition(x, y).setDepth(y - 0.1).setAlpha(away ? 0.1 : 0.3);
   }
 
   update() {
-    const [mx, my] = this.readMove();
-    if (this.session.hasMe()) this.session.move(mx, my);
+    const [mx, my, run] = this.readMove();
+    if (this.session.hasMe()) this.session.move(mx, my, run);
 
     const smp = this.sample();
     if (!smp) return;
@@ -260,8 +276,8 @@ export class GameScene extends Phaser.Scene {
       const hitting = !v.sprite && (sb.anim === 'attack' || sb.anim === 'heavy');
       v.fist.setVisible(hitting).setPosition(x + sb.facing * (sb.anim === 'heavy' ? 16 : 12), y - 18).setSize(sb.anim === 'heavy' ? 14 : 10, 5).setDepth(y + 0.5);
       const maxHp = sb.maxHp ?? 100;
-      const head = v.sprite ? HEAD : isPlayer ? 58 : 54;
-      v.hp.setPosition(x - 15, y - head).setDepth(y + 0.6).setSize(30 * Math.max(0, sb.hp) / maxHp, 3);
+      const head = v.sprite ? HEAD : isPlayer ? 86 : 80;
+      v.hp.setPosition(x - 20, y - head).setDepth(y + 0.6).setSize(40 * Math.max(0, sb.hp) / maxHp, 3);
       v.label?.setPosition(x, y - head - 3).setDepth(y + 0.7);
       v.bubble?.setPosition(x, y - HEAD - 18);
     };
@@ -277,6 +293,15 @@ export class GameScene extends Phaser.Scene {
     this.ultBar.setSize(me ? (ultimate ? 100 * Math.max(0, me.formMs ?? 0) / ULT_MS : me.ult ?? 0) : 0, 6);
     this.ultBar.setFillStyle(ultimate ? 0xff7a1a : 0x9b59ff);
     this.waveText.setText(`Волна ${b.wave}`);
+    // Подсказки к кнопкам: сколько ударов серии набрано и что даст B прямо сейчас
+    if (me?.char === HERO_ID) {
+      const c = Math.min(me.combo ?? 0, 2);
+      this.aHint.setText('●'.repeat(c) + '○'.repeat(3 - c));
+      this.bHint.setText(MOVE_NAMES[HEAVY[me.form ?? 'prime'][c]] ?? '');
+    } else {
+      this.aHint.setText('');
+      this.bHint.setText('');
+    }
   }
 }
 

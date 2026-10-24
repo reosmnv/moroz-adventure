@@ -56,7 +56,7 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
 // 3. Очередь: нажатие во время удара не теряется
 {
   const { w } = setup(); dummy(w, 'e1', 24);
-  const { log } = run(w, 1500, press([0, 50, 450], 'attack'));
+  const { log } = run(w, 2000, press([0, 50, 600], 'attack'));
   check('очередь ударов', log.slice(0, 3).join() === 'jab,cross,teep', log.join('>'));
 }
 // 4. Удар по кадру: урон не раньше кадра hit
@@ -108,6 +108,47 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   delete w.enemies.e1; w.enemies.e9 = { id: 'e9', x: 900, y: 200, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 1e9 };
   const r2 = run(w, 6000);
   check('друг жив: подъём getup', p.hp > 0 && r2.log.includes('getup'), `hp ${p.hp} ${r2.log.join('>')}`);
+}
+// 8. Бег, иммунитет Ultimate, нокдаун только от сильных ударов
+{
+  const { w, p } = setup(); dummy(w, 'e1', 600);
+  const x0 = p.x;
+  run(w, 1000, () => ({ mx: 1, run: false }));
+  const walked = p.x - x0;
+  const x1 = p.x;
+  const r = run(w, 1000, () => ({ mx: 1, run: true }));
+  check('бег быстрее ходьбы и играет dash', p.x - x1 > walked * 1.5 && r.log.includes('dash'), `${Math.round(walked)} vs ${Math.round(p.x - x1)}`);
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 24);
+  for (const k of ['attack', 'attack', 'attack'] as const) { run(w, 200, press([0], k)); run(w, 500); p.comboMs = 700; }
+  check('удары серии A не сбивают с ног', w.enemies.e1.anim !== 'down', w.enemies.e1.anim);
+  w.enemies.e1.anim = 'idle'; w.enemies.e1.animMs = 0; p.combo = 0; run(w, 600);
+  run(w, 600, press([0], 'heavy'));
+  check('B сбивает с ног', (w.enemies.e1.anim as string) === 'down');
+}
+{
+  const { w, p } = setup();
+  w.enemies.e1 = { id: 'e1', x: p.x + 34, y: p.y, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 0 };
+  p.form = 'ultimate'; p.formMs = ULT_MS;
+  const r = run(w, 600);
+  check('Ultimate: урон идёт, но без hurt', p.hp < 100 && !r.log.includes('hurt'), `hp ${p.hp} ${r.log.join('>')}`);
+}
+{
+  const dist = (form: 'prime' | 'ultimate') => {
+    const { w, p } = setup(); dummy(w, 'e1', 24);
+    p.form = form; p.formMs = ULT_MS; p.combo = 1; p.comboMs = 700;
+    run(w, 1500, press([0], 'heavy')); // highkick / flying-knee
+    return w.enemies.e1.x - (p.x + 24);
+  };
+  const a = dist('prime'), b = dist('ultimate');
+  check('отбрасывание: Prime x2, Ultimate x4', a > 40 && b > a * 1.5, `${Math.round(a)} и ${Math.round(b)}`);
+}
+{
+  const { w } = setup(); dummy(w, 'e1', 24);
+  const frames: number[] = [];
+  for (let t = 0; t < 600; t += TICK_MS) { step(w, { h: { ...emptyInput(), attack: t === 0 } }); frames.push(w.players.h.moveT); }
+  check('хитстоп замораживает анимацию', frames.some((v, i) => i > 0 && v === frames[i - 1]));
 }
 check('длительности из данных', moveDurMs('prime', 'jab', 1) > 400);
 
