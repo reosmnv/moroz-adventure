@@ -1,0 +1,20 @@
+{
+ "heavy_superman": {
+  "out": "id: 3e71b384-59a8-4d74-bfab-386d89f581b3\njob_id: 3e71b384-59a8-4d74-bfab-386d89f581b3\nmodel: pro\ndescription: game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, superman punch: a single flying fist punching forward horizontally with long white speed lines behind it\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 911482d3-6b16-579f-a6a1-231549f9ee86\nasset_status: pending (saved when generation completes)\ncost: 1"
+ },
+ "heavy_highkick": {
+  "out": "id: 90d01850-12aa-43b8-a30b-ab88ca252ae5\njob_id: 90d01850-12aa-43b8-a30b-ab88ca252ae5\nmodel: pro\ndescription: game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, high kick: a single bare leg kicking straight up high, foot at the top, curved white swoosh arc\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: cc55374c-44bd-5344-b85a-ddd7b0c8f9c3\nasset_status: pending (saved when generation completes)\ncost: 10 generat"
+ },
+ "heavy_uppercut": {
+  "out": "id: 88b04897-5917-46e4-8c59-d7b917251e36\njob_id: 88b04897-5917-46e4-8c59-d7b917251e36\nmodel: pro\ndescription: game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, uppercut: a single fist rising straight upward from below with an upward curved white swoosh arc\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 97fa26a1-2fb5-5ecb-a82e-5639d0f3c620\nasset_status: pending (saved when generation completes)\ncost: 10 genera"
+ },
+ "heavy_spin_elbow": {
+  "out": "id: 2532b1ba-e804-45fa-9a98-a84c52722e51\njob_id: 2532b1ba-e804-45fa-9a98-a84c52722e51\nmodel: pro\ndescription: game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, spinning elbow strike: a bent arm with sharp elbow forward inside a circular orange motion ring\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 844b5e5a-0242-53cb-9e4c-0c7c13c8e629\nasset_status: pending (saved when generation completes)\ncost: 10 generat"
+ },
+ "heavy_flying_knee": {
+  "out": "id: 05d87273-568f-4a04-8267-89f5e86dacfd\njob_id: 05d87273-568f-4a04-8267-89f5e86dacfd\nmodel: pro\ndescription: game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, flying knee: a single bent leg with the knee driving up and forward, orange flame motion lines\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 01ac6378-1ab3-52ab-bdaa-11b7808c45d6\nasset_status: pending (saved when generation completes)\ncost: 10 generati"
+ },
+ "heavy_hurricane": {
+  "out": "id: bf68f02b-6dc4-4657-913f-a0f155fb5fe0\njob_id: bf68f02b-6dc4-4657-913f-a0f155fb5fe0\nmodel: pro\ndescription: game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, hurricane kick: a leg kicking inside a spinning orange and white whirlwind tornado swirl\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: cacc5ae9-2709-55b3-bbd2-7ec30031a7ee\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nst"
+ }
+}

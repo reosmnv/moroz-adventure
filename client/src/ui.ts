@@ -22,7 +22,7 @@ const JOY_REST = { x: 70, y: VIEW_H - 62 }; // где стик ждёт пале
 // dx, dy: отступ центра кнопки от правого нижнего угла экрана
 const BUTTONS: { id: Button; icon: string; dx: number; dy: number; color: number }[] = [
   { id: 'attack', icon: 'ui-icon-attack', dx: 46, dy: 44, color: 0xe0457b },
-  { id: 'heavy', icon: 'ui-icon-heavy', dx: 104, dy: 30, color: 0xf2a541 },
+  { id: 'heavy', icon: 'ui-icon-heavy', dx: 104, dy: 30, color: 0x5a609a }, // тёмная: на ней читаются огненные иконки
   { id: 'taunt', icon: 'ui-icon-taunt', dx: 38, dy: 104, color: 0x3f8efc },
   { id: 'ult', icon: 'ui-icon-ult', dx: 98, dy: 92, color: 0x9b59ff },
 ];
@@ -60,6 +60,8 @@ export class UIScene extends Phaser.Scene {
     for (const k of ['btn', 'stick', 'frame', 'icon-attack', 'icon-heavy', 'icon-ult', 'icon-taunt', 'face-prime', 'face-ultimate']) {
       this.load.image('ui-' + k, `ui/${k}.png`);
     }
+    // Своя иконка B на каждый завершающий удар обеих форм
+    for (const m of new Set(Object.values(HEAVY).flat())) this.load.image('ui-heavy-' + m, `ui/heavy-${m}.png`);
   }
 
   create() {
@@ -177,6 +179,14 @@ export class UIScene extends Phaser.Scene {
     this.joyKnob.setPosition(JOY_REST.x, JOY_REST.y).setAlpha(0.35);
   }
 
+  // Иконка B показывает удар, который выйдет сейчас; смена с коротким «щелчком»
+  private setHeavyIcon(key: string) {
+    const icon = this.btns.get('heavy')!.icon;
+    if (icon.texture.key === key || !this.textures.exists(key)) return;
+    icon.setTexture(key);
+    this.tweens.add({ targets: icon, scale: { from: 1.35, to: 1 }, duration: 140, ease: 'Back.easeOut' });
+  }
+
   private releaseAll() {
     for (const [id, b] of this.heldBy) { this.heldBy.delete(id); this.setHeld(b, false); }
     if (this.joyId !== -1) this.onUp({ id: this.joyId } as Phaser.Input.Pointer);
@@ -270,9 +280,12 @@ export class UIScene extends Phaser.Scene {
         this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
         this.pips.fillStyle(i < c ? CREAM : NAVY).fillRect(x, y, 4, 4);
       }
-      this.bHint.setText(MOVE_NAMES[HEAVY[me.form ?? 'prime'][c]] ?? '');
+      const move = HEAVY[me.form ?? 'prime'][c];
+      this.bHint.setText(MOVE_NAMES[move] ?? '');
+      this.setHeavyIcon('ui-heavy-' + move);
     } else {
       this.bHint.setText('');
+      this.setHeavyIcon('ui-icon-heavy');
     }
   }
 }

@@ -1,0 +1,98 @@
+[
+ {
+  "name": "heavy_superman",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, superman punch: a single flying fist punching forward horizontally with long white speed lines behind it",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-prime-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "heavy_highkick",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, high kick: a single bare leg kicking straight up high, foot at the top, curved white swoosh arc",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-prime-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "heavy_uppercut",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, uppercut: a single fist rising straight upward from below with an upward curved white swoosh arc",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-prime-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "heavy_spin_elbow",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, spinning elbow strike: a bent arm with sharp elbow forward inside a circular orange motion ring",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-prime-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "heavy_flying_knee",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, flying knee: a single bent leg with the knee driving up and forward, orange flame motion lines",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-prime-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "heavy_hurricane",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon, simple bold symbol readable at 32px, only the limb and motion effect, no full body, no face, no background, thick dark outline, warm skin tone, hurricane kick: a leg kicking inside a spinning orange and white whirlwind tornado swirl",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-prime-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ }
+]
