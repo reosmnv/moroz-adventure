@@ -13,6 +13,11 @@ export const PlayerState = schema({
   facing: t.number(),
   anim: t.string(),
   ult: t.number(),
+  form: t.string(),
+  move: t.string(),
+  moveT: t.number(),
+  formMs: t.number(),
+  invuln: t.boolean(),
   connected: t.boolean(),
   away: t.boolean(),
 }, 'PlayerState');
@@ -105,7 +110,9 @@ export class GameRoom extends Room<{ state: GameState }> {
       let ps = s.players.get(p.id);
       if (!ps) { ps = new PlayerState(); s.players.set(p.id, ps); }
       ps.char = p.char; ps.x = round(p.x); ps.y = round(p.y); ps.hp = p.hp; ps.facing = p.facing;
-      ps.anim = p.anim; ps.ult = Math.floor(p.ult); ps.connected = p.connected; ps.away = p.away;
+      ps.anim = p.anim; ps.ult = Math.floor(p.ult);
+      ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.invuln = p.invulnMs > 0;
+      ps.connected = p.connected; ps.away = p.away;
     }
     for (const id of [...s.enemies.keys()]) if (!w.enemies[id]) s.enemies.delete(id);
     for (const e of Object.values(w.enemies)) {

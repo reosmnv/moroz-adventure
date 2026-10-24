@@ -1,13 +1,16 @@
 import * as Phaser from 'phaser';
-import { CHARACTERS, LANE_BOTTOM, LANE_TOP, VIEW_H, VIEW_W, type SimEvent } from '@bc/shared';
+import { CHARACTERS, HERO_ANIMS, HERO_ID, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import type { Button, EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
 
 const INTERP_MS = 100; // буфер интерполяции: рисуем мир на 100 мс в прошлом
 const JOY_RADIUS = 36;
 const BTN_HIT = 46; // зона касания больше видимой кнопки
+const CELL = 128; // кадр спрайта героини
+const FEET_Y = 112; // ступни в кадре
+const HEAD = 62; // высота над ступнями для полоски жизни и имени
 
-interface View { body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
+interface View { sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
 // dx, dy: отступ от правого нижнего угла экрана
 const BUTTONS: { id: Button; label: string; dx: number; dy: number; color: number }[] = [
@@ -33,6 +36,16 @@ export class GameScene extends Phaser.Scene {
   private waveText!: Phaser.GameObjects.Text;
 
   constructor() { super('game'); }
+
+  preload() {
+    for (const form of Object.keys(HERO_ANIMS) as Form[]) {
+      for (const name of Object.keys(HERO_ANIMS[form])) {
+        for (const d of ['east', 'west']) {
+          this.load.spritesheet(`${form}/${name}-${d}`, `sprites/${form}/${name}-${d}.png`, { frameWidth: CELL, frameHeight: CELL });
+        }
+      }
+    }
+  }
 
   init(data: { session: GameSession }) { this.session = data.session; }
 
@@ -148,7 +161,7 @@ export class GameScene extends Phaser.Scene {
         const v = this.views.get('p:' + e.id);
         if (v) {
           v.bubble?.destroy();
-          v.bubble = this.add.text(v.body.x, v.body.y - 52, e.line, { fontSize: '11px', color: '#000', backgroundColor: '#fff', padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(1600);
+          v.bubble = this.add.text(v.body.x, v.body.y - HEAD - 18, e.line, { fontSize: '11px', color: '#000', backgroundColor: '#fff', padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(1600);
           const b = v.bubble;
           this.time.delayedCall(2000, () => { b.destroy(); if (v.bubble === b) v.bubble = undefined; });
         }
@@ -156,7 +169,7 @@ export class GameScene extends Phaser.Scene {
       } else if (e.t === 'ult') {
         const v = this.views.get('p:' + e.id);
         if (v) {
-          const c = this.add.circle(v.body.x, v.body.y, 20, 0x9b59ff, 0.5).setDepth(1400);
+          const c = this.add.circle(v.body.x, v.body.y - 30, 20, 0x9b59ff, 0.5).setDepth(1400);
           this.tweens.add({ targets: c, scale: 7, alpha: 0, duration: 450, onComplete: () => c.destroy() });
         }
         beep(220, 0.3);
@@ -186,10 +199,15 @@ export class GameScene extends Phaser.Scene {
       const ch = CHARACTERS.find(c => c.id === snap.char);
       const color = isPlayer ? (ch?.color ?? 0xffffff) : 0x8a8f98;
       v = {
-        body: this.add.rectangle(0, 0, 16, isPlayer ? 30 : 26, color).setOrigin(0.5, 1),
+        body: this.add.rectangle(0, 0, 20, isPlayer ? 54 : 50, color).setOrigin(0.5, 1),
         fist: this.add.rectangle(0, 0, 10, 5, 0xffffff).setVisible(false),
-        hp: this.add.rectangle(0, 0, 18, 3, isPlayer ? 0x4cd964 : 0xff3b30).setOrigin(0, 0.5),
+        hp: this.add.rectangle(0, 0, 30, 3, isPlayer ? 0x4cd964 : 0xff3b30).setOrigin(0, 0.5),
       };
+      if (isPlayer && snap.char === HERO_ID) {
+        v.body.setVisible(false);
+        v.shadow = this.add.ellipse(0, 0, 38, 9, 0x000000, 0.3);
+        v.sprite = this.add.image(0, 0, 'prime/idle-east', 0).setOrigin(0.5, FEET_Y / CELL);
+      }
       if (isPlayer) {
         const me = key === 'p:' + this.session.me;
         v.label = this.add.text(0, 0, (ch?.name ?? '?') + (me ? ' (я)' : ''), { fontSize: '10px', color: '#fff' }).setOrigin(0.5, 1);
@@ -197,6 +215,25 @@ export class GameScene extends Phaser.Scene {
       this.views.set(key, v);
     }
     return v;
+  }
+
+  // Кадр героини из снимка: анимация по имени и времени с её начала, east/west отдельными полосами
+  private drawHero(v: View, sb: EntitySnap, x: number, y: number, f: number, away: boolean) {
+    const form = sb.form ?? 'prime';
+    const dir = dirOf(sb.facing);
+    let move = sb.move ?? 'idle';
+    if (!HERO_ANIMS[form][move]) move = 'idle';
+    const def = HERO_ANIMS[form][move];
+    const n = def[dir];
+    const t = Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS);
+    const raw = Math.floor((t * def.fps) / 1000);
+    const frame = def.loop ? raw % n : Math.min(n - 1, raw);
+    const sprite = v.sprite!;
+    sprite.setTexture(`${form}/${move}-${dir}`, frame).setPosition(x, y).setDepth(y);
+    // Неуязвимость после удара мигает; во время превращения не мигает, там своя анимация
+    const blink = sb.invuln && !move.startsWith('transform') && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
+    sprite.setAlpha(away ? 0.35 : blink ? 0.45 : 1);
+    v.shadow!.setPosition(x, y).setDepth(y - 0.1).setAlpha(away ? 0.1 : 0.3);
   }
 
   update() {
@@ -212,26 +249,33 @@ export class GameScene extends Phaser.Scene {
       const x = sa ? sa.x + (sb.x - sa.x) * f : sb.x;
       const y = sa ? sa.y + (sb.y - sa.y) * f : sb.y;
       const v = this.viewFor(key, isPlayer, sb);
-      const down = sb.anim === 'down';
+      const down = sb.anim === 'down' && !v.sprite;
       v.body.setPosition(x, y).setDepth(y).setAngle(down ? 90 * sb.facing : 0);
-      v.body.setAlpha(sb.connected === false || sb.away ? 0.35 : 1);
+      const away = sb.connected === false || sb.away;
+      v.body.setAlpha(away ? 0.35 : 1);
+      if (v.sprite) {
+        this.drawHero(v, sb, x, y, f, !!away);
+      }
       v.body.setFillStyle(sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : 0x8a8f98));
-      const hitting = sb.anim === 'attack' || sb.anim === 'heavy';
+      const hitting = !v.sprite && (sb.anim === 'attack' || sb.anim === 'heavy');
       v.fist.setVisible(hitting).setPosition(x + sb.facing * (sb.anim === 'heavy' ? 16 : 12), y - 18).setSize(sb.anim === 'heavy' ? 14 : 10, 5).setDepth(y + 0.5);
       const maxHp = sb.maxHp ?? 100;
-      v.hp.setPosition(x - 9, y - (isPlayer ? 34 : 30)).setDepth(y + 0.6).setSize(18 * Math.max(0, sb.hp) / maxHp, 3);
-      v.label?.setPosition(x, y - 36).setDepth(y + 0.7);
-      v.bubble?.setPosition(x, y - 52);
+      const head = v.sprite ? HEAD : isPlayer ? 58 : 54;
+      v.hp.setPosition(x - 15, y - head).setDepth(y + 0.6).setSize(30 * Math.max(0, sb.hp) / maxHp, 3);
+      v.label?.setPosition(x, y - head - 3).setDepth(y + 0.7);
+      v.bubble?.setPosition(x, y - HEAD - 18);
     };
     for (const [id, sb] of b.players) draw('p:' + id, true, a.players.get(id), sb);
     for (const [id, sb] of b.enemies) draw('e:' + id, false, a.enemies.get(id), sb);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
-      v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
+      v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
       this.views.delete(key);
     }
     const me = b.players.get(this.session.me);
-    this.ultBar.setSize(me ? me.ult ?? 0 : 0, 6);
+    const ultimate = me?.form === 'ultimate';
+    this.ultBar.setSize(me ? (ultimate ? 100 * Math.max(0, me.formMs ?? 0) / ULT_MS : me.ult ?? 0) : 0, 6);
+    this.ultBar.setFillStyle(ultimate ? 0xff7a1a : 0x9b59ff);
     this.waveText.setText(`Волна ${b.wave}`);
   }
 }

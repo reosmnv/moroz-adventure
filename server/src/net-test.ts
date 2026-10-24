@@ -17,7 +17,7 @@ async function main() {
   a.reconnection.enabled = false;
   a.onMessage('ev', () => {});
   check('комната создана, короткий код', /^[A-Z0-9]{5}$/.test(a.roomId), a.roomId);
-  a.send('pick', 'a');
+  a.send('pick', 'anastasia');
   await sleep(400);
   check('хост в мире', players(a).has(a.sessionId));
   const tick0 = (a.state as any).tick;
@@ -39,7 +39,7 @@ async function main() {
   b.reconnection.enabled = false;
   let pickError = '';
   b.onMessage('pickError', (m: string) => { pickError = m; });
-  b.send('pick', 'a');
+  b.send('pick', 'anastasia');
   await sleep(300);
   check('нельзя взять занятого персонажа', pickError !== '' && !players(b).has(b.sessionId), pickError);
   b.send('pick', 'b');

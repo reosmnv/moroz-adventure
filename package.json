@@ -10,7 +10,8 @@
   "scripts": {
     "dev:server": "npm run dev -w server",
     "dev:client": "npm run dev -w client",
-    "test:net": "npm run test:net -w server"
+    "test:net": "npm run test:net -w server",
+    "test:sim": "npm run test:sim -w server"
   },
   "devDependencies": {
     "tsx": "^4.23.15",

@@ -21,6 +21,8 @@
 ## Команды
 - `ops/dev.sh` перезапуск сервера (:2567) и клиента (:5173) на Tailscale-IP 100.118.72.60. `LATENCY=200 ops/dev.sh` с задержкой.
 - `npm run test:net` сетевые сценарии ботами. Гонять после любых правок `shared/` и `server/`; все проверки должны быть OK.
+- `npm run test:sim` сценарии боя Анастасии на `shared/sim` без сервера (гонять после правок sim и `hero-data`).
+- `python3 tools/gen_anims_ts.py` после пересборки спрайтов: обновляет `shared/src/anims-data.ts` и копирует полосы в `client/public/sprites/`.
 - `npx tsc -p tsconfig.json` проверка типов всего проекта.
 
 ## Грабли

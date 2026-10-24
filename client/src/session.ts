@@ -3,10 +3,13 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
   TICK_MS, addPlayer, createWorld, emptyInput, step, takenChars,
-  type Anim, type Input, type SimEvent, type World,
+  type Anim, type Form, type Input, type SimEvent, type World,
 } from '@bc/shared';
 
-export interface EntitySnap { x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number }
+export interface EntitySnap {
+  x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number;
+  form?: Form; move?: string; moveT?: number; formMs?: number; invuln?: boolean;
+}
 export interface Snapshot { t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
 export type Button = 'attack' | 'heavy' | 'taunt' | 'ult';
 
@@ -56,7 +59,7 @@ export class LocalSession implements GameSession {
     const evs = step(this.world, { [this.me]: this.input });
     this.input.attack = this.input.heavy = this.input.taunt = this.input.ult = false;
     const players = new Map<string, EntitySnap>();
-    for (const p of Object.values(this.world.players)) players.set(p.id, { ...p });
+    for (const p of Object.values(this.world.players)) players.set(p.id, { ...p, invuln: p.invulnMs > 0 });
     const enemies = new Map<string, EntitySnap>();
     for (const e of Object.values(this.world.enemies)) enemies.set(e.id, { ...e });
     pushSnap(this.snapshots, { t: performance.now(), players, enemies, wave: this.world.wave, tick: this.world.tick });
@@ -129,7 +132,7 @@ export class OnlineSession implements GameSession {
     sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ roomId: room.roomId, token: room.reconnectionToken }));
     room.onStateChange((state: any) => {
       const players = new Map<string, EntitySnap>();
-      state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, connected: p.connected, away: p.away }));
+      state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
       state.enemies.forEach((e: any, id: string) => enemies.set(id, { x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, facing: e.facing, anim: e.anim }));
       pushSnap(this.snapshots, { t: performance.now(), players, enemies, wave: state.wave, tick: state.tick });

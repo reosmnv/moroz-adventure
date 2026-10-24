@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "test:net": "tsx src/net-test.ts"
+    "test:net": "tsx src/net-test.ts",
+    "test:sim": "tsx src/sim-test.ts"
   },
   "dependencies": {
     "@colyseus/schema": "^5.0.41",
