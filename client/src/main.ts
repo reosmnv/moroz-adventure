@@ -1,4 +1,4 @@
-import { CHARACTERS, TEST_TOOLS } from '@bc/shared';
+import { CHARACTERS, HERO_ID, TEST_TOOLS } from '@bc/shared';
 import { LocalSession, OnlineSession, type GameSession } from './session.ts';
 import { startGame } from './scene.ts';
 import { audioState, unlockAudio } from './audio.ts';
@@ -63,6 +63,8 @@ async function begin(code?: string) {
   $('menu').classList.add('hidden');
   $('topbar').classList.remove('hidden');
   $('spawnBtn').classList.toggle('hidden', !TEST_TOOLS);
+  // Пиксельный шрифт нужен canvas до первого кадра, иначе Phaser нарисует текст системным
+  await Promise.race([document.fonts.load('8px "Press Start 2P"').catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
   game = startGame('game', session);
   // Уже в мире (вернулись по токену) — выбор персонажа не нужен
   setTimeout(() => { if (!session!.hasMe()) showPicker(); }, 300);
@@ -126,6 +128,14 @@ function showPicker() {
       const b = document.createElement('button');
       b.textContent = c.name;
       b.style.background = '#' + c.color.toString(16).padStart(6, '0');
+      if (c.id === HERO_ID) {
+        // Портрет героини над именем, пиксели без сглаживания
+        const img = document.createElement('img');
+        img.src = 'ui/portrait-prime.png';
+        img.style.cssText = 'display:block;width:128px;height:128px;margin:0 auto 8px;image-rendering:pixelated';
+        b.prepend(img);
+        b.style.background = 'var(--plum, #5a495d)';
+      }
       b.disabled = taken.includes(c.id);
       b.onclick = () => { unlockAudio(); session!.pick(c.id); };
       box.appendChild(b);
@@ -135,9 +145,10 @@ function showPicker() {
   render();
 }
 
-// Отладочный оверлей: fps, ping, касания, состояние
+// Отладочный оверлей: fps, ping, касания, состояние. Только с ?debug=1, иначе наезжает на HUD
+const DEBUG = new URLSearchParams(location.search).has('debug');
 setInterval(() => {
-  if (!session) return;
+  if (!session || !DEBUG) return;
   const g = game;
   const pointers = g?.input?.pointers?.filter((p: any) => p.isDown).length ?? 0;
   const last = session.snapshots[session.snapshots.length - 1];

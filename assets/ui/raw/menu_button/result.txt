@@ -1,0 +1,4 @@
+status: creating (37% ~110s)
+id: ea2c3c5e-52f1-4751-a244-fba67c8b42de
+description: single wide rounded game menu button, magenta-pink with darker bevel at bottom and light highlight at top, dark outline, no text
+job_status: processing

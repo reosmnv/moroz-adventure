@@ -1,47 +1,21 @@
 import * as Phaser from 'phaser';
-import { AIR_MS, PLAYER_HP, CHARACTERS, TEST_TOOLS, HEAVY, moveSpeed, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
-import type { Button, EntitySnap, GameSession, Snapshot } from './session.ts';
+import { AIR_MS, PLAYER_HP, CHARACTERS, moveSpeed, HERO_ANIMS, HERO_ID, LANE_BOTTOM, LANE_TOP, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
+import { FONT, UIScene, textStyle } from './ui.ts';
 
 const INTERP_MS = 60; // буфер интерполяции чужих и врагов: мир на 60 мс в прошлом. Свою героиню рисуем без отставания
-const JOY_RADIUS = 36;
-const BTN_HIT = 46; // зона касания больше видимой кнопки
 const CELL = 128; // кадр спрайта героини
 const FEET_Y = 112; // ступни в кадре
 const SCALE = 1.5; // героиня крупнее исходных 128 px по просьбе mr.R
 const HEAD = 62 * SCALE; // высота над ступнями для полоски жизни и имени
 const LAUNCH_H = 90; // высота подброса апперкотом, px
-const RUN_STICK = 0.9; // стик отклонён почти до упора: бег
 
 interface View { sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
-
-// dx, dy: отступ от правого нижнего угла экрана
-const BUTTONS: { id: Button; label: string; dx: number; dy: number; color: number }[] = [
-  { id: 'attack', label: 'A', dx: 50, dy: 45, color: 0xe0457b },
-  { id: 'heavy', label: 'B', dx: 105, dy: 30, color: 0xf2a541 },
-  { id: 'taunt', label: '😜', dx: 40, dy: 105, color: 0x3f8efc },
-  { id: 'ult', label: 'U', dx: 100, dy: 90, color: 0x9b59ff },
-];
-const btnPos = (b: { dx: number; dy: number }, w: number) => ({ x: w - b.dx, y: VIEW_H - b.dy });
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
   private views = new Map<string, View>();
-  private joyId = -1;
-  private joyOrigin = new Phaser.Math.Vector2();
-  private joyBase!: Phaser.GameObjects.Arc;
-  private joyKnob!: Phaser.GameObjects.Arc;
-  private btnViews = new Map<Button, Phaser.GameObjects.Arc>();
-  private keys!: Record<string, Phaser.Input.Keyboard.Key>;
-  private ultBar!: Phaser.GameObjects.Rectangle;
-  private ultBg!: Phaser.GameObjects.Rectangle;
-  private btnLabels = new Map<Button, Phaser.GameObjects.Text>();
-  private waveText!: Phaser.GameObjects.Text;
-  private aHint!: Phaser.GameObjects.Text;
-  private bHint!: Phaser.GameObjects.Text;
-  private runKey!: Phaser.Input.Keyboard.Key;
-  private stickRun = false;
-
   constructor() { super('game'); }
 
   preload() {
@@ -60,131 +34,34 @@ export class GameScene extends Phaser.Scene {
     // Фон шире мира: на вытянутом экране по бокам не чёрные поля, а продолжение сцены
     this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W * 3, VIEW_H, 0x1b1f33);
     this.add.rectangle(VIEW_W / 2, (LANE_TOP + LANE_BOTTOM) / 2 + 8, VIEW_W * 3, LANE_BOTTOM - LANE_TOP + 40, 0x2c3350);
-    this.waveText = this.add.text(0, 6, '', { fontSize: '12px', color: '#fff' }).setOrigin(0.5, 0).setDepth(1000).setScrollFactor(0);
-    this.ultBg = this.add.rectangle(0, 26, 102, 8, 0x000000).setDepth(1000).setScrollFactor(0);
-    this.ultBar = this.add.rectangle(0, 26, 0, 6, 0x9b59ff).setOrigin(0, 0.5).setDepth(1001).setScrollFactor(0);
-
-    this.joyBase = this.add.circle(0, 0, JOY_RADIUS, 0xffffff, 0.12).setStrokeStyle(2, 0xffffff, 0.4).setDepth(2000).setVisible(false).setScrollFactor(0);
-    this.joyKnob = this.add.circle(0, 0, 16, 0xffffff, 0.45).setDepth(2001).setVisible(false).setScrollFactor(0);
-    for (const b of BUTTONS) {
-      const c = this.add.circle(0, 0, 22, b.color, 0.55).setStrokeStyle(2, 0xffffff, 0.6).setDepth(2000).setScrollFactor(0);
-      const t = this.add.text(0, 0, b.label, { fontSize: '16px', color: '#fff' }).setOrigin(0.5).setDepth(2001).setScrollFactor(0);
-      this.btnViews.set(b.id, c);
-      this.btnLabels.set(b.id, t);
-    }
-    const hint = { fontSize: '10px', color: '#fff', stroke: '#000', strokeThickness: 3 };
-    this.aHint = this.add.text(0, 0, '', hint).setOrigin(0.5, 0).setDepth(2001).setScrollFactor(0);
-    this.bHint = this.add.text(0, 0, '', hint).setOrigin(1, 0.5).setDepth(2001).setScrollFactor(0);
     this.layout();
     this.scale.on('resize', () => this.layout());
-
-    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.onDown(p));
-    this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.onMove(p));
-    this.input.on('pointerup', (p: Phaser.Input.Pointer) => this.onUp(p));
-    this.input.on('pointerupoutside', (p: Phaser.Input.Pointer) => this.onUp(p));
-
-    const kb = this.input.keyboard!;
-    this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as any;
-    this.runKey = kb.addKey('SHIFT');
-    kb.on('keydown-J', () => this.press('attack'));
-    kb.on('keydown-K', () => this.press('heavy'));
-    kb.on('keydown-L', () => this.press('taunt'));
-    kb.on('keydown-U', () => this.press('ult'));
-
     this.session.onEvents = evs => this.onEvents(evs);
   }
 
-  // Раскладка под текущую ширину экрана: мир по центру, кнопки у правого края
+  // Мир по центру вытянутого экрана; интерфейс в отдельной сцене ui.ts
   private layout() {
-    const w = this.scale.width;
-    this.cameras.main.setScroll((VIEW_W - w) / 2, 0);
-    this.waveText.setX(w / 2);
-    this.ultBg.setX(w / 2);
-    this.ultBar.setX(w / 2 - 50);
-    for (const b of BUTTONS) {
-      const { x, y } = btnPos(b, w);
-      this.btnViews.get(b.id)!.setPosition(x, y);
-      this.btnLabels.get(b.id)!.setPosition(x, y);
-      if (b.id === 'attack') this.aHint.setPosition(x, y + 25);
-      if (b.id === 'heavy') this.bHint.setPosition(x - 26, y);
-    }
-  }
-
-  private press(b: Button) {
-    this.session.press(b);
-    const v = this.btnViews.get(b);
-    if (v) { v.setScale(0.85); this.time.delayedCall(90, () => v.setScale(1)); }
-  }
-
-  // Плавающий джойстик в левой половине, кнопки справа; каждый палец сам по себе
-  private onDown(p: Phaser.Input.Pointer) {
-    if (p.x < this.scale.width * 0.45) {
-      if (this.joyId !== -1) return;
-      this.joyId = p.id;
-      this.joyOrigin.set(p.x, p.y);
-      this.joyBase.setPosition(p.x, p.y).setVisible(true);
-      this.joyKnob.setPosition(p.x, p.y).setVisible(true);
-      return;
-    }
-    let best: Button | null = null, bestD = BTN_HIT;
-    for (const b of BUTTONS) {
-      const { x, y } = btnPos(b, this.scale.width);
-      const d = Phaser.Math.Distance.Between(p.x, p.y, x, y);
-      if (d < bestD) { bestD = d; best = b.id; }
-    }
-    if (best) this.press(best);
-  }
-
-  private onMove(p: Phaser.Input.Pointer) {
-    if (p.id !== this.joyId) return;
-    const v = new Phaser.Math.Vector2(p.x - this.joyOrigin.x, p.y - this.joyOrigin.y);
-    if (v.length() > JOY_RADIUS) v.setLength(JOY_RADIUS);
-    this.joyKnob.setPosition(this.joyOrigin.x + v.x, this.joyOrigin.y + v.y);
-  }
-
-  private onUp(p: Phaser.Input.Pointer) {
-    if (p.id !== this.joyId) return;
-    this.joyId = -1;
-    this.joyBase.setVisible(false);
-    this.joyKnob.setVisible(false);
-  }
-
-  private readMove(): [number, number, boolean] {
-    let mx = 0, my = 0;
-    this.stickRun = false;
-    if (this.joyId !== -1) {
-      mx = (this.joyKnob.x - this.joyOrigin.x) / JOY_RADIUS;
-      my = (this.joyKnob.y - this.joyOrigin.y) / JOY_RADIUS;
-      const len = Math.hypot(mx, my);
-      if (len < 0.25) mx = my = 0; // мёртвая зона
-      else this.stickRun = len >= RUN_STICK; // стик до упора: бег
-    }
-    const k = this.keys;
-    if (k.A.isDown || k.LEFT.isDown) mx = -1;
-    if (k.D.isDown || k.RIGHT.isDown) mx = 1;
-    if (k.W.isDown || k.UP.isDown) my = -1;
-    if (k.S.isDown || k.DOWN.isDown) my = 1;
-    return [Math.round(mx * 10) / 10, Math.round(my * 10) / 10, this.stickRun || this.runKey.isDown];
+    this.cameras.main.setScroll((VIEW_W - this.scale.width) / 2, 0);
   }
 
   private onEvents(evs: SimEvent[]) {
     for (const e of evs) {
       if (e.t === 'hit') {
-        const t = this.add.text(e.x, e.y - 70, '-' + e.dmg, { fontSize: '11px', color: '#ff6' }).setOrigin(0.5).setDepth(1500);
+        const t = this.add.text(e.x, e.y - 70, '-' + e.dmg, textStyle(8, '#ffd84a')).setOrigin(0.5).setDepth(1500);
         this.tweens.add({ targets: t, y: t.y - 16, alpha: 0, duration: 500, onComplete: () => t.destroy() });
         if (e.target.startsWith('e') && e.dmg >= 18) this.cameras.main.shake(90, 0.004); // сильный удар встряхивает кадр
         beep(e.target.startsWith('e') ? 520 : 180, 0.05);
       } else if (e.t === 'heal') {
         const v = this.views.get('p:' + e.id);
         if (v) {
-          const t = this.add.text(v.body.x, v.body.y - HEAD - 10, '+' + e.amount, { fontSize: '12px', color: '#6f6', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setDepth(1500);
+          const t = this.add.text(v.body.x, v.body.y - HEAD - 10, '+' + e.amount, textStyle(8, '#7bd36b')).setOrigin(0.5).setDepth(1500);
           this.tweens.add({ targets: t, y: t.y - 18, alpha: 0, duration: 600, onComplete: () => t.destroy() });
         }
       } else if (e.t === 'taunt') {
         const v = this.views.get('p:' + e.id);
         if (v) {
           v.bubble?.destroy();
-          v.bubble = this.add.text(v.body.x, v.body.y - HEAD - 18, e.line, { fontSize: '11px', color: '#000', backgroundColor: '#fff', padding: { x: 4, y: 2 } }).setOrigin(0.5).setDepth(1600);
+          v.bubble = this.add.text(v.body.x, v.body.y - HEAD - 18, e.line, { fontFamily: FONT, fontSize: '8px', color: '#120c19', backgroundColor: '#d7d1c7', padding: { x: 4, y: 3 }, wordWrap: { width: 150 }, align: 'center' }).setOrigin(0.5).setDepth(1600);
           const b = v.bubble;
           this.time.delayedCall(2000, () => { b.destroy(); if (v.bubble === b) v.bubble = undefined; });
         }
@@ -234,7 +111,9 @@ export class GameScene extends Phaser.Scene {
       }
       if (isPlayer) {
         const me = key === 'p:' + this.session.me;
-        v.label = this.add.text(0, 0, (ch?.name ?? '?') + (me ? ' (я)' : ''), { fontSize: '10px', color: '#fff' }).setOrigin(0.5, 1);
+        // Имя и здоровье своей героини в панели HUD, над головой только метка игрока
+        v.label = this.add.text(0, 0, me ? '1P' : (ch?.name ?? '2P'), textStyle(8, me ? '#f2a541' : '#d7d1c7')).setOrigin(0.5, 1);
+        if (me) v.hp.setVisible(false);
       }
       this.views.set(key, v);
     }
@@ -261,9 +140,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   update() {
-    const [mx, my, run] = this.readMove();
-    if (this.session.hasMe()) this.session.move(mx, my, run);
-
     const smp = this.sample();
     if (!smp) return;
     const { a, b, f } = smp;
@@ -307,20 +183,6 @@ export class GameScene extends Phaser.Scene {
       v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
       this.views.delete(key);
     }
-    const me = b.players.get(this.session.me);
-    const ultimate = me?.form === 'ultimate';
-    this.ultBar.setSize(me ? (ultimate ? 100 * Math.max(0, me.formMs ?? 0) / ULT_MS : me.ult ?? 0) : 0, 6);
-    this.ultBar.setFillStyle(ultimate ? 0xff7a1a : 0x9b59ff);
-    this.waveText.setText(TEST_TOOLS ? 'Тест: манекен' : `Волна ${b.wave}`);
-    // Подсказки к кнопкам: сколько ударов серии набрано и что даст B прямо сейчас
-    if (me?.char === HERO_ID) {
-      const c = Math.min(me.combo ?? 0, 2);
-      this.aHint.setText('●'.repeat(c) + '○'.repeat(3 - c));
-      this.bHint.setText(MOVE_NAMES[HEAVY[me.form ?? 'prime'][c]] ?? '');
-    } else {
-      this.aHint.setText('');
-      this.bHint.setText('');
-    }
   }
 }
 
@@ -343,7 +205,10 @@ export function startGame(parent: string, session: GameSession): Phaser.Game {
     input: { activePointers: 4 },
     scene: [],
     callbacks: {
-      postBoot: game => { game.scene.add('game', GameScene, true, { session }); },
+      postBoot: game => {
+        game.scene.add('game', GameScene, true, { session });
+        game.scene.add('ui', UIScene, true, { session }); // поверх боя
+      },
     },
   });
   // Поворот, появление/исчезновение панелей Safari: подгоняем ширину

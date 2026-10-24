@@ -1,0 +1,11 @@
+status: completed
+id: 129adfad-5084-4043-a50b-abd48b1c5d99
+job_id: 129adfad-5084-4043-a50b-abd48b1c5d99
+frames: 16
+transparent: yes
+asset_id: 0f708b20-6384-5831-bead-3b60905a2aa1
+asset_type: image
+asset_status: saved
+gallery: saved to your PixelLab gallery (pixellab.ai/create)
+charged: 10 generations
+download: https://api.pixellab.ai/mcp/images/129adfad-5084-4043-a50b-abd48b1c5d99/download?index=0 ... ?index=15

@@ -1,0 +1,35 @@
+{
+ "icon_fist": {
+  "out": "id: e18d01f4-8014-4659-bea9-88670c6f2363\njob_id: e18d01f4-8014-4659-bea9-88670c6f2363\nmodel: pro\ndescription: game UI icon: clenched boxing fist wrapped in white hand wraps, front view, bold dark outline, cream and white, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: e169728e-ef5a-5163-90c3-b71e7474d6bb\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"e18d01f4-8014-4659-bea9-88670c6f2363\")"
+ },
+ "icon_kick": {
+  "out": "id: db1e484d-158e-4892-8057-daeeb2a56d74\njob_id: db1e484d-158e-4892-8057-daeeb2a56d74\nmodel: pro\ndescription: game UI icon: muay thai kick, bare shin and foot swinging sideways with two motion lines, bold dark outline, skin tone, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: f64abb43-51d2-5d8a-927b-0807a6de5dbc\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"db1e484d-158e-4892-8057-daeeb2a56d74\")"
+ },
+ "icon_ult": {
+  "out": "id: fb2f2b48-a7fa-4351-924b-d6432ed630dc\njob_id: fb2f2b48-a7fa-4351-924b-d6432ed630dc\nmodel: pro\ndescription: game UI icon: jagged lightning bolt with small energy sparks, glowing violet and white, bold dark outline, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 888961b8-4567-5b51-9546-7ecb257961c5\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"fb2f2b48-a7fa-4351-924b-d6432ed630dc\")"
+ },
+ "icon_taunt": {
+  "out": "id: 08a5dffe-edc6-44bf-94e8-d6670f93ceee\njob_id: 08a5dffe-edc6-44bf-94e8-d6670f93ceee\nmodel: pro\ndescription: game UI icon: cheeky round face sticking out tongue and winking, emoji style, yellow-cream face, bold dark outline, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 247eaa03-8464-58f3-ac35-7d24d7473004\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"08a5dffe-edc6-44bf-94e8-d6670f93ceee\")"
+ },
+ "btn_base": {
+  "out": "id: 88633f6a-a0d5-4905-8268-ec1f15963604\njob_id: 88633f6a-a0d5-4905-8268-ec1f15963604\nmodel: pro\ndescription: round arcade push button seen from straight above, plain light grey glossy dome, thin darker rim, bold dark outline, no symbol, no text, centered, game UI\nsize: 48x48px\ntransparent: True\ncandidates: 25\nstyle_image: yes (outline, shading)\nmax colours: 8 per image\nasset_id: ea41c871-0222-5024-a5ff-35178f890688\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"88633f6a-a0d5-4905-8268-ec1f15963604\")"
+ },
+ "stick_base": {
+  "out": "id: 129adfad-5084-4043-a50b-abd48b1c5d99\njob_id: 129adfad-5084-4043-a50b-abd48b1c5d99\nmodel: pro\ndescription: virtual joystick base for a mobile game: flat round dark navy plate with a lighter rim and four small triangle arrow notches at top, bottom, left and right, seen from straight above, centered, game UI\nsize: 64x64px\ntransparent: True\ncandidates: 16\nstyle_image: yes (color_palette, outline, shading)\nmax colours: 8 per image\nasset_id: 0f708b20-6384-5831-bead-3b60905a2aa1\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_"
+ },
+ "portrait_frame": {
+  "out": "id: 578f2de3-66ed-4143-91ed-8188947978eb\njob_id: 578f2de3-66ed-4143-91ed-8188947978eb\nmodel: pro\ndescription: square portrait frame for a fighting game HUD, thick dark purple metal border with lavender highlights and four small corner rivets, empty dark plain center, front view, game UI\nsize: 48x48px\ntransparent: True\ncandidates: 25\nstyle_image: yes (color_palette, outline, shading)\nmax colours: 10 per image\nasset_id: 026b7633-cfa7-519c-95a6-3c03c502b4bb\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"578f2de3"
+ },
+ "portrait_prime": {
+  "out": "id: 9d66f54c-b5f6-483b-8c7b-870511b7eaf5\ndirection: character_to_portrait\nview: side\nsize: 64×64px\ncost: ~15 generations\nstatus: processing (~30-80s)\n\nhint: get_portrait_character(job_id=\"9d66f54c-b5f6-483b-8c7b-870511b7eaf5\")"
+ },
+ "portrait_ultimate": {
+  "out": "id: 8fd77d35-890f-4f02-927d-0a19568be459\ndirection: character_to_portrait\nview: side\nsize: 64×64px\ncost: ~15 generations\nstatus: processing (~30-80s)\n\nhint: get_portrait_character(job_id=\"8fd77d35-890f-4f02-927d-0a19568be459\")"
+ },
+ "menu_panel": {
+  "out": "id: f3ad5986-6ed1-4065-8fa5-dbe25db87fd3\ndescription: retro beat em up menu window: dark purple-navy panel with lavender pixel border, small corner rivets, plain flat center for text\nmode: ui-panel (256x192px)\ncost: 10 generations\nstatus: processing (~30-90s)\n\nhint: get_ui_asset(ui_asset_id=\"f3ad5986-6ed1-4065-8fa5-dbe25db87fd3\")"
+ },
+ "menu_button": {
+  "out": "id: ea2c3c5e-52f1-4751-a244-fba67c8b42de\ndescription: single wide rounded game menu button, magenta-pink with darker bevel at bottom and light highlight at top, dark outline, no text\nmode: ui-panel (384x192px)\ncost: 15 generations\nstatus: processing (~30-90s)\n\nhint: get_ui_asset(ui_asset_id=\"ea2c3c5e-52f1-4751-a244-fba67c8b42de\")"
+ }
+}

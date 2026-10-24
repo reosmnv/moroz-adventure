@@ -1,0 +1,11 @@
+status: completed
+id: e18d01f4-8014-4659-bea9-88670c6f2363
+job_id: e18d01f4-8014-4659-bea9-88670c6f2363
+frames: 64
+transparent: yes
+asset_id: e169728e-ef5a-5163-90c3-b71e7474d6bb
+asset_type: image
+asset_status: saved
+gallery: saved to your PixelLab gallery (pixellab.ai/create)
+charged: 10 generations
+download: https://api.pixellab.ai/mcp/images/e18d01f4-8014-4659-bea9-88670c6f2363/download?index=0 ... ?index=63

@@ -1,0 +1,4 @@
+status: creating (38% ~103s)
+id: f3ad5986-6ed1-4065-8fa5-dbe25db87fd3
+description: retro beat em up menu window: dark purple-navy panel with lavender pixel border, small corner rivets, plain flat center for text
+job_status: processing

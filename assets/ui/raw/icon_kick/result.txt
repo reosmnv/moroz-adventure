@@ -1,0 +1,11 @@
+status: completed
+id: db1e484d-158e-4892-8057-daeeb2a56d74
+job_id: db1e484d-158e-4892-8057-daeeb2a56d74
+frames: 64
+transparent: yes
+asset_id: f64abb43-51d2-5d8a-927b-0807a6de5dbc
+asset_type: image
+asset_status: saved
+gallery: saved to your PixelLab gallery (pixellab.ai/create)
+charged: 10 generations
+download: https://api.pixellab.ai/mcp/images/db1e484d-158e-4892-8057-daeeb2a56d74/download?index=0 ... ?index=63
