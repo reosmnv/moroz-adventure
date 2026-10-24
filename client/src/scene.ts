@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { AIR_MS, PLAYER_HP, CHARACTERS, moveSpeed, HERO_ANIMS, HERO_ID, LANE_BOTTOM, LANE_TOP, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { AIR_MS, PLAYER_HP, STORM_RADIUS, CHARACTERS, moveSpeed, HERO_ANIMS, HERO_ID, LANE_BOTTOM, LANE_TOP, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
 import { FONT, UIScene, textStyle } from './ui.ts';
@@ -10,8 +10,11 @@ const FEET_Y = 112; // ступни в кадре
 const SCALE = 1.5; // героиня крупнее исходных 128 px по просьбе mr.R
 const HEAD = 62 * SCALE; // высота над ступнями для полоски жизни и имени
 const LAUNCH_H = 90; // высота подброса апперкотом, px
+const FLAKES = 90; // снежинок в буре
+const ICE = 0x66b8ff; // цвет замороженного врага
 
-interface View { sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
+interface Storm { zone: Phaser.GameObjects.Ellipse; flakes: Phaser.GameObjects.Rectangle[]; seed: number[] }
+interface View { storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
@@ -73,6 +76,15 @@ export class GameScene extends Phaser.Scene {
           this.tweens.add({ targets: c, scale: 7, alpha: 0, duration: 450, onComplete: () => c.destroy() });
         }
         beep(220, 0.3);
+      } else if (e.t === 'storm') {
+        const v = this.views.get('p:' + e.id);
+        if (v) {
+          // Кольцо холода расходится до края зоны
+          const ring = this.add.circle(v.body.x, v.body.y, 10, 0xbfe9ff, 0.25).setStrokeStyle(2, 0xe8f8ff).setDepth(1400).setScale(1, 0.4);
+          this.tweens.add({ targets: ring, scaleX: STORM_RADIUS / 10, scaleY: STORM_RADIUS / 10 * 0.4, alpha: 0, duration: 500, onComplete: () => ring.destroy() });
+        }
+        beep(660, 0.12);
+        this.time.delayedCall(120, () => beep(990, 0.12));
       } else if (e.t === 'restart') {
         this.cameras.main.flash(300, 255, 0, 0);
       }
@@ -120,6 +132,32 @@ export class GameScene extends Phaser.Scene {
     return v;
   }
 
+  // Снежная буря: ледяной овал на земле и падающий снег по всей зоне, пока идёт заклинание
+  private drawStorm(v: View, sb: EntitySnap, x: number, y: number) {
+    if ((sb.storm ?? 0) <= 0) {
+      if (v.storm) { v.storm.zone.destroy(); v.storm.flakes.forEach(f => f.destroy()); v.storm = undefined; }
+      return;
+    }
+    if (!v.storm) {
+      const zone = this.add.ellipse(0, 0, STORM_RADIUS * 2, STORM_RADIUS * 0.7, 0xbfe9ff, 0.16).setStrokeStyle(1, 0xe8f8ff, 0.5);
+      const flakes: Phaser.GameObjects.Rectangle[] = [];
+      const seed: number[] = [];
+      for (let i = 0; i < FLAKES; i++) {
+        flakes.push(this.add.rectangle(0, 0, i % 3 === 0 ? 3 : 2, i % 3 === 0 ? 3 : 2, 0xffffff, 0.9));
+        seed.push(Math.random(), Math.random(), 0.6 + Math.random() * 0.8);
+      }
+      v.storm = { zone, flakes, seed };
+    }
+    const now = this.time.now / 1000;
+    v.storm.zone.setPosition(x, y).setDepth(y - 0.2).setAlpha(0.12 + 0.05 * Math.sin(now * 6));
+    v.storm.flakes.forEach((f, i) => {
+      const [sx, sy, sp] = [v.storm!.seed[i * 3], v.storm!.seed[i * 3 + 1], v.storm!.seed[i * 3 + 2]];
+      const fall = (sy * 170 + now * 70 * sp) % 170; // 0..170 вниз
+      const drift = Math.sin(now * 2 + sx * 9) * 8;
+      f.setPosition(x + (sx * 2 - 1) * STORM_RADIUS + drift, y - 140 + fall + (sx - 0.5) * 20).setDepth(2000);
+    });
+  }
+
   // Кадр героини из снимка: анимация по имени и времени с её начала, east/west отдельными полосами
   private drawHero(v: View, sb: EntitySnap, x: number, y: number, f: number, away: boolean, lead = 0) {
     const form = sb.form ?? 'prime';
@@ -161,7 +199,10 @@ export class GameScene extends Phaser.Scene {
         const lead = live ? Math.min(TICK_MS, performance.now() - this.session.snapshots[this.session.snapshots.length - 1].t) : 0;
         this.drawHero(v, sb, x, y, live ? 1 : f, !!away, lead);
       }
-      v.body.setFillStyle(sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : sb.dummy ? 0xb08d57 : 0x8a8f98));
+      // Замороженный враг синий с ледяной окантовкой
+      v.body.setFillStyle(sb.frozen ? ICE : sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : sb.dummy ? 0xb08d57 : 0x8a8f98));
+      if (sb.frozen) v.body.setStrokeStyle(2, 0xe8f8ff); else v.body.setStrokeStyle();
+      if (isPlayer) this.drawStorm(v, sb, x, y);
       const hitting = !v.sprite && (sb.anim === 'attack' || sb.anim === 'heavy');
       v.fist.setVisible(hitting).setPosition(x + sb.facing * (sb.anim === 'heavy' ? 16 : 12), y - 18).setSize(sb.anim === 'heavy' ? 14 : 10, 5).setDepth(y + 0.5);
       const maxHp = sb.maxHp ?? (isPlayer ? PLAYER_HP : 100);
@@ -180,6 +221,7 @@ export class GameScene extends Phaser.Scene {
     for (const [id, sb] of b.enemies) draw('e:' + id, false, a.enemies.get(id), sb);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
+      v.storm?.zone.destroy(); v.storm?.flakes.forEach(f => f.destroy());
       v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
       this.views.delete(key);
     }

@@ -1,7 +1,7 @@
 import { Room, type Client } from 'colyseus';
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
-  CHARACTERS, TEST_TOOLS, TICK_MS, addPlayer, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars,
+  CHARACTERS, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars,
   type Input, type World,
 } from '@bc/shared';
 
@@ -17,6 +17,7 @@ export const PlayerState = schema({
   move: t.string(),
   moveT: t.number(),
   formMs: t.number(),
+  storm: t.number(),
   combo: t.number(),
   invuln: t.boolean(),
   connected: t.boolean(),
@@ -30,6 +31,7 @@ export const EnemyState = schema({
   hp: t.number(),
   maxHp: t.number(),
   dummy: t.boolean(),
+  frozen: t.boolean(),
   air: t.number(),
   facing: t.number(),
   anim: t.string(),
@@ -77,12 +79,16 @@ export class GameRoom extends Room<{ state: GameState }> {
     // Кнопки копятся до ближайшего тика, чтобы короткое нажатие не терялось
     this.onMessage('btn', (client: Client, b: string) => {
       const inp = this.playerInputs[client.sessionId];
-      if (inp && (b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult')) inp[b] = true;
+      if (inp && (b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult' || b === 'ult2')) inp[b] = true;
     });
 
     // Тестовая кнопка «+3 врага»; в релизе TEST_TOOLS = false
     this.onMessage('spawn', (client: Client) => {
       if (TEST_TOOLS && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
+    });
+
+    this.onMessage('charge', (client: Client) => {
+      if (TEST_TOOLS) chargeUlt(this.world, client.sessionId);
     });
 
     // Пауза общая на комнату: поставить и снять может любой из двоих
@@ -104,7 +110,7 @@ export class GameRoom extends Room<{ state: GameState }> {
   tick() {
     if (this.state.paused) return;
     const events = step(this.world, this.playerInputs);
-    for (const inp of Object.values(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = false; }
+    for (const inp of Object.values(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.ult2 = false; }
     this.sync();
     if (events.length) this.broadcast('ev', events);
   }
@@ -120,14 +126,14 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (!ps) { ps = new PlayerState(); s.players.set(p.id, ps); }
       ps.char = p.char; ps.x = round(p.x); ps.y = round(p.y); ps.hp = p.hp; ps.facing = p.facing;
       ps.anim = p.anim; ps.ult = Math.floor(p.ult);
-      ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.invuln = p.invulnMs > 0;
+      ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.storm = Math.round(p.stormMs); ps.invuln = p.invulnMs > 0;
       ps.connected = p.connected; ps.away = p.away;
     }
     for (const id of [...s.enemies.keys()]) if (!w.enemies[id]) s.enemies.delete(id);
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
-      es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.air = Math.round(e.air ?? 0); es.facing = e.facing; es.anim = e.anim;
+      es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.air = Math.round(e.air ?? 0); es.frozen = (e.frozenMs ?? 0) > 0; es.facing = e.facing; es.anim = e.anim;
     }
   }
 

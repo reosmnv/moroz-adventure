@@ -1,0 +1,5 @@
+{
+ "icon_snow": {
+  "out": "id: adda10af-4327-49c7-a298-e6c014f471fa\njob_id: adda10af-4327-49c7-a298-e6c014f471fa\nmodel: pro\ndescription: game UI icon: sharp six-pointed ice snowflake crystal with tiny frost sparkles around it, glowing icy cyan blue and white, bold dark outline, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 1a09c25d-65e0-590f-b036-1746a83ad4e7\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"adda10af-4327-49c7"
+ }
+}

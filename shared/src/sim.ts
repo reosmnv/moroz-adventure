@@ -2,7 +2,7 @@
 // Чистые данные и функции, без Phaser и Colyseus.
 import type { Form } from './anims-data.ts';
 import {
-  AIR_MS, CHAIN, COMBO_MS, HEAVY, HERO_ID, HURT_INVULN_MS, HITSTOP_HEAVY_MS, HITSTOP_MS, IMMUNE_INVULN_MS, KNOCK_MULT, RANGE_MULT, RUN_MULT, SPEED_MULT, STRIKES, ULT_MS,
+  AIR_MS, CHAIN, COMBO_MS, HEAVY, HERO_ID, HURT_INVULN_MS, FREEZE_MS, HITSTOP_HEAVY_MS, HITSTOP_MS, IMMUNE_INVULN_MS, KNOCK_MULT, RANGE_MULT, RUN_MULT, STORM_DMG, STORM_MS, STORM_RADIUS, STORM_TICK_MS, SPEED_MULT, STRIKES, ULT_MS,
   hitTimesMs, isLoop, moveDurMs, type Strike,
 } from './hero-data.ts';
 
@@ -65,6 +65,8 @@ export interface Player {
   formMs: number; // сколько осталось быть Ultimate
   invulnMs: number;
   hitstopMs: number; // героиня замирает на мгновение после попадания
+  stormMs: number; // сколько ещё идёт снежная буря
+  stormTickMs: number;
 }
 
 export interface Enemy {
@@ -77,6 +79,7 @@ export interface Enemy {
   anim: Anim;
   animMs: number;
   cdMs: number;
+  frozenMs?: number; // заморожен: стоит и не бьёт, получает урон без отбрасывания
   air?: number; // мс до приземления после подброса апперкотом (для отрисовки)
   dummy?: boolean; // манекен: стоит, не бьёт, не умирает
   homeX?: number;
@@ -100,15 +103,17 @@ export interface Input {
   heavy: boolean;
   taunt: boolean;
   ult: boolean;
+  ult2: boolean; // снежная буря
   run: boolean; // стик на максимуме или Shift
 }
 
-export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: false, taunt: false, ult: false, run: false });
+export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: false, taunt: false, ult: false, ult2: false, run: false });
 
 export type SimEvent =
   | { t: 'hit'; target: string; dmg: number; x: number; y: number }
   | { t: 'taunt'; id: string; line: string }
   | { t: 'ult'; id: string }
+  | { t: 'storm'; id: string }
   | { t: 'heal'; id: string; amount: number }
   | { t: 'down'; id: string }
   | { t: 'wave'; n: number }
@@ -142,7 +147,7 @@ export function addPlayer(w: World, id: string, char: string): Player {
     y: buddy ? clamp(buddy.y + 20, LANE_TOP, LANE_BOTTOM) : 200,
     hp: PLAYER_HP, facing: 1, anim: 'idle', animMs: 0, cdMs: 0, tauntCdMs: 0, ult: 0, downMs: 0,
     connected: true, away: false,
-    form: 'prime', move: 'idle', moveT: 0, combo: 0, comboMs: 0, queued: null, formMs: 0, invulnMs: 0, hitstopMs: 0,
+    form: 'prime', move: 'idle', moveT: 0, combo: 0, comboMs: 0, queued: null, formMs: 0, invulnMs: 0, hitstopMs: 0, stormMs: 0, stormTickMs: 0,
   };
   w.players[id] = p;
   return p;
@@ -156,6 +161,11 @@ function ensureDummy(w: World) {
   if (Object.values(w.enemies).some(e => e.dummy)) return;
   const id = 'e' + w.nextEnemyId++;
   w.enemies[id] = { id, x: 330, y: 205, hp: 200, maxHp: 200, facing: -1, anim: 'idle', animMs: 0, cdMs: 0, dummy: true, homeX: 330, homeY: 205 };
+}
+
+export function chargeUlt(w: World, id: string) {
+  const p = w.players[id];
+  if (p) p.ult = 100;
 }
 
 export function spawnEnemies(w: World, count: number) {
@@ -188,10 +198,12 @@ function hitEnemies(
     const inFront = allAround || Math.sign(dx) === p.facing || Math.abs(dx) < 6;
     if (opts.everyone || (inFront && Math.abs(dx) < range && Math.abs(e.y - p.y) < (allAround ? 60 : LANE_TOLERANCE))) {
       e.hp -= dmg;
-      e.anim = opts.down ? 'down' : 'hurt';
-      e.animMs = opts.down ? 900 : (opts.stun ?? 250);
-      if (opts.launch) e.air = AIR_MS;
-      e.x = clamp(e.x + Math.sign(dx || p.facing) * (opts.kb ?? (allAround ? 30 : 8)), -40, VIEW_W + 40);
+      if (!e.frozenMs) { // замороженного не сдвинуть, он только получает урон
+        e.anim = opts.down ? 'down' : 'hurt';
+        e.animMs = opts.down ? 900 : (opts.stun ?? 250);
+        if (opts.launch) e.air = AIR_MS;
+        e.x = clamp(e.x + Math.sign(dx || p.facing) * (opts.kb ?? (allAround ? 30 : 8)), -40, VIEW_W + 40);
+      }
       hits++;
       if (opts.silent) continue;
       if (p.form !== 'ultimate') p.ult = Math.min(100, p.ult + dmg); // в Ultimate шкала не копится
@@ -220,7 +232,7 @@ function heroDown(p: Player) {
 }
 
 function heroReset(p: Player) {
-  p.form = 'prime'; p.formMs = 0; p.combo = 0; p.comboMs = 0; p.queued = null; p.invulnMs = 0;
+  p.form = 'prime'; p.formMs = 0; p.combo = 0; p.comboMs = 0; p.queued = null; p.invulnMs = 0; p.stormMs = 0;
   startMove(p, 'idle');
 }
 
@@ -241,6 +253,25 @@ function damagePlayer(p: Player, dmg: number): boolean {
 function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[]) {
   const dt = dtMs / 1000;
   p.invulnMs = Math.max(0, p.invulnMs - dtMs);
+  // Снежная буря: запуск не ждёт окончания удара и хитстопа, только не из падения, подъёма и превращения
+  const stunned = ['hurt', 'fall', 'getup'].includes(p.move) || p.move.startsWith('transform');
+  if (inp.ult2 && p.ult >= 100 && p.stormMs <= 0 && !stunned) {
+    p.ult = 0; p.stormMs = STORM_MS; p.stormTickMs = 0;
+    ev.push({ t: 'storm', id: p.id });
+  }
+  if (p.stormMs > 0) {
+    if (p.stormTickMs <= 0) {
+      p.stormTickMs += STORM_TICK_MS;
+      for (const e of Object.values(w.enemies)) {
+        if (Math.hypot(e.x - p.x, e.y - p.y) > STORM_RADIUS) continue;
+        e.hp -= STORM_DMG;
+        e.frozenMs = FREEZE_MS;
+        ev.push({ t: 'hit', target: e.id, dmg: STORM_DMG, x: e.x, y: e.y });
+      }
+    }
+    p.stormTickMs -= dtMs;
+    p.stormMs = Math.max(0, p.stormMs - dtMs);
+  }
   // Хитстоп: на тик-два всё замирает, нажатие запоминается
   if (p.hitstopMs > 0) {
     p.hitstopMs = Math.max(0, p.hitstopMs - dtMs);
@@ -410,6 +441,12 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     e.animMs = Math.max(0, e.animMs - dtMs);
     e.cdMs = Math.max(0, e.cdMs - dtMs);
     if (e.air) e.air = Math.max(0, e.air - dtMs);
+    if (e.frozenMs) {
+      e.frozenMs = Math.max(0, e.frozenMs - dtMs);
+      if (e.hp <= 0) { if (e.dummy) e.hp = e.maxHp; else { delete w.enemies[e.id]; continue; } }
+      e.anim = 'idle'; e.animMs = 0;
+      continue; // замёрзший стоит и не бьёт
+    }
     if (e.dummy) {
       if (e.hp <= 0) e.hp = e.maxHp;
       if ((e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0) continue;

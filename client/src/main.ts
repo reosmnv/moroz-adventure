@@ -63,6 +63,7 @@ async function begin(code?: string) {
   $('menu').classList.add('hidden');
   $('topbar').classList.remove('hidden');
   $('spawnBtn').classList.toggle('hidden', !TEST_TOOLS);
+  $('chargeBtn').classList.toggle('hidden', !TEST_TOOLS);
   // Пиксельный шрифт нужен canvas до первого кадра, иначе Phaser нарисует текст системным
   await Promise.race([document.fonts.load('8px "Press Start 2P"').catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
   game = startGame('game', session);
@@ -72,6 +73,7 @@ async function begin(code?: string) {
 
 // Тестовая кнопка: три настоящих врага
 $('spawnBtn').onclick = () => session?.spawn();
+$('chargeBtn').onclick = () => session?.charge();
 
 // Пауза: офлайн останавливает браузерную симуляцию, онлайн ставит на паузу всю комнату
 $('pauseBtn').onclick = () => session?.setPaused(true);

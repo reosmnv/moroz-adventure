@@ -1,0 +1,18 @@
+[
+ {
+  "name": "icon_snow",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: sharp six-pointed ice snowflake crystal with tiny frost sparkles around it, glowing icy cyan blue and white, bold dark outline, centered, readable at small size",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-prime-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ }
+]

@@ -57,6 +57,13 @@ export const MOVE_NAMES: Record<string, string> = {
   'spin-elbow': 'Локоть с разворота', 'flying-knee': 'Колено в прыжке', hurricane: 'Ураган',
 };
 
+// Снежная буря (утилити-ультимейт): та же шкала заряда, что у превращения
+export const STORM_MS = 3000;
+export const STORM_TICK_MS = 500;
+export const STORM_DMG = 1; // за тик каждому врагу в зоне
+export const FREEZE_MS = 700; // заморозка обновляется каждый тик, после бури враги оттаивают через это время
+export const STORM_RADIUS = Math.round(STRIKES.ultimate.hurricane.range * RANGE_MULT * 4); // в 4 раза шире урагана
+
 export const SPEED_MULT: Record<Form, number> = { prime: 1, ultimate: 2.5 };
 
 export const dirOf = (facing: number): 'east' | 'west' => (facing >= 0 ? 'east' : 'west');

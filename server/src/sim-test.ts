@@ -31,7 +31,7 @@ function run(w: World, ms: number, input: (t: number) => Partial<Input> = () => 
   }
   return { log, hits };
 }
-const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: number) => (at.some(a => t >= a && t < a + TICK_MS) ? { [key]: true } : {});
+const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt') => (t: number) => (at.some(a => t >= a && t < a + TICK_MS) ? { [key]: true } : {});
 
 // 1. Серия A: jab, cross, teep, затем сначала
 {
@@ -193,6 +193,34 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   const { w: w4 } = setup(); dummy(w4, 'e1', 66); // джеб 52 x1.3 = 67.6
   run(w4, 600, press([0], 'attack'));
   check('дальность ударов +30%', (w4.enemies.e1.hp as number) < 1000);
+}
+// 10. Снежная буря
+{
+  const { w, p } = setup();
+  w.enemies.a = { id: 'a', x: 200 + 100, y: 200, hp: 50, maxHp: 50, facing: -1, anim: 'walk', animMs: 0, cdMs: 0 };
+  w.enemies.b = { id: 'b', x: 200 + 420, y: 200, hp: 50, maxHp: 50, facing: -1, anim: 'walk', animMs: 0, cdMs: 0 };
+  p.ult = 100;
+  run(w, 100, press([0], 'ult2'));
+  check('буря тратит заряд и замораживает врага в зоне', p.ult === 0 && (w.enemies.a.frozenMs ?? 0) > 0 && !w.enemies.b.frozenMs, `a=${w.enemies.a.frozenMs} b=${w.enemies.b.frozenMs}`);
+  check('враг вне зоны не пострадал', w.enemies.b.hp === 50);
+  const ax = w.enemies.a.x;
+  run(w, 2800);
+  check('замороженный не двигается и не бьёт', w.enemies.a.x === ax && p.hp === 150, `x ${ax}->${w.enemies.a.x} hp ${p.hp}`);
+  run(w, 500);
+  check('6 тиков по 1 урону за 3 секунды', w.enemies.a.hp === 44, `hp ${w.enemies.a.hp}`);
+  check('буря кончилась, враг оттаял и пошёл', !w.enemies.a.frozenMs && p.stormMs === 0);
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 24);
+  w.enemies.e1.frozenMs = 5000;
+  const x0 = w.enemies.e1.x;
+  run(w, 600, press([0], 'attack'));
+  check('замороженный получает урон без отбрасывания', w.enemies.e1.hp < 1000 && w.enemies.e1.x === x0);
+}
+{
+  const { w, p } = setup(); p.ult = 50;
+  run(w, 100, press([0], 'ult2'));
+  check('без полной шкалы буря не запускается', p.stormMs === 0 && p.ult === 50);
 }
 check('длительности из данных (x1.4)', moveDurMs('prime', 'jab', 1) > 300 && moveDurMs('prime', 'jab', 1) < 400);
 

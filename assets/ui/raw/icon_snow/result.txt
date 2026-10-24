@@ -1,0 +1,11 @@
+status: completed
+id: adda10af-4327-49c7-a298-e6c014f471fa
+job_id: adda10af-4327-49c7-a298-e6c014f471fa
+frames: 64
+transparent: yes
+asset_id: 1a09c25d-65e0-590f-b036-1746a83ad4e7
+asset_type: image
+asset_status: saved
+gallery: saved to your PixelLab gallery (pixellab.ai/create)
+charged: 10 generations
+download: https://api.pixellab.ai/mcp/images/adda10af-4327-49c7-a298-e6c014f471fa/download?index=0 ... ?index=63

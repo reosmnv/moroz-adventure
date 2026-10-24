@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { CHARACTERS, HEAVY, HERO_ID, MOVE_NAMES, PLAYER_HP, TEST_TOOLS, ULT_MS, VIEW_H } from '@bc/shared';
+import { CHARACTERS, HEAVY, HERO_ID, MOVE_NAMES, PLAYER_HP, STORM_MS, TEST_TOOLS, ULT_MS, VIEW_H } from '@bc/shared';
 import type { Button, EntitySnap, GameSession } from './session.ts';
 
 // Интерфейс поверх боя: стик, кнопки, панели игроков. Отдельная сцена, поэтому встряска
@@ -25,6 +25,7 @@ const BUTTONS: { id: Button; icon: string; dx: number; dy: number; color: number
   { id: 'heavy', icon: 'ui-icon-heavy', dx: 104, dy: 30, color: 0x5a609a }, // тёмная: на ней читаются огненные иконки
   { id: 'taunt', icon: 'ui-icon-taunt', dx: 38, dy: 104, color: 0x3f8efc },
   { id: 'ult', icon: 'ui-icon-ult', dx: 98, dy: 92, color: 0x9b59ff },
+  { id: 'ult2', icon: 'ui-icon-snow', dx: 156, dy: 96, color: 0x2e4a7a }, // снежная буря, шкала общая с U
 ];
 const btnPos = (b: { dx: number; dy: number }, w: number) => ({ x: w - b.dx, y: VIEW_H - b.dy });
 
@@ -57,7 +58,7 @@ export class UIScene extends Phaser.Scene {
   init(data: { session: GameSession }) { this.session = data.session; }
 
   preload() {
-    for (const k of ['btn', 'stick', 'frame', 'icon-attack', 'icon-heavy', 'icon-ult', 'icon-taunt', 'face-prime', 'face-ultimate']) {
+    for (const k of ['btn', 'stick', 'frame', 'icon-attack', 'icon-heavy', 'icon-ult', 'icon-snow', 'icon-taunt', 'face-prime', 'face-ultimate']) {
       this.load.image('ui-' + k, `ui/${k}.png`);
     }
     // Своя иконка B на каждый завершающий удар обеих форм
@@ -99,6 +100,7 @@ export class UIScene extends Phaser.Scene {
     kb.on('keydown-K', key('heavy'));
     kb.on('keydown-L', key('taunt'));
     kb.on('keydown-U', key('ult'));
+    kb.on('keydown-I', key('ult2'));
     // Палец ушёл в системный жест или окно потеряло фокус: отпускаем стик и кнопки
     this.game.events.on('blur', () => this.releaseAll());
   }
@@ -268,6 +270,18 @@ export class UIScene extends Phaser.Scene {
       this.ultRing.lineStyle(5, INK).beginPath().arc(u.base.x, u.base.y, 27, 0, Math.PI * 2).strokePath();
       this.ultRing.lineStyle(3, ultimate ? ULTIMATE_COLOR : ready ? CREAM : ULT_COLOR)
         .beginPath().arc(u.base.x, u.base.y, 27, start, start + Math.PI * 2 * Math.min(1, charge)).strokePath();
+    }
+
+    // Буря: тусклая без полного заряда (шкала общая с U), во время бури кольцо показывает остаток
+    const s2 = this.btns.get('ult2')!;
+    const storm = me?.storm ?? 0;
+    const ready2 = !!me && (me.ult ?? 0) >= 100 && storm <= 0;
+    s2.base.setAlpha(ready2 || storm > 0 ? 1 : 0.5);
+    s2.icon.setAlpha(ready2 || storm > 0 ? 1 : 0.5);
+    if (storm > 0) {
+      const start = -Math.PI / 2;
+      this.ultRing.lineStyle(5, INK).beginPath().arc(s2.base.x, s2.base.y, 27, 0, Math.PI * 2).strokePath();
+      this.ultRing.lineStyle(3, 0xbfe9ff).beginPath().arc(s2.base.x, s2.base.y, 27, start, start + Math.PI * 2 * (storm / STORM_MS)).strokePath();
     }
 
     // Под A точки серии, слева от B удар, который выйдет сейчас

@@ -2,16 +2,16 @@
 // Сцена знает только снимки и события, режим ей не важен.
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  TEST_TOOLS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, takenChars,
+  TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, spawnEnemies, step, takenChars,
   type Anim, type Form, type Input, type SimEvent, type World,
 } from '@bc/shared';
 
 export interface EntitySnap {
-  x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean; air?: number;
+  x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean; air?: number; frozen?: boolean; storm?: number;
   form?: Form; move?: string; moveT?: number; formMs?: number; combo?: number; invuln?: boolean;
 }
 export interface Snapshot { t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
-export type Button = 'attack' | 'heavy' | 'taunt' | 'ult';
+export type Button = 'attack' | 'heavy' | 'taunt' | 'ult' | 'ult2';
 
 export interface GameSession {
   readonly kind: 'local' | 'online';
@@ -23,6 +23,7 @@ export interface GameSession {
   move(mx: number, my: number, run: boolean): void;
   press(b: Button): void;
   spawn(): void;
+  charge(): void;
   pick(char: string): void;
   setPaused(on: boolean): void;
   isPaused(): boolean;
@@ -58,11 +59,11 @@ export class LocalSession implements GameSession {
   private tick() {
     if (document.hidden || this.paused) return; // офлайн-пауза в фоне и по кнопке
     const evs = step(this.world, { [this.me]: this.input });
-    this.input.attack = this.input.heavy = this.input.taunt = this.input.ult = false;
+    this.input.attack = this.input.heavy = this.input.taunt = this.input.ult = this.input.ult2 = false;
     const players = new Map<string, EntitySnap>();
-    for (const p of Object.values(this.world.players)) players.set(p.id, { ...p, invuln: p.invulnMs > 0 });
+    for (const p of Object.values(this.world.players)) players.set(p.id, { ...p, storm: p.stormMs, invuln: p.invulnMs > 0 });
     const enemies = new Map<string, EntitySnap>();
-    for (const e of Object.values(this.world.enemies)) enemies.set(e.id, { ...e });
+    for (const e of Object.values(this.world.enemies)) enemies.set(e.id, { ...e, frozen: (e.frozenMs ?? 0) > 0 });
     pushSnap(this.snapshots, { t: performance.now(), players, enemies, wave: this.world.wave, tick: this.world.tick });
     if (evs.length) this.onEvents(evs);
   }
@@ -70,6 +71,7 @@ export class LocalSession implements GameSession {
   move(mx: number, my: number, run: boolean) { this.input.mx = mx; this.input.my = my; this.input.run = run; }
   press(b: Button) { this.input[b] = true; }
   spawn() { if (TEST_TOOLS) spawnEnemies(this.world, 3); }
+  charge() { if (TEST_TOOLS) chargeUlt(this.world, this.me); }
   pick(char: string) { addPlayer(this.world, this.me, char); }
   setPaused(on: boolean) { this.paused = on; }
   isPaused() { return this.paused; }
@@ -134,9 +136,9 @@ export class OnlineSession implements GameSession {
     sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ roomId: room.roomId, token: room.reconnectionToken }));
     room.onStateChange((state: any) => {
       const players = new Map<string, EntitySnap>();
-      state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, invuln: p.invuln, connected: p.connected, away: p.away }));
+      state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
-      state.enemies.forEach((e: any, id: string) => enemies.set(id, { x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, facing: e.facing, anim: e.anim }));
+      state.enemies.forEach((e: any, id: string) => enemies.set(id, { x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, frozen: e.frozen, facing: e.facing, anim: e.anim }));
       pushSnap(this.snapshots, { t: performance.now(), players, enemies, wave: state.wave, tick: state.tick });
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;
@@ -178,6 +180,7 @@ export class OnlineSession implements GameSession {
   }
   press(b: Button) { this.room.send('btn', b); }
   spawn() { this.safeSend('spawn', true); }
+  charge() { this.safeSend('charge', true); }
   pick(char: string) { this.room.send('pick', char); }
   setPaused(on: boolean) { this.safeSend('pause', on); }
   isPaused() { return this.paused; }
