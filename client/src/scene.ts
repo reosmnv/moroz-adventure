@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { AIR_MS, CHARACTERS, TEST_TOOLS, HEAVY, moveSpeed, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { AIR_MS, PLAYER_HP, CHARACTERS, TEST_TOOLS, HEAVY, moveSpeed, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import type { Button, EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
 
@@ -174,6 +174,12 @@ export class GameScene extends Phaser.Scene {
         this.tweens.add({ targets: t, y: t.y - 16, alpha: 0, duration: 500, onComplete: () => t.destroy() });
         if (e.target.startsWith('e') && e.dmg >= 18) this.cameras.main.shake(90, 0.004); // сильный удар встряхивает кадр
         beep(e.target.startsWith('e') ? 520 : 180, 0.05);
+      } else if (e.t === 'heal') {
+        const v = this.views.get('p:' + e.id);
+        if (v) {
+          const t = this.add.text(v.body.x, v.body.y - HEAD - 10, '+' + e.amount, { fontSize: '12px', color: '#6f6', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5).setDepth(1500);
+          this.tweens.add({ targets: t, y: t.y - 18, alpha: 0, duration: 600, onComplete: () => t.destroy() });
+        }
       } else if (e.t === 'taunt') {
         const v = this.views.get('p:' + e.id);
         if (v) {
@@ -282,7 +288,7 @@ export class GameScene extends Phaser.Scene {
       v.body.setFillStyle(sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : sb.dummy ? 0xb08d57 : 0x8a8f98));
       const hitting = !v.sprite && (sb.anim === 'attack' || sb.anim === 'heavy');
       v.fist.setVisible(hitting).setPosition(x + sb.facing * (sb.anim === 'heavy' ? 16 : 12), y - 18).setSize(sb.anim === 'heavy' ? 14 : 10, 5).setDepth(y + 0.5);
-      const maxHp = sb.maxHp ?? 100;
+      const maxHp = sb.maxHp ?? (isPlayer ? PLAYER_HP : 100);
       const head = v.sprite ? HEAD : isPlayer ? 86 : 80;
       v.hp.setPosition(x - 20, y - head - lift).setDepth(y + 0.6).setSize(40 * Math.max(0, sb.hp) / maxHp, 3);
       v.label?.setPosition(x, y - head - 3 - lift).setDepth(y + 0.7);

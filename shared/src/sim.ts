@@ -2,7 +2,7 @@
 // Чистые данные и функции, без Phaser и Colyseus.
 import type { Form } from './anims-data.ts';
 import {
-  AIR_MS, CHAIN, COMBO_MS, HEAVY, HERO_ID, HURT_INVULN_MS, HITSTOP_HEAVY_MS, HITSTOP_MS, IMMUNE_INVULN_MS, KNOCK_MULT, RUN_MULT, SPEED_MULT, STRIKES, ULT_MS,
+  AIR_MS, CHAIN, COMBO_MS, HEAVY, HERO_ID, HURT_INVULN_MS, HITSTOP_HEAVY_MS, HITSTOP_MS, IMMUNE_INVULN_MS, KNOCK_MULT, RANGE_MULT, RUN_MULT, SPEED_MULT, STRIKES, ULT_MS,
   hitTimesMs, isLoop, moveDurMs, type Strike,
 } from './hero-data.ts';
 
@@ -17,7 +17,7 @@ export const TEST_TOOLS = true;
 
 const PLAYER_SPEED = 90; // единиц в секунду
 const ENEMY_SPEED = 45;
-const PLAYER_HP = 100;
+export const PLAYER_HP = 150;
 const REVIVE_MS = 5000;
 const TAUNT_CD_MS = 3000;
 const LANE_TOLERANCE = 24;
@@ -109,6 +109,7 @@ export type SimEvent =
   | { t: 'hit'; target: string; dmg: number; x: number; y: number }
   | { t: 'taunt'; id: string; line: string }
   | { t: 'ult'; id: string }
+  | { t: 'heal'; id: string; amount: number }
   | { t: 'down'; id: string }
   | { t: 'wave'; n: number }
   | { t: 'restart' };
@@ -254,8 +255,15 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
   if (strike) {
     for (const tm of hitTimesMs(p.form, p.move, p.facing)) {
       if (prevT < tm && p.moveT >= tm) {
-        const n = hitEnemies(w, p, strike.range, strike.dmg, ev, false, { ...strike, kb: strike.kb * KNOCK_MULT[p.form] });
-        if (n > 0) p.hitstopMs = strike.down ? HITSTOP_HEAVY_MS : HITSTOP_MS;
+        const n = hitEnemies(w, p, strike.range * RANGE_MULT, strike.dmg, ev, false, { ...strike, kb: strike.kb * KNOCK_MULT[p.form] });
+        if (n > 0) {
+          p.hitstopMs = strike.down ? HITSTOP_HEAVY_MS : HITSTOP_MS;
+          // Ultimate: сколько нанесла, столько и вылечила
+          if (p.form === 'ultimate') {
+            const heal = Math.min(PLAYER_HP - p.hp, n * strike.dmg);
+            if (heal > 0) { p.hp += heal; ev.push({ t: 'heal', id: p.id, amount: heal }); }
+          }
+        }
       }
     }
   }

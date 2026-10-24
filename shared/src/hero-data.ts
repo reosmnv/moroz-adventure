@@ -2,6 +2,7 @@
 import { HERO_ANIMS, type AnimDef, type Form } from './anims-data.ts';
 
 export const HERO_ID = 'anastasia';
+export const RANGE_MULT = 1.3; // дальность всех ударов героини +30% (mr.R 24.10)
 export const ULT_MS = 16000; // сколько длится Ultimate
 export const COMBO_MS = 700; // окно, в которое следующий удар продолжает серию
 export const HURT_INVULN_MS = 800;

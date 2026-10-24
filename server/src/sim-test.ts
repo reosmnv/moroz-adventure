@@ -99,7 +99,7 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   const { w, p } = setup(true);
   w.enemies.e1 = { id: 'e1', x: p.x + 24, y: p.y, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 0 };
   const { log } = run(w, 400);
-  check('удар врага: hurt', log.includes('hurt') && p.hp === 93, `${log.join('>')} hp ${p.hp}`);
+  check('удар врага: hurt', log.includes('hurt') && p.hp === 143, `${log.join('>')} hp ${p.hp}`);
   check('после удара неуязвима', p.invulnMs > 0);
   w.enemies.e1.cdMs = 0; w.enemies.e1.anim = 'idle'; w.enemies.e1.animMs = 0;
   p.hp = 5; p.invulnMs = 0;
@@ -132,7 +132,7 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   w.enemies.e1 = { id: 'e1', x: p.x + 34, y: p.y, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 0 };
   p.form = 'ultimate'; p.formMs = ULT_MS;
   const r = run(w, 600);
-  check('Ultimate: урон идёт, но без hurt', p.hp < 100 && !r.log.includes('hurt'), `hp ${p.hp} ${r.log.join('>')}`);
+  check('Ultimate: урон идёт, но без hurt', p.hp < 150 && !r.log.includes('hurt'), `hp ${p.hp} ${r.log.join('>')}`);
 }
 {
   const dist = (form: 'prime' | 'ultimate') => {
@@ -178,6 +178,21 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   const { w: w2 } = setup(); dummy(w2, 'e1', 24);
   run(w2, 400, press([0], 'heavy'));
   check('суперман не подбрасывает', !w2.enemies.e1.air);
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 24);
+  p.form = 'ultimate'; p.formMs = ULT_MS; p.hp = 100;
+  run(w, 600, press([0], 'attack')); // elbow: 15 урона
+  check('Ultimate лечит на нанесённый урон', p.hp === 115, `hp ${p.hp}`);
+  const { w: w2, p: p2 } = setup(); dummy(w2, 'e1', 24);
+  p2.hp = 100; run(w2, 600, press([0], 'attack'));
+  check('Prime не лечит', p2.hp === 100);
+  const { w: w3, p: p3 } = setup(); dummy(w3, 'e1', 24);
+  p3.form = 'ultimate'; p3.formMs = ULT_MS; p3.hp = 145; run(w3, 600, press([0], 'attack'));
+  check('лечение не выше максимума', p3.hp === 150, `hp ${p3.hp}`);
+  const { w: w4 } = setup(); dummy(w4, 'e1', 66); // джеб 52 x1.3 = 67.6
+  run(w4, 600, press([0], 'attack'));
+  check('дальность ударов +30%', (w4.enemies.e1.hp as number) < 1000);
 }
 check('длительности из данных (x1.4)', moveDurMs('prime', 'jab', 1) > 300 && moveDurMs('prime', 'jab', 1) < 400);
 
