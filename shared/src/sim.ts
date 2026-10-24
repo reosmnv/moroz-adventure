@@ -2,7 +2,7 @@
 // Чистые данные и функции, без Phaser и Colyseus.
 import type { Form } from './anims-data.ts';
 import {
-  CHAIN, COMBO_MS, HEAVY, HERO_ID, HURT_INVULN_MS, HITSTOP_HEAVY_MS, HITSTOP_MS, IMMUNE_INVULN_MS, KNOCK_MULT, RUN_MULT, SPEED_MULT, STRIKES, ULT_MS,
+  AIR_MS, CHAIN, COMBO_MS, HEAVY, HERO_ID, HURT_INVULN_MS, HITSTOP_HEAVY_MS, HITSTOP_MS, IMMUNE_INVULN_MS, KNOCK_MULT, RUN_MULT, SPEED_MULT, STRIKES, ULT_MS,
   hitTimesMs, isLoop, moveDurMs, type Strike,
 } from './hero-data.ts';
 
@@ -77,6 +77,7 @@ export interface Enemy {
   anim: Anim;
   animMs: number;
   cdMs: number;
+  air?: number; // мс до приземления после подброса апперкотом (для отрисовки)
   dummy?: boolean; // манекен: стоит, не бьёт, не умирает
   homeX?: number;
   homeY?: number;
@@ -178,7 +179,7 @@ function spawnWave(w: World, ev: SimEvent[]) {
 
 function hitEnemies(
   w: World, p: Player, range: number, dmg: number, ev: SimEvent[], allAround = false,
-  opts: { kb?: number; stun?: number; down?: boolean; everyone?: boolean; silent?: boolean } = {},
+  opts: { kb?: number; stun?: number; down?: boolean; launch?: boolean; everyone?: boolean; silent?: boolean } = {},
 ): number {
   let hits = 0;
   for (const e of Object.values(w.enemies)) {
@@ -188,6 +189,7 @@ function hitEnemies(
       e.hp -= dmg;
       e.anim = opts.down ? 'down' : 'hurt';
       e.animMs = opts.down ? 900 : (opts.stun ?? 250);
+      if (opts.launch) e.air = AIR_MS;
       e.x = clamp(e.x + Math.sign(dx || p.facing) * (opts.kb ?? (allAround ? 30 : 8)), -40, VIEW_W + 40);
       hits++;
       if (opts.silent) continue;
@@ -399,6 +401,7 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   for (const e of Object.values(w.enemies)) {
     e.animMs = Math.max(0, e.animMs - dtMs);
     e.cdMs = Math.max(0, e.cdMs - dtMs);
+    if (e.air) e.air = Math.max(0, e.air - dtMs);
     if (e.dummy) {
       if (e.hp <= 0) e.hp = e.maxHp;
       if ((e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0) continue;

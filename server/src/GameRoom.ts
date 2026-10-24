@@ -30,6 +30,7 @@ export const EnemyState = schema({
   hp: t.number(),
   maxHp: t.number(),
   dummy: t.boolean(),
+  air: t.number(),
   facing: t.number(),
   anim: t.string(),
 }, 'EnemyState');
@@ -126,7 +127,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
-      es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.facing = e.facing; es.anim = e.anim;
+      es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.air = Math.round(e.air ?? 0); es.facing = e.facing; es.anim = e.anim;
     }
   }
 

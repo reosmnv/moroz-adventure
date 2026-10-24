@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { CHARACTERS, TEST_TOOLS, HEAVY, moveSpeed, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { AIR_MS, CHARACTERS, TEST_TOOLS, HEAVY, moveSpeed, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import type { Button, EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
 
@@ -10,6 +10,7 @@ const CELL = 128; // кадр спрайта героини
 const FEET_Y = 112; // ступни в кадре
 const SCALE = 1.5; // героиня крупнее исходных 128 px по просьбе mr.R
 const HEAD = 62 * SCALE; // высота над ступнями для полоски жизни и имени
+const LAUNCH_H = 90; // высота подброса апперкотом, px
 const RUN_STICK = 0.9; // стик отклонён почти до упора: бег
 
 interface View { sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
@@ -219,6 +220,7 @@ export class GameScene extends Phaser.Scene {
         fist: this.add.rectangle(0, 0, 10, 5, 0xffffff).setVisible(false),
         hp: this.add.rectangle(0, 0, 40, 3, isPlayer ? 0x4cd964 : 0xff3b30).setOrigin(0, 0.5),
       };
+      if (!isPlayer) v.shadow = this.add.ellipse(0, 0, 34, 8, 0x000000, 0.3);
       if (isPlayer && snap.char === HERO_ID) {
         v.body.setVisible(false);
         v.shadow = this.add.ellipse(0, 0, 38 * SCALE, 9 * SCALE, 0x000000, 0.3);
@@ -266,7 +268,11 @@ export class GameScene extends Phaser.Scene {
       const y = sa && !live ? sa.y + (sb.y - sa.y) * f : sb.y;
       const v = this.viewFor(key, isPlayer, sb);
       const down = sb.anim === 'down' && !v.sprite;
-      v.body.setPosition(x, y).setDepth(y).setAngle(down ? 90 * sb.facing : 0);
+      // Подброшенный враг летит по дуге; тень остаётся на земле
+      const u = sb.air ? 1 - sb.air / AIR_MS : 1;
+      const lift = sb.air ? 4 * LAUNCH_H * u * (1 - u) : 0;
+      if (!isPlayer && v.shadow) v.shadow.setPosition(x, y).setDepth(y - 0.1).setScale(1 - lift / 200);
+      v.body.setPosition(x, y - lift).setDepth(y).setAngle(down ? 90 * sb.facing : 0);
       const away = sb.connected === false || sb.away;
       v.body.setAlpha(away ? 0.35 : 1);
       if (v.sprite) {
@@ -278,8 +284,8 @@ export class GameScene extends Phaser.Scene {
       v.fist.setVisible(hitting).setPosition(x + sb.facing * (sb.anim === 'heavy' ? 16 : 12), y - 18).setSize(sb.anim === 'heavy' ? 14 : 10, 5).setDepth(y + 0.5);
       const maxHp = sb.maxHp ?? 100;
       const head = v.sprite ? HEAD : isPlayer ? 86 : 80;
-      v.hp.setPosition(x - 20, y - head).setDepth(y + 0.6).setSize(40 * Math.max(0, sb.hp) / maxHp, 3);
-      v.label?.setPosition(x, y - head - 3).setDepth(y + 0.7);
+      v.hp.setPosition(x - 20, y - head - lift).setDepth(y + 0.6).setSize(40 * Math.max(0, sb.hp) / maxHp, 3);
+      v.label?.setPosition(x, y - head - 3 - lift).setDepth(y + 0.7);
       v.bubble?.setPosition(x, y - HEAD - 18);
     };
     // Свою героиню рисуем по самому свежему снимку: отставание 60 мс остаётся только у остальных

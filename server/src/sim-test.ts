@@ -170,6 +170,15 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   run(w, 50, press([0], 'ult'));
   check('ульта отбрасывает всех врагов', w.enemies.a.x < 20 && w.enemies.b.x > 460 && (w.enemies.a.anim as string) === 'down', `${Math.round(w.enemies.a.x)} ${Math.round(w.enemies.b.x)}`);
 }
+{
+  const { w, p } = setup(); dummy(w, 'e1', 24);
+  p.combo = 2; p.comboMs = 700;
+  run(w, 400, press([0], 'heavy'));
+  check('апперкот подбрасывает врага', (w.enemies.e1.air ?? 0) > 0 && (w.enemies.e1.anim as string) === 'down', `air ${w.enemies.e1.air}`);
+  const { w: w2 } = setup(); dummy(w2, 'e1', 24);
+  run(w2, 400, press([0], 'heavy'));
+  check('суперман не подбрасывает', !w2.enemies.e1.air);
+}
 check('длительности из данных (x1.4)', moveDurMs('prime', 'jab', 1) > 300 && moveDurMs('prime', 'jab', 1) < 400);
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');

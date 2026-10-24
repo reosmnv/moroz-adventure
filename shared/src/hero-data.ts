@@ -17,7 +17,9 @@ export interface Strike {
   kb: number; // отбрасывание
   stun: number; // оглушение врага, мс
   down?: boolean; // сбивает с ног
+  launch?: boolean; // подбрасывает врага (только визуально, механика как у down)
 }
+export const AIR_MS = 900; // сколько враг летит после подброса
 
 // A: серия из трёх, B: завершающий, вариант зависит от числа ударов серии до него (0, 1, 2)
 export const CHAIN: Record<Form, string[]> = {
@@ -36,7 +38,7 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
     teep: { range: 66, dmg: 12, kb: 14, stun: 400 },
     superman: { range: 86, dmg: 18, kb: 28, stun: 500, down: true },
     highkick: { range: 70, dmg: 20, kb: 30, stun: 500, down: true },
-    uppercut: { range: 58, dmg: 24, kb: 10, stun: 500, down: true },
+    uppercut: { range: 58, dmg: 24, kb: 10, stun: 500, down: true, launch: true },
   },
   ultimate: {
     elbow: { range: 52, dmg: 9, kb: 2, stun: 250 },

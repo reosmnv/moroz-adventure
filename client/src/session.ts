@@ -7,7 +7,7 @@ import {
 } from '@bc/shared';
 
 export interface EntitySnap {
-  x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean;
+  x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean; air?: number;
   form?: Form; move?: string; moveT?: number; formMs?: number; combo?: number; invuln?: boolean;
 }
 export interface Snapshot { t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
@@ -136,7 +136,7 @@ export class OnlineSession implements GameSession {
       const players = new Map<string, EntitySnap>();
       state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
-      state.enemies.forEach((e: any, id: string) => enemies.set(id, { x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, facing: e.facing, anim: e.anim }));
+      state.enemies.forEach((e: any, id: string) => enemies.set(id, { x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, facing: e.facing, anim: e.anim }));
       pushSnap(this.snapshots, { t: performance.now(), players, enemies, wave: state.wave, tick: state.tick });
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;
