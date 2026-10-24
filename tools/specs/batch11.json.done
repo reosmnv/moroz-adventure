@@ -1,0 +1,8 @@
+{
+ "highkick-pre-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (from fighting stance she quickly shifts her weight forward into a deep lunge, chambering for a high kick)\ndirections: east (1 jobs)\njob_ids: east=c6fb10e2-15c8-4b43-9b0d-4ec76700f6d8\ngroup: ac06e53f-10f3-4b31-af00-272687ad5dbf\nframes: 5 (1 reference + 4 animated)\ncanvas: east 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\")\nadd more directions to"
+ },
+ "highkick-pre-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (from fighting stance she quickly shifts her weight forward into a deep lunge, chambering for a high kick)\ndirections: west (1 jobs)\njob_ids: west=5c6e09a8-b931-48fe-bbe9-62ee584d123f\ngroup: d4126c05-a11a-411c-9dec-0aea973c304f\nframes: 5 (1 reference + 4 animated)\ncanvas: west 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\")\nadd more directions to"
+ }
+}

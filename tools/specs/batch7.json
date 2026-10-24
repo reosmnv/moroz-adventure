@@ -1,0 +1,62 @@
+[
+ {
+  "name": "uppercut-pmm-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "action_description": "explosive jumping uppercut toward the right: she dips low, then springs straight up off the ground driving the rear fist upward above her head, body fully stretched in the air, then lands back into fighting stance",
+   "animation_name": "uppercut-pmm"
+  }
+ },
+ {
+  "name": "hurricane-pmm-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "action_description": "jumping spinning hurricane kick toward the right: she crouches, leaps into the air and spins horizontally twice with legs extended, kicking repeatedly, ponytail whipping around, then lands back into fighting stance",
+   "animation_name": "hurricane-pmm"
+  }
+ },
+ {
+  "name": "uppercut-pmm-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "action_description": "explosive jumping uppercut toward the left: she dips low, then springs straight up off the ground driving the rear fist upward above her head, body fully stretched in the air, then lands back into fighting stance",
+   "animation_name": "uppercut-pmm"
+  }
+ },
+ {
+  "name": "hurricane-pmm-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "action_description": "jumping spinning hurricane kick toward the left: she crouches, leaps into the air and spins horizontally twice with legs extended, kicking repeatedly, ponytail whipping around, then lands back into fighting stance",
+   "animation_name": "hurricane-pmm"
+  }
+ }
+]

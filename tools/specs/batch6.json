@@ -1,0 +1,194 @@
+[
+ {
+  "name": "superman-in-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "muay thai superman punch: from fighting stance she skips forward, leaps into the air and drives the rear fist straight forward at head height",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/bced1c6d-56dc-4c61-a8f2-6c84b55b085a/download",
+   "animation_name": "superman-in"
+  }
+ },
+ {
+  "name": "superman-out-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "after a superman punch she lands from the air, absorbs the landing and settles back into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/bced1c6d-56dc-4c61-a8f2-6c84b55b085a/download",
+   "end_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "animation_name": "superman-out"
+  }
+ },
+ {
+  "name": "superman-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "muay thai superman punch: from fighting stance she skips forward, leaps into the air and drives the rear fist straight forward at head height",
+   "frame_count": 6,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/b3e505fa-9f44-46ec-b5a2-c42e77c5b955/download",
+   "animation_name": "superman-in"
+  }
+ },
+ {
+  "name": "superman-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "after a superman punch she lands from the air, absorbs the landing and settles back into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/b3e505fa-9f44-46ec-b5a2-c42e77c5b955/download",
+   "end_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "animation_name": "superman-out"
+  }
+ },
+ {
+  "name": "spin-elbow-in-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "muay thai spinning back elbow: from fighting stance she pivots and spins around fast, whipping the rear elbow horizontally at head height",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/8f6cc457-1423-4ded-b695-b34295140eaf/download",
+   "animation_name": "spin-elbow-in"
+  }
+ },
+ {
+  "name": "spin-elbow-out-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "after a spinning back elbow she completes the spin and returns to fighting stance facing forward",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/8f6cc457-1423-4ded-b695-b34295140eaf/download",
+   "end_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "animation_name": "spin-elbow-out"
+  }
+ },
+ {
+  "name": "spin-elbow-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "muay thai spinning back elbow: from fighting stance she pivots and spins around fast, whipping the rear elbow horizontally at head height",
+   "frame_count": 6,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/5c5e5ede-6468-4caf-bf85-6b00388abdc4/download",
+   "animation_name": "spin-elbow-in"
+  }
+ },
+ {
+  "name": "spin-elbow-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "after a spinning back elbow she completes the spin and returns to fighting stance facing forward",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/5c5e5ede-6468-4caf-bf85-6b00388abdc4/download",
+   "end_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "animation_name": "spin-elbow-out"
+  }
+ },
+ {
+  "name": "flying-knee-in-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "muay thai flying knee: from fighting stance she takes a step, jumps high and drives one knee forward and up to head height, hands grabbing forward",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/04869274-2f05-496f-a72d-27379a9c047a/download",
+   "animation_name": "flying-knee-in"
+  }
+ },
+ {
+  "name": "flying-knee-out-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "after a flying knee she lands from the jump and settles back into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/04869274-2f05-496f-a72d-27379a9c047a/download",
+   "end_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "animation_name": "flying-knee-out"
+  }
+ },
+ {
+  "name": "flying-knee-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "muay thai flying knee: from fighting stance she takes a step, jumps high and drives one knee forward and up to head height, hands grabbing forward",
+   "frame_count": 6,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/4372e684-9ab1-4b08-89c4-90e61406bc4d/download",
+   "animation_name": "flying-knee-in"
+  }
+ },
+ {
+  "name": "flying-knee-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "after a flying knee she lands from the jump and settles back into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/4372e684-9ab1-4b08-89c4-90e61406bc4d/download",
+   "end_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "animation_name": "flying-knee-out"
+  }
+ }
+]

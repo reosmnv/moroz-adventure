@@ -1,0 +1,8 @@
+{
+ "spin-elbow-in-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (muay thai spinning back elbow: from fighting stance she pivots and spins around fast, whipping the rear elbow horizontally at head height)\ndirections: west (1 jobs)\njob_ids: west=339fbbd9-ee4d-40f8-b374-eaca4eef8cd8\ngroup: 03a29f82-762c-439b-b553-402cb8c4e71e\nframes: 7 (1 reference + 6 animated)\ncanvas: west 64x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"fda7726a-5a4b-45df-b0e9-5e5a"
+ },
+ "spin-elbow-out-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (after a spinning back elbow she completes the spin and returns to fighting stance facing forward)\ndirections: west (1 jobs)\njob_ids: west=ebc1b203-a170-46f1-af6f-e856cc64e7ef\ngroup: 1549503b-eccf-49ce-8140-db7e0e519599\nframes: 5 (1 reference + 4 animated)\ncanvas: west 64x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"fda7726a-5a4b-45df-b0e9-5e5adadc9540\")\nadd more directions to this gr"
+ }
+}

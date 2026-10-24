@@ -1,0 +1,235 @@
+{
+ "cell": 128,
+ "feetY": 112,
+ "states": {
+  "prime": {
+   "fall": {
+    "east": 7,
+    "west": 7,
+    "fps": 12,
+    "loop": false
+   },
+   "getup": {
+    "east": 5,
+    "west": 5,
+    "fps": 10,
+    "loop": false
+   },
+   "highkick": {
+    "east": 11,
+    "west": 11,
+    "pre": {
+     "east": 4,
+     "west": 4
+    },
+    "hit": {
+     "east": 7,
+     "west": 7
+    },
+    "fps": 18,
+    "loop": false
+   },
+   "hurt": {
+    "east": 6,
+    "west": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "idle": {
+    "east": 8,
+    "west": 8,
+    "fps": 8,
+    "loop": true
+   },
+   "dash": {
+    "east": 8,
+    "west": 8,
+    "fps": 14,
+    "loop": true
+   },
+   "static": {
+    "east": 1,
+    "west": 1,
+    "fps": 1,
+    "loop": true
+   },
+   "transform-up": {
+    "east": 13,
+    "west": 13,
+    "fps": 12,
+    "loop": false
+   },
+   "walk": {
+    "east": 6,
+    "west": 6,
+    "fps": 10,
+    "loop": true
+   },
+   "cross": {
+    "east": 8,
+    "hit": {
+     "east": 3,
+     "west": 2
+    },
+    "west": 7,
+    "fps": 18,
+    "loop": false
+   },
+   "jab": {
+    "east": 9,
+    "hit": {
+     "east": 4,
+     "west": 4
+    },
+    "west": 9,
+    "fps": 18,
+    "loop": false
+   },
+   "superman": {
+    "east": 11,
+    "hit": {
+     "east": 6,
+     "west": 3
+    },
+    "west": 8,
+    "fps": 18,
+    "loop": false
+   },
+   "teep": {
+    "east": 9,
+    "hit": {
+     "east": 4,
+     "west": 4
+    },
+    "west": 9,
+    "fps": 18,
+    "loop": false
+   },
+   "uppercut": {
+    "east": 7,
+    "hit": {
+     "east": 4,
+     "west": 4
+    },
+    "west": 7,
+    "fps": 18,
+    "loop": false
+   }
+  },
+  "ultimate": {
+   "fall": {
+    "east": 7,
+    "west": 7,
+    "fps": 12,
+    "loop": false
+   },
+   "dash": {
+    "east": 8,
+    "west": 8,
+    "fps": 14,
+    "loop": true
+   },
+   "getup": {
+    "east": 5,
+    "west": 5,
+    "fps": 10,
+    "loop": false
+   },
+   "hurricane": {
+    "east": 17,
+    "west": 17,
+    "hit": {
+     "east": 4,
+     "west": 4
+    },
+    "hits": [
+     4,
+     8,
+     12
+    ],
+    "fps": 16,
+    "loop": false
+   },
+   "hurt": {
+    "east": 6,
+    "west": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "idle": {
+    "east": 8,
+    "west": 8,
+    "fps": 8,
+    "loop": true
+   },
+   "roundhouse": {
+    "east": 7,
+    "west": 7,
+    "hit": {
+     "east": 3,
+     "west": 3
+    },
+    "fps": 18,
+    "loop": false
+   },
+   "static": {
+    "east": 1,
+    "west": 1,
+    "fps": 1,
+    "loop": true
+   },
+   "transform-down": {
+    "east": 13,
+    "west": 13,
+    "fps": 12,
+    "loop": false
+   },
+   "walk": {
+    "east": 6,
+    "west": 6,
+    "fps": 10,
+    "loop": true
+   },
+   "elbow": {
+    "east": 9,
+    "hit": {
+     "east": 4,
+     "west": 4
+    },
+    "west": 9,
+    "fps": 18,
+    "loop": false
+   },
+   "flying-knee": {
+    "east": 10,
+    "hit": {
+     "east": 5,
+     "west": 6
+    },
+    "west": 11,
+    "fps": 18,
+    "loop": false
+   },
+   "knee": {
+    "east": 9,
+    "hit": {
+     "east": 4,
+     "west": 4
+    },
+    "west": 9,
+    "fps": 18,
+    "loop": false
+   },
+   "spin-elbow": {
+    "east": 11,
+    "hit": {
+     "east": 6,
+     "west": 6
+    },
+    "west": 11,
+    "fps": 18,
+    "loop": false
+   }
+  }
+ }
+}

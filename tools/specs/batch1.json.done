@@ -1,0 +1,35 @@
+{
+ "cross-in-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (powerful boxing cross: from fighting stance hips and shoulders rotate and the rear arm drives straight forward to full extension)\ndirections: west (1 jobs)\njob_ids: west=6c293426-58b3-481a-8129-1cf8030c9c6d\ngroup: 54bdc4f1-c327-4037-b873-5b34c705fe4b\nframes: 5 (1 reference + 4 animated)\ncanvas: west 72x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\""
+ },
+ "cross-out-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (after a boxing cross the extended rear arm retracts back to guard, hips rotate back and the boxer settles into fighting stance)\ndirections: west (1 jobs)\njob_ids: west=862ee174-e158-43fd-a35e-64076c2af69e\ngroup: 6dfbce78-c288-454c-a019-f627050253fc\nframes: 5 (1 reference + 4 animated)\ncanvas: west 72x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\")\n"
+ },
+ "knee-out-east": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (after a muay thai knee strike the knee drops back down, hands release the clinch and return to fighting stance)\ndirections: east (1 jobs)\njob_ids: east=21fc3e77-5a8d-4094-98bd-5d574e6977e2\ngroup: 82afbd6e-2a64-4485-b7fc-dba911975473\nframes: 5 (1 reference + 4 animated)\ncanvas: east 80x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"fda7726a-5a4b-45df-b0e9-5e5adadc9540\")\nadd more directi"
+ },
+ "knee-in-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (muay thai knee strike: from fighting stance both hands reach forward to clinch, the rear knee drives sharply forward and up)\ndirections: west (1 jobs)\njob_ids: west=f3e18d94-c85a-4fbe-8ee7-37ecb91fa292\ngroup: 4bae4998-9757-491c-a48d-0e90a3eeb945\nframes: 5 (1 reference + 4 animated)\ncanvas: west 68x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"fda7726a-5a4b-45df-b0e9-5e5adadc9540\")\nadd"
+ },
+ "knee-out-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (after a muay thai knee strike the knee drops back down, hands release the clinch and return to fighting stance)\ndirections: west (1 jobs)\njob_ids: west=825f6b41-1096-4818-9a59-d8a2ca53fe9e\ngroup: d0ce9d46-027d-4b75-8c47-a98ca0e2df99\nframes: 5 (1 reference + 4 animated)\ncanvas: west 68x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"fda7726a-5a4b-45df-b0e9-5e5adadc9540\")\nadd more directi"
+ },
+ "transform-up-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (magical transformation: she crouches, a burst of energy flashes around her body, her hair whips up into a ponytail and her clothes change into fight shorts and hand wraps, then she rises into an aggressive muay thai stance)\ndirections: east (1 jobs)\njob_ids: east=e0f8027e-6e1a-48f7-ba3a-12188942bb7c\ngroup: d608df4c-1687-4d97-a79f-2fdc4932ee5d\nframes: 13 (1 reference + 12 animated)\ncanvas: east 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 2 generations (2/dir x 1)"
+ },
+ "transform-down-east": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (transformation ends: energy fades from her body in a flash, her ponytail falls loose into long hair and her fight outfit changes back into jeans and crop top, she relaxes into a casual fighting stance)\ndirections: east (1 jobs)\njob_ids: east=af4b0788-a6eb-4f7a-b0cc-862ae79e33f4\ngroup: 3d9b5e50-ba68-41ea-9a37-f1f950625515\nframes: 13 (1 reference + 12 animated)\ncanvas: east 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 2 generations (2/dir x 1)\neta: ~2-4 min/directi"
+ },
+ "transform-up-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (magical transformation: she crouches, a burst of energy flashes around her body, her hair whips up into a ponytail and her clothes change into fight shorts and hand wraps, then she rises into an aggressive muay thai stance)\ndirections: west (1 jobs)\njob_ids: west=2ef68104-e04b-4c0b-a95a-817263a2a851\ngroup: 25a83e9e-7d69-4b86-9d31-736f702587be\nframes: 13 (1 reference + 12 animated)\ncanvas: west 68x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 2 generations (2/dir x 1)"
+ },
+ "transform-down-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (transformation ends: energy fades from her body in a flash, her ponytail falls loose into long hair and her fight outfit changes back into jeans and crop top, she relaxes into a casual fighting stance)\ndirections: west (1 jobs)\njob_ids: west=f53de9e7-4bad-48e4-b71d-576e8e994ac0\ngroup: 3f915086-3b5d-408f-90dd-68bc11a4392b\nframes: 13 (1 reference + 12 animated)\ncanvas: west 68x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 2 generations (2/dir x 1)\neta: ~2-4 min/directi"
+ },
+ "teep-key-east": {
+  "out": "id: 1a1451f2-5019-4339-b4df-6aeb2c99d9f6\njob_id: 1a1451f2-5019-4339-b4df-6aeb2c99d9f6\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing right, at the moment of impact of a muay thai teep (front push kick): standing on the rear leg, lead leg extended straight forward horizontally at stomach height toward the right with the sole of the foot pushing forward, torso leaning slightly back, both fists guarding the face. Keep outfit, colors, mismatched sneakers and hair identical.\nasset_id: ee6ef12e-0e94-5c92-96e7-4590b260c"
+ },
+ "teep-key-west": {
+  "out": "id: 6a99780a-7246-4019-aa74-55d114912214\njob_id: 6a99780a-7246-4019-aa74-55d114912214\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing left, at the moment of impact of a muay thai teep (front push kick): standing on the rear leg, lead leg extended straight forward horizontally at stomach height toward the left with the sole of the foot pushing forward, torso leaning slightly back, both fists guarding the face. Keep outfit, colors, mismatched sneakers and hair identical.\nasset_id: dd23d0a1-7378-5ed4-bd6b-f65a1f3540e"
+ }
+}

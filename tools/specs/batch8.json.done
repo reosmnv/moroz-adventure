@@ -1,0 +1,8 @@
+{
+ "uppercut-key-east": {
+  "out": "id: 47450129-571b-4af5-b125-04adc69e7cd7\njob_id: 47450129-571b-4af5-b125-04adc69e7cd7\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing right, now at the peak of an explosive jumping uppercut: she has leapt straight up off the ground, the rear arm is fully extended straight up above her head with the fist punching the sky slightly toward the right, the other fist pulled down at the hip, body stretched vertically, knees slightly bent, both feet clearly off the ground, hair flying up. Keep outfit, colors, mismatched s"
+ },
+ "uppercut-key-west": {
+  "out": "id: ff0889fe-c2a3-4a5b-84d3-094627cd7726\njob_id: ff0889fe-c2a3-4a5b-84d3-094627cd7726\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing left, now at the peak of an explosive jumping uppercut: she has leapt straight up off the ground, the rear arm is fully extended straight up above her head with the fist punching the sky slightly toward the left, the other fist pulled down at the hip, body stretched vertically, knees slightly bent, both feet clearly off the ground, hair flying up. Keep outfit, colors, mismatched sne"
+ }
+}

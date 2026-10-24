@@ -1,0 +1,11 @@
+{
+ "elbow-key-west": {
+  "out": "id: 9336c9ec-7ef3-404b-992c-c9e762461f61\njob_id: 9336c9ec-7ef3-404b-992c-c9e762461f61\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character in side view facing left, now in the moment of impact of a muay thai horizontal elbow strike: the front arm is folded tightly so the hand is near her own opposite shoulder, the point of the elbow sticks out far to the left at head height, upper arm horizontal, torso twisted strongly to the left, rear hand up guarding the face, lead foot stepped forward, back heel raised. Clearly different from a guard pos"
+ },
+ "elbow-in-east": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (muay thai elbow strike: from fighting stance she steps in, folds the lead arm and whips the point of the elbow forward at head height, torso twisting into it)\ndirections: east (1 jobs)\njob_ids: east=df9b9664-8cb5-4c4f-80fd-9517b929568d\ngroup: 53648906-fc8b-49bb-a585-d434518ecf4f\nframes: 5 (1 reference + 4 animated)\ncanvas: east 76x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"fda7726a"
+ },
+ "elbow-out-east": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (after a muay thai elbow strike the arm unfolds back into guard and she settles into fighting stance)\ndirections: east (1 jobs)\njob_ids: east=d687bbc3-f3af-4bba-9868-c3a0e83b77db\ngroup: 39d825ad-e617-4450-be2f-33d27bcdd729\nframes: 5 (1 reference + 4 animated)\ncanvas: east 76x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"fda7726a-5a4b-45df-b0e9-5e5adadc9540\")\nadd more directions to this"
+ }
+}

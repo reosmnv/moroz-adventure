@@ -1,0 +1,166 @@
+[
+ {
+  "name": "cross-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "powerful boxing cross: from fighting stance hips and shoulders rotate and the rear arm drives straight forward to full extension",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/1f1076c1-16e5-4e96-a389-53f5bbe1e96b/download",
+   "animation_name": "cross-in"
+  }
+ },
+ {
+  "name": "cross-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "after a boxing cross the extended rear arm retracts back to guard, hips rotate back and the boxer settles into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/1f1076c1-16e5-4e96-a389-53f5bbe1e96b/download",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "animation_name": "cross-out"
+  }
+ },
+ {
+  "name": "knee-out-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "after a muay thai knee strike the knee drops back down, hands release the clinch and return to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/9792ca23-6886-4763-bf29-e5bfa61182fe/download",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "animation_name": "knee-out"
+  }
+ },
+ {
+  "name": "knee-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "muay thai knee strike: from fighting stance both hands reach forward to clinch, the rear knee drives sharply forward and up",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/9cdd811b-479e-49ed-bb66-ebe55571a453/download",
+   "animation_name": "knee-in"
+  }
+ },
+ {
+  "name": "knee-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "after a muay thai knee strike the knee drops back down, hands release the clinch and return to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/9cdd811b-479e-49ed-bb66-ebe55571a453/download",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "animation_name": "knee-out"
+  }
+ },
+ {
+  "name": "transform-up-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "magical transformation: she crouches, a burst of energy flashes around her body, her hair whips up into a ponytail and her clothes change into fight shorts and hand wraps, then she rises into an aggressive muay thai stance",
+   "frame_count": 12,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "animation_name": "transform-up"
+  }
+ },
+ {
+  "name": "transform-down-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "transformation ends: energy fades from her body in a flash, her ponytail falls loose into long hair and her fight outfit changes back into jeans and crop top, she relaxes into a casual fighting stance",
+   "frame_count": 12,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "animation_name": "transform-down"
+  }
+ },
+ {
+  "name": "transform-up-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "magical transformation: she crouches, a burst of energy flashes around her body, her hair whips up into a ponytail and her clothes change into fight shorts and hand wraps, then she rises into an aggressive muay thai stance",
+   "frame_count": 12,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "animation_name": "transform-up"
+  }
+ },
+ {
+  "name": "transform-down-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "transformation ends: energy fades from her body in a flash, her ponytail falls loose into long hair and her fight outfit changes back into jeans and crop top, she relaxes into a casual fighting stance",
+   "frame_count": 12,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "animation_name": "transform-down"
+  }
+ },
+ {
+  "name": "teep-key-east",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/8f079407-9eb2-48f9-9b07-695c53169e9f/rotations/east.png?t=1792702071"
+   ],
+   "description": "same character, same side view facing right, at the moment of impact of a muay thai teep (front push kick): standing on the rear leg, lead leg extended straight forward horizontally at stomach height toward the right with the sole of the foot pushing forward, torso leaning slightly back, both fists guarding the face. Keep outfit, colors, mismatched sneakers and hair identical."
+  }
+ },
+ {
+  "name": "teep-key-west",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/8f079407-9eb2-48f9-9b07-695c53169e9f/rotations/west.png?t=1792702071"
+   ],
+   "description": "same character, same side view facing left, at the moment of impact of a muay thai teep (front push kick): standing on the rear leg, lead leg extended straight forward horizontally at stomach height toward the left with the sole of the foot pushing forward, torso leaning slightly back, both fists guarding the face. Keep outfit, colors, mismatched sneakers and hair identical."
+  }
+ }
+]

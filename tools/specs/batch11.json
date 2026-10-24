@@ -1,0 +1,34 @@
+[
+ {
+  "name": "highkick-pre-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "from fighting stance she quickly shifts her weight forward into a deep lunge, chambering for a high kick",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-highkick0-east-64.png",
+   "animation_name": "highkick-pre"
+  }
+ },
+ {
+  "name": "highkick-pre-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "from fighting stance she quickly shifts her weight forward into a deep lunge, chambering for a high kick",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-highkick0-west-64.png",
+   "animation_name": "highkick-pre"
+  }
+ }
+]

@@ -1,0 +1,34 @@
+[
+ {
+  "name": "spin-elbow-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "muay thai spinning back elbow: from fighting stance she pivots and spins around fast, whipping the rear elbow horizontally at head height",
+   "frame_count": 6,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-spin-elbow-west.png",
+   "animation_name": "spin-elbow-in"
+  }
+ },
+ {
+  "name": "spin-elbow-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "after a spinning back elbow she completes the spin and returns to fighting stance facing forward",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-spin-elbow-west.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "animation_name": "spin-elbow-out"
+  }
+ }
+]

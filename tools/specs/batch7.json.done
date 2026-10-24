@@ -1,0 +1,14 @@
+{
+ "uppercut-pmm-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: pixminimax custom (explosive jumping uppercut toward the right: she dips low, then springs straight up off the ground driving the rear fist upward above her head, body fully stretched in the air, then lands back into fighting stance)\ndirections: east (1 jobs)\njob_ids: east=e5d48c3a-8dba-44af-8d0a-12ef9495f212\ngroup: 6f7b81db-6dc6-46e0-bfae-57003e492150\nframes: 17 (1 reference + 16 animated)\ncanvas: east 64x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\ne"
+ },
+ "hurricane-pmm-east": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: pixminimax custom (jumping spinning hurricane kick toward the right: she crouches, leaps into the air and spins horizontally twice with legs extended, kicking repeatedly, ponytail whipping around, then lands back into fighting stance)\ndirections: east (1 jobs)\njob_ids: east=844a84da-43a6-46f2-bf93-298479a58d1f\ngroup: 2ccd61b9-71d6-4f86-b2c2-7ac71b004881\nframes: 17 (1 reference + 16 animated)\ncanvas: east 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\n"
+ },
+ "uppercut-pmm-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: pixminimax custom (explosive jumping uppercut toward the left: she dips low, then springs straight up off the ground driving the rear fist upward above her head, body fully stretched in the air, then lands back into fighting stance)\ndirections: west (1 jobs)\njob_ids: west=6944adb1-5642-4d7d-96eb-28b41191bbdf\ngroup: 96981c6b-210c-411c-94f1-817eb4d2b685\nframes: 17 (1 reference + 16 animated)\ncanvas: west 68x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\net"
+ },
+ "hurricane-pmm-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: pixminimax custom (jumping spinning hurricane kick toward the left: she crouches, leaps into the air and spins horizontally twice with legs extended, kicking repeatedly, ponytail whipping around, then lands back into fighting stance)\ndirections: west (1 jobs)\njob_ids: west=cd80424b-f0ac-47ef-84bd-2ce5d045eba3\ngroup: 0bf6ffa4-642d-4565-abdb-1d3bb2b2a3dd\nframes: 17 (1 reference + 16 animated)\ncanvas: west 64x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\ne"
+ }
+}

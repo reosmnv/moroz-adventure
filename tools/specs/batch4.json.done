@@ -1,0 +1,8 @@
+{
+ "transform-up-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (magical transformation: she crouches, a burst of bright cyan and white energy engulfs her body, her silhouette glows white, her long hair whips up into a ponytail and her jeans and crop top change into red fight shorts and hand wraps, then she rises into an aggressive muay thai stance)\ndirections: west (1 jobs)\njob_ids: west=cdd950cc-7dc1-497c-87c1-1cd8506808b6\ngroup: 9e03f65f-c422-4d65-ae78-037a3b6b32c8\nframes: 13 (1 reference + 12 animated)\ncanvas: west 68x88 (generated at this size; with custom frames the stored canvas is"
+ },
+ "transform-down-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (transformation ends: her body flashes bright cyan and white, glowing silhouette, the red fight shorts and hand wraps change back into baggy jeans and crop top, the ponytail falls loose into long hair, the glow fades and she relaxes into a casual fighting stance)\ndirections: west (1 jobs)\njob_ids: west=7c347004-3050-48b5-86a2-a2c0599b4549\ngroup: 8652f98b-bdc2-4202-971e-b03e2e57bd53\nframes: 13 (1 reference + 12 animated)\ncanvas: west 68x88 (generated at this size; with custom frames the stored canvas is re-measured around the "
+ }
+}

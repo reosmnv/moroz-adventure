@@ -1,0 +1,22 @@
+[
+ {
+  "name": "uppercut-key-east",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/8f079407-9eb2-48f9-9b07-695c53169e9f/rotations/east.png?t=1792702071"
+   ],
+   "description": "same character, same side view facing right, now at the peak of an explosive jumping uppercut: she has leapt straight up off the ground, the rear arm is fully extended straight up above her head with the fist punching the sky slightly toward the right, the other fist pulled down at the hip, body stretched vertically, knees slightly bent, both feet clearly off the ground, hair flying up. Keep outfit, colors, mismatched sneakers and hair identical."
+  }
+ },
+ {
+  "name": "uppercut-key-west",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/8f079407-9eb2-48f9-9b07-695c53169e9f/rotations/west.png?t=1792702071"
+   ],
+   "description": "same character, same side view facing left, now at the peak of an explosive jumping uppercut: she has leapt straight up off the ground, the rear arm is fully extended straight up above her head with the fist punching the sky slightly toward the left, the other fist pulled down at the hip, body stretched vertically, knees slightly bent, both feet clearly off the ground, hair flying up. Keep outfit, colors, mismatched sneakers and hair identical."
+  }
+ }
+]

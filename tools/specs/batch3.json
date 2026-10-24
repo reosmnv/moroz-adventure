@@ -1,0 +1,98 @@
+[
+ {
+  "name": "elbow-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "muay thai elbow strike: from fighting stance she steps in, folds the lead arm and whips the point of the elbow forward at head height, torso twisting into it",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ult-elbow-west.png",
+   "animation_name": "elbow-in"
+  }
+ },
+ {
+  "name": "elbow-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "after a muay thai elbow strike the arm unfolds back into guard and she settles into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ult-elbow-west.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "animation_name": "elbow-out"
+  }
+ },
+ {
+  "name": "teep-in-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "muay thai teep: from fighting stance she lifts the lead knee and thrusts the sole of the front foot straight forward at stomach height",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/1a1451f2-5019-4339-b4df-6aeb2c99d9f6/download",
+   "animation_name": "teep-in"
+  }
+ },
+ {
+  "name": "teep-out-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "after a muay thai teep the kicking leg retracts and steps back down, she settles into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/1a1451f2-5019-4339-b4df-6aeb2c99d9f6/download",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "animation_name": "teep-out"
+  }
+ },
+ {
+  "name": "teep-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "muay thai teep: from fighting stance she lifts the lead knee and thrusts the sole of the front foot straight forward at stomach height",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/6a99780a-7246-4019-aa74-55d114912214/download",
+   "animation_name": "teep-in"
+  }
+ },
+ {
+  "name": "teep-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "after a muay thai teep the kicking leg retracts and steps back down, she settles into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/6a99780a-7246-4019-aa74-55d114912214/download",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "animation_name": "teep-out"
+  }
+ }
+]

@@ -1,0 +1,14 @@
+{
+ "uppercut-in-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (explosive jumping uppercut: from fighting stance she dips low, then springs straight up driving the rear fist upward above her head)\ndirections: east (1 jobs)\njob_ids: east=3dad78a8-bda7-4ab5-91ec-3b96c749b534\ngroup: d950888a-a717-4809-a218-d537f7f09def\nframes: 7 (1 reference + 6 animated)\ncanvas: east 64x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e"
+ },
+ "uppercut-out-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (after a jumping uppercut she falls back down, lands and settles into fighting stance)\ndirections: east (1 jobs)\njob_ids: east=9c993058-b535-45c7-ae95-45762e7af95d\ngroup: e4aa64c1-ebc6-4653-80c5-cf98116b6d26\nframes: 5 (1 reference + 4 animated)\ncanvas: east 64x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\")\nadd more directions to this group: animate"
+ },
+ "uppercut-in-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (explosive jumping uppercut: from fighting stance she dips low, then springs straight up driving the rear fist upward above her head)\ndirections: west (1 jobs)\njob_ids: west=9df47a6e-cbd2-449e-bcd7-e3fb7b4f137d\ngroup: 6d0d064f-0f23-4a35-8cb8-0b3c91fddc0d\nframes: 7 (1 reference + 6 animated)\ncanvas: west 84x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e"
+ },
+ "uppercut-out-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (after a jumping uppercut she falls back down, lands and settles into fighting stance)\ndirections: west (1 jobs)\njob_ids: west=09ea0207-0bfe-429f-8dd9-21a20516a211\ngroup: 15cf6ee8-9b0a-4abe-84b8-d51a6b0b98f3\nframes: 5 (1 reference + 4 animated)\ncanvas: west 84x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\")\nadd more directions to this group: animate"
+ }
+}

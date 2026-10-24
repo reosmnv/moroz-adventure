@@ -1,0 +1,44 @@
+[
+ {
+  "name": "elbow-key-west",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/fda7726a-5a4b-45df-b0e9-5e5adadc9540/rotations/west.png?t=1792703885"
+   ],
+   "description": "same character in side view facing left, now in the moment of impact of a muay thai horizontal elbow strike: the front arm is folded tightly so the hand is near her own opposite shoulder, the point of the elbow sticks out far to the left at head height, upper arm horizontal, torso twisted strongly to the left, rear hand up guarding the face, lead foot stepped forward, back heel raised. Clearly different from a guard pose. Keep outfit, ponytail, hand wraps (one red, one turquoise), colors identical."
+  }
+ },
+ {
+  "name": "elbow-in-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "muay thai elbow strike: from fighting stance she steps in, folds the lead arm and whips the point of the elbow forward at head height, torso twisting into it",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/5eeb530e-b387-453c-87e0-8d8cfaa43a6f/download",
+   "animation_name": "elbow-in"
+  }
+ },
+ {
+  "name": "elbow-out-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "after a muay thai elbow strike the arm unfolds back into guard and she settles into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/5eeb530e-b387-453c-87e0-8d8cfaa43a6f/download",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "animation_name": "elbow-out"
+  }
+ }
+]

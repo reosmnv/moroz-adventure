@@ -1,0 +1,20 @@
+{
+ "elbow-in-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (muay thai elbow strike: from fighting stance she steps in, folds the lead arm and whips the point of the elbow forward at head height, torso twisting into it)\ndirections: west (1 jobs)\njob_ids: west=f58e216c-f89a-422a-97d7-5f62f27b7ebf\ngroup: c01fe191-b7d7-4c4b-9df2-03f5af3f0173\nframes: 5 (1 reference + 4 animated)\ncanvas: west 64x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"fda7726a"
+ },
+ "elbow-out-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (after a muay thai elbow strike the arm unfolds back into guard and she settles into fighting stance)\ndirections: west (1 jobs)\njob_ids: west=5669adf4-e330-4e61-ba13-0bf0ee2d9f97\ngroup: 492b8db1-4080-458c-9caf-23fe94da7c02\nframes: 5 (1 reference + 4 animated)\ncanvas: west 64x92 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"fda7726a-5a4b-45df-b0e9-5e5adadc9540\")\nadd more directions to this"
+ },
+ "teep-in-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (muay thai teep: from fighting stance she lifts the lead knee and thrusts the sole of the front foot straight forward at stomach height)\ndirections: east (1 jobs)\njob_ids: east=18a36b1c-4ef1-4c7a-b3ac-a36f543c4aa2\ngroup: 8a7f71b0-4fd0-479c-8b28-a83a0ef52d7e\nframes: 5 (1 reference + 4 animated)\ncanvas: east 92x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c531"
+ },
+ "teep-out-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (after a muay thai teep the kicking leg retracts and steps back down, she settles into fighting stance)\ndirections: east (1 jobs)\njob_ids: east=92ddd372-44a4-4bc2-8ed3-6a7290436b9d\ngroup: 2a0a1048-9e2f-471d-a106-1184b1dd226f\nframes: 5 (1 reference + 4 animated)\ncanvas: east 92x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\")\nadd more directions to th"
+ },
+ "teep-in-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (muay thai teep: from fighting stance she lifts the lead knee and thrusts the sole of the front foot straight forward at stomach height)\ndirections: west (1 jobs)\njob_ids: west=e6596808-b29f-4a06-b175-af72166fe2bb\ngroup: 8a43de87-e00e-452b-89a7-de98932dee7a\nframes: 5 (1 reference + 4 animated)\ncanvas: west 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c531"
+ },
+ "teep-out-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (after a muay thai teep the kicking leg retracts and steps back down, she settles into fighting stance)\ndirections: west (1 jobs)\njob_ids: west=4bce1e28-49d6-430a-ae39-8df6a6f4a3fa\ngroup: 07fed068-087c-4c75-ba3d-227c8af93668\nframes: 5 (1 reference + 4 animated)\ncanvas: west 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\")\nadd more directions to th"
+ }
+}

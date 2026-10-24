@@ -1,0 +1,29 @@
+{
+ "highkick-skel": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: high-kick\nmode: skeleton-v3\ndirections: east, west (2 jobs)\njob_ids: east=400b536d-ae37-459d-8513-07dcb0306e2b, west=af46dd8a-89f9-4f71-8c2c-ebbf3d8aabac\ngroup: aec3a1d8-cab6-4a85-9da2-758ecfdb24e6\ncost: 6 generations (3/dir x 2)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\", template_animation_id=\"high-kick\", animation_group_id=\"aec3a1d8-cab6-4a85-9da2-758ecfdb24e6\", directions=[...])\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e"
+ },
+ "uppercut-skel": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: surprise-uppercut\nstatus: already complete (2 directions)\n\nhint: get_character(\"8f079407-9eb2-48f9-9b07-695c53169e9f\")"
+ },
+ "hurricane-skel": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: hurricane-kick\nmode: skeleton-v3\ndirections: east, west (2 jobs)\njob_ids: east=f353aa30-4554-433f-a2e0-d1f0f7253aaf, west=f6196f27-ebb2-4bbd-b19a-c63ccd655dbe\ngroup: 65c48332-2e1a-4731-a74d-e6815d276403\ncost: 6 generations (3/dir x 2)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"fda7726a-5a4b-45df-b0e9-5e5adadc9540\", template_animation_id=\"hurricane-kick\", animation_group_id=\"65c48332-2e1a-4731-a74d-e6815d276403\", directions=[...])\n\nhint: get_character(character_id=\"fda7726a-5a4b-45df-b0e9-"
+ },
+ "superman-key-east": {
+  "out": "id: bced1c6d-56dc-4c61-a8f2-6c84b55b085a\njob_id: bced1c6d-56dc-4c61-a8f2-6c84b55b085a\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing right, now at the peak of a muay thai superman punch: leaping forward through the air toward the right, rear leg kicked back, lead arm (the rear hand) fully extended straight forward at head height toward the right, other fist guarding the chin, both feet off the ground, body stretched horizontally like a flying punch. Keep outfit, colors, mismatched sneakers and hair identical.\nass"
+ },
+ "superman-key-west": {
+  "out": "id: b3e505fa-9f44-46ec-b5a2-c42e77c5b955\njob_id: b3e505fa-9f44-46ec-b5a2-c42e77c5b955\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing left, now at the peak of a muay thai superman punch: leaping forward through the air toward the left, rear leg kicked back, lead arm (the rear hand) fully extended straight forward at head height toward the left, other fist guarding the chin, both feet off the ground, body stretched horizontally like a flying punch. Keep outfit, colors, mismatched sneakers and hair identical.\nasset_"
+ },
+ "spin-elbow-key-east": {
+  "out": "id: 8f6cc457-1423-4ded-b695-b34295140eaf\njob_id: 8f6cc457-1423-4ded-b695-b34295140eaf\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing right, now at the moment of impact of a muay thai spinning back elbow: she has spun around so her back half-faces the camera, the rear elbow swings horizontally toward the right at head height, upper arm level, hair ponytail whipping with the spin, feet pivoting on the balls, face looking over her shoulder toward the right. Keep outfit, ponytail, hand wraps (one red, one turquoise),"
+ },
+ "spin-elbow-key-west": {
+  "out": "id: 5c5e5ede-6468-4caf-bf85-6b00388abdc4\njob_id: 5c5e5ede-6468-4caf-bf85-6b00388abdc4\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing left, now at the moment of impact of a muay thai spinning back elbow: she has spun around so her back half-faces the camera, the rear elbow swings horizontally toward the left at head height, upper arm level, hair ponytail whipping with the spin, feet pivoting on the balls, face looking over her shoulder toward the left. Keep outfit, ponytail, hand wraps (one red, one turquoise), co"
+ },
+ "flying-knee-key-east": {
+  "out": "id: 04869274-2f05-496f-a72d-27379a9c047a\njob_id: 04869274-2f05-496f-a72d-27379a9c047a\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing right, now at the peak of a muay thai flying knee: jumping high off the ground toward the right, the knee of one leg driven forward and up to head height toward the right, the other leg trailing behind and below, both hands reaching forward to grab the opponent's head, body arched forward, both feet clearly in the air. Keep outfit, ponytail, hand wraps (one red, one turquoise), colo"
+ },
+ "flying-knee-key-west": {
+  "out": "id: 4372e684-9ab1-4b08-89c4-90e61406bc4d\njob_id: 4372e684-9ab1-4b08-89c4-90e61406bc4d\nmode: text\nframes: 1\nsize: 64x64px\ntransparent: True — auto (input has transparency)\nedit: same character, same side view facing left, now at the peak of a muay thai flying knee: jumping high off the ground toward the left, the knee of one leg driven forward and up to head height toward the left, the other leg trailing behind and below, both hands reaching forward to grab the opponent's head, body arched forward, both feet clearly in the air. Keep outfit, ponytail, hand wraps (one red, one turquoise), colors "
+ }
+}

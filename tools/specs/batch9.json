@@ -1,0 +1,66 @@
+[
+ {
+  "name": "uppercut-in-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "explosive jumping uppercut: from fighting stance she dips low, then springs straight up driving the rear fist upward above her head",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/47450129-571b-4af5-b125-04adc69e7cd7/download",
+   "animation_name": "uppercut-in"
+  }
+ },
+ {
+  "name": "uppercut-out-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "after a jumping uppercut she falls back down, lands and settles into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/47450129-571b-4af5-b125-04adc69e7cd7/download",
+   "end_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "animation_name": "uppercut-out"
+  }
+ },
+ {
+  "name": "uppercut-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "explosive jumping uppercut: from fighting stance she dips low, then springs straight up driving the rear fist upward above her head",
+   "frame_count": 6,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/ff0889fe-c2a3-4a5b-84d3-094627cd7726/download",
+   "animation_name": "uppercut-in"
+  }
+ },
+ {
+  "name": "uppercut-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "after a jumping uppercut she falls back down, lands and settles into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/ff0889fe-c2a3-4a5b-84d3-094627cd7726/download",
+   "end_frame_base64": "@/home/agent/games/birthday-coop/assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "animation_name": "uppercut-out"
+  }
+ }
+]

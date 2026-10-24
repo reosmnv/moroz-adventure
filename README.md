@@ -24,4 +24,11 @@ npm run test:net            # сетевые сценарии ботами (се
 
 ## Ассеты
 
-Пока нет.
+| Что | Где | Источник | Лицензия |
+|---|---|---|---|
+| Спрайты Анастасии (Moroz Prime и Moroz Ultimate): стойка, ходьба, рывок, серия ударов A, завершающие удары B, урон, падение, подъём, превращение; east и west | `assets/sprites/<форма>/<анимация>-<направление>.png`, описание в `assets/sprites/anims.json` | Сгенерировано в PixelLab (pixellab.ai, подписка Tier 1), собрано `tools/sprites.py` | По ToS PixelLab результат принадлежит пользователю, коммерческое использование разрешено на всех тарифах |
+| Исходные кадры и ключевые позы | `assets/pixellab/` | PixelLab | То же |
+
+Формат листов: полоса кадров 128x128, ступни на y=112, центр корпуса на x=64. В `anims.json` у каждой анимации число кадров по направлениям, `fps`, `loop`, у ударов `hit` (номер кадра попадания).
+Просмотр: `python3 -m http.server 8090 --bind 100.118.72.60` в папке проекта, затем http://100.118.72.60:8090/anim-preview/ (или GIF в `assets/sprites/gif/`).
+Пересборка: `python3 tools/sprites.py fetch && python3 tools/sprites.py build && python3 tools/gifs.py`.

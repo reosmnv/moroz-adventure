@@ -1,0 +1,34 @@
+[
+ {
+  "name": "transform-up-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "magical transformation: she crouches, a burst of bright cyan and white energy engulfs her body, her silhouette glows white, her long hair whips up into a ponytail and her jeans and crop top change into red fight shorts and hand wraps, then she rises into an aggressive muay thai stance",
+   "frame_count": 12,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "animation_name": "transform-up"
+  }
+ },
+ {
+  "name": "transform-down-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "transformation ends: her body flashes bright cyan and white, glowing silhouette, the red fight shorts and hand wraps change back into baggy jeans and crop top, the ponytail falls loose into long hair, the glow fades and she relaxes into a casual fighting stance",
+   "frame_count": 12,
+   "directions": [
+    "west"
+   ],
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "animation_name": "transform-down"
+  }
+ }
+]

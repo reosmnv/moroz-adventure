@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Анимации Анастасии</title>
+<style>
+  body { margin: 0; padding: 12px; background: #2b2b33; color: #ddd; font: 14px -apple-system, system-ui, sans-serif; }
+  h2 { margin: 18px 0 6px; }
+  .bar { position: sticky; top: 0; background: #2b2b33; padding: 6px 0; z-index: 1; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .card { background: #3a3a46; border-radius: 8px; padding: 6px; text-align: center; }
+  .card.light { background: #8a8f9c; }
+  canvas { image-rendering: pixelated; display: block; }
+  .name { margin-top: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <label>Скорость <input id="fps" type="range" min="10" max="200" value="100" step="10"> <span id="fpsv">100</span>%</label>
+  <label>Масштаб <select id="scale"><option>2</option><option selected>3</option><option>4</option></select></label>
+  <label><input id="light" type="checkbox"> Светлый фон</label>
+  <label><input id="feet" type="checkbox" checked> Линия ступней</label>
+</div>
+<div id="root"></div>
+<script>
+const SRC = '../assets/sprites/';
+const TITLES = {
+  static: 'Поза', idle: 'Стойка', walk: 'Ходьба', dash: 'Рывок',
+  jab: 'Джеб', cross: 'Кросс', teep: 'Тип', elbow: 'Локоть', knee: 'Колено', roundhouse: 'Раундхаус', superman: 'B: супермен-панч', highkick: 'A B: хай-кик', uppercut: 'A A B: апперкот',
+  'spin-elbow': 'B: разворотный локоть', 'flying-knee': 'A B: летящее колено', hurricane: 'A A B: вихрь',
+  hurt: 'Урон', fall: 'Падение', getup: 'Подъём', 'transform-up': 'Превращение', 'transform-down': 'Обратное превращение',
+};
+const ORDER = ['static', 'idle', 'walk', 'dash', 'jab', 'cross', 'teep', 'elbow', 'knee', 'roundhouse', 'superman', 'highkick', 'uppercut', 'spin-elbow', 'flying-knee', 'hurricane', 'hurt', 'fall', 'getup', 'transform-up', 'transform-down'];
+const fpsEl = document.getElementById('fps'), scaleEl = document.getElementById('scale');
+let meta, players = [];
+
+function title(a) { return TITLES[a] || a; }
+
+async function load() {
+  meta = await (await fetch(SRC + 'anims.json?' + Date.now())).json();
+  render();
+}
+
+function render() {
+  const root = document.getElementById('root');
+  root.innerHTML = '';
+  players = [];
+  const s = +scaleEl.value, cell = meta.cell;
+  for (const [state, anims] of Object.entries(meta.states)) {
+    const h = document.createElement('h2');
+    h.textContent = state === 'prime' ? 'Moroz Prime' : 'Moroz Ultimate';
+    root.appendChild(h);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    root.appendChild(grid);
+    for (const [anim, dirs] of Object.entries(anims).sort((a, b) => ORDER.indexOf(a[0]) - ORDER.indexOf(b[0]))) {
+      for (const dir of ['east', 'west']) {
+        if (!dirs[dir]) continue;
+        const card = document.createElement('div');
+        card.className = 'card' + (document.getElementById('light').checked ? ' light' : '');
+        const c = document.createElement('canvas');
+        c.width = c.height = cell * s;
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        const img = new Image();
+        img.src = `${SRC}${state}/${anim}-${dir}.png?${Date.now()}`;
+        const label = document.createElement('div');
+        label.className = 'name';
+        label.textContent = `${title(anim)} · ${dir === 'east' ? 'вправо' : 'влево'} · ${dirs[dir]} к. · ${dirs.fps} fps` + (dirs.hit ? ` · удар на ${dirs.hit[dir] + 1}` : '');
+        card.append(c, label);
+        grid.appendChild(card);
+        players.push({ ctx, img, n: dirs[dir], s, cell, feetY: meta.feetY, fps: dirs.fps || 10, loop: dirs.loop !== false, hit: dirs.hit ? dirs.hit[dir] : -1, t: 0 });
+      }
+    }
+  }
+}
+
+let last = 0;
+function tick(t) {
+  const dt = last ? (t - last) / 1000 : 0;
+  last = t;
+  {
+    for (const p of players) {
+      if (!p.img.complete) continue;
+      p.t += dt * p.fps * (+fpsEl.value / 100);
+      const total = p.loop ? p.n : p.n + Math.round(p.fps * 0.5);
+      const k = Math.floor(p.t) % total;
+      const i = Math.min(k, p.n - 1);
+      p.ctx.clearRect(0, 0, p.cell * p.s, p.cell * p.s);
+      p.ctx.drawImage(p.img, i * p.cell, 0, p.cell, p.cell, 0, 0, p.cell * p.s, p.cell * p.s);
+      if (i === p.hit) {
+        p.ctx.strokeStyle = 'rgba(255,220,60,.9)';
+        p.ctx.lineWidth = 3;
+        p.ctx.strokeRect(1, 1, p.cell * p.s - 2, p.cell * p.s - 2);
+      }
+      if (document.getElementById('feet').checked) {
+        p.ctx.fillStyle = 'rgba(255,80,80,.5)';
+        p.ctx.fillRect(0, p.feetY * p.s, p.cell * p.s, 1);
+      }
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+fpsEl.oninput = () => document.getElementById('fpsv').textContent = fpsEl.value;
+scaleEl.onchange = render;
+document.getElementById('light').onchange = render;
+load();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+[
+ {
+  "name": "highkick-skel",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "template_animation_id": "high-kick",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east",
+    "west"
+   ],
+   "animation_name": "highkick"
+  }
+ },
+ {
+  "name": "uppercut-skel",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "template_animation_id": "surprise-uppercut",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east",
+    "west"
+   ],
+   "animation_name": "uppercut"
+  }
+ },
+ {
+  "name": "hurricane-skel",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "template_animation_id": "hurricane-kick",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east",
+    "west"
+   ],
+   "animation_name": "hurricane"
+  }
+ },
+ {
+  "name": "superman-key-east",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/8f079407-9eb2-48f9-9b07-695c53169e9f/rotations/east.png?t=1792702071"
+   ],
+   "description": "same character, same side view facing right, now at the peak of a muay thai superman punch: leaping forward through the air toward the right, rear leg kicked back, lead arm (the rear hand) fully extended straight forward at head height toward the right, other fist guarding the chin, both feet off the ground, body stretched horizontally like a flying punch. Keep outfit, colors, mismatched sneakers and hair identical."
+  }
+ },
+ {
+  "name": "superman-key-west",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/8f079407-9eb2-48f9-9b07-695c53169e9f/rotations/west.png?t=1792702071"
+   ],
+   "description": "same character, same side view facing left, now at the peak of a muay thai superman punch: leaping forward through the air toward the left, rear leg kicked back, lead arm (the rear hand) fully extended straight forward at head height toward the left, other fist guarding the chin, both feet off the ground, body stretched horizontally like a flying punch. Keep outfit, colors, mismatched sneakers and hair identical."
+  }
+ },
+ {
+  "name": "spin-elbow-key-east",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/fda7726a-5a4b-45df-b0e9-5e5adadc9540/rotations/east.png?t=1792703885"
+   ],
+   "description": "same character, same side view facing right, now at the moment of impact of a muay thai spinning back elbow: she has spun around so her back half-faces the camera, the rear elbow swings horizontally toward the right at head height, upper arm level, hair ponytail whipping with the spin, feet pivoting on the balls, face looking over her shoulder toward the right. Keep outfit, ponytail, hand wraps (one red, one turquoise), colors identical."
+  }
+ },
+ {
+  "name": "spin-elbow-key-west",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/fda7726a-5a4b-45df-b0e9-5e5adadc9540/rotations/west.png?t=1792703885"
+   ],
+   "description": "same character, same side view facing left, now at the moment of impact of a muay thai spinning back elbow: she has spun around so her back half-faces the camera, the rear elbow swings horizontally toward the left at head height, upper arm level, hair ponytail whipping with the spin, feet pivoting on the balls, face looking over her shoulder toward the left. Keep outfit, ponytail, hand wraps (one red, one turquoise), colors identical."
+  }
+ },
+ {
+  "name": "flying-knee-key-east",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/fda7726a-5a4b-45df-b0e9-5e5adadc9540/rotations/east.png?t=1792703885"
+   ],
+   "description": "same character, same side view facing right, now at the peak of a muay thai flying knee: jumping high off the ground toward the right, the knee of one leg driven forward and up to head height toward the right, the other leg trailing behind and below, both hands reaching forward to grab the opponent's head, body arched forward, both feet clearly in the air. Keep outfit, ponytail, hand wraps (one red, one turquoise), colors identical."
+  }
+ },
+ {
+  "name": "flying-knee-key-west",
+  "tool": "edit_image",
+  "args": {
+   "image_urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/d47455d0-ffc8-4ae8-ad0a-f0fca3e00b17/fda7726a-5a4b-45df-b0e9-5e5adadc9540/rotations/west.png?t=1792703885"
+   ],
+   "description": "same character, same side view facing left, now at the peak of a muay thai flying knee: jumping high off the ground toward the left, the knee of one leg driven forward and up to head height toward the left, the other leg trailing behind and below, both hands reaching forward to grab the opponent's head, body arched forward, both feet clearly in the air. Keep outfit, ponytail, hand wraps (one red, one turquoise), colors identical."
+  }
+ }
+]
