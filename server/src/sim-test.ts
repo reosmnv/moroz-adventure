@@ -31,7 +31,7 @@ function run(w: World, ms: number, input: (t: number) => Partial<Input> = () => 
   }
   return { log, hits };
 }
-const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: number) => (at.includes(t) ? { [key]: true } : {});
+const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: number) => (at.some(a => t >= a && t < a + TICK_MS) ? { [key]: true } : {});
 
 // 1. Серия A: jab, cross, teep, затем сначала
 {
@@ -62,7 +62,7 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
 // 4. Удар по кадру: урон не раньше кадра hit
 {
   const { w } = setup(); dummy(w, 'e1', 24);
-  const { hits } = run(w, 150, press([0], 'attack')); // jab: кадр 4 при 18 fps = 222 мс
+  const { hits } = run(w, 120, press([0], 'attack')); // jab: кадр 4 при 18 fps x1.4 = 159 мс
   check('урон не раньше кадра удара', hits.length === 0, `за 150 мс попаданий ${hits.length}`);
   const r2 = run(w, 300);
   check('урон приходит в кадре удара', r2.hits.length === 1);
@@ -170,7 +170,7 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   run(w, 50, press([0], 'ult'));
   check('ульта отбрасывает всех врагов', w.enemies.a.x < 20 && w.enemies.b.x > 460 && (w.enemies.a.anim as string) === 'down', `${Math.round(w.enemies.a.x)} ${Math.round(w.enemies.b.x)}`);
 }
-check('длительности из данных', moveDurMs('prime', 'jab', 1) > 400);
+check('длительности из данных (x1.4)', moveDurMs('prime', 'jab', 1) > 300 && moveDurMs('prime', 'jab', 1) < 400);
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');
 process.exit(failed ? 1 : 0);

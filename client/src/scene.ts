@@ -1,9 +1,9 @@
 import * as Phaser from 'phaser';
-import { CHARACTERS, TEST_TOOLS, HEAVY, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { CHARACTERS, TEST_TOOLS, HEAVY, moveSpeed, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import type { Button, EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
 
-const INTERP_MS = 100; // буфер интерполяции: рисуем мир на 100 мс в прошлом
+const INTERP_MS = 60; // буфер интерполяции чужих и врагов: мир на 60 мс в прошлом. Свою героиню рисуем без отставания
 const JOY_RADIUS = 36;
 const BTN_HIT = 46; // зона касания больше видимой кнопки
 const CELL = 128; // кадр спрайта героини
@@ -234,15 +234,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   // Кадр героини из снимка: анимация по имени и времени с её начала, east/west отдельными полосами
-  private drawHero(v: View, sb: EntitySnap, x: number, y: number, f: number, away: boolean) {
+  private drawHero(v: View, sb: EntitySnap, x: number, y: number, f: number, away: boolean, lead = 0) {
     const form = sb.form ?? 'prime';
     const dir = dirOf(sb.facing);
     let move = sb.move ?? 'idle';
     if (!HERO_ANIMS[form][move]) move = 'idle';
     const def = HERO_ANIMS[form][move];
     const n = def[dir];
-    const t = Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS);
-    const raw = Math.floor((t * def.fps) / 1000);
+    const t = Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS + lead);
+    const raw = Math.floor((t * def.fps * moveSpeed(form, move)) / 1000);
     const frame = def.loop ? raw % n : Math.min(n - 1, raw);
     const sprite = v.sprite!;
     sprite.setTexture(`${form}/${move}-${dir}`, frame).setPosition(x, y).setDepth(y);
@@ -260,17 +260,18 @@ export class GameScene extends Phaser.Scene {
     if (!smp) return;
     const { a, b, f } = smp;
     const seen = new Set<string>();
-    const draw = (key: string, isPlayer: boolean, sa: EntitySnap | undefined, sb: EntitySnap) => {
+    const draw = (key: string, isPlayer: boolean, sa: EntitySnap | undefined, sb: EntitySnap, live = false) => {
       seen.add(key);
-      const x = sa ? sa.x + (sb.x - sa.x) * f : sb.x;
-      const y = sa ? sa.y + (sb.y - sa.y) * f : sb.y;
+      const x = sa && !live ? sa.x + (sb.x - sa.x) * f : sb.x;
+      const y = sa && !live ? sa.y + (sb.y - sa.y) * f : sb.y;
       const v = this.viewFor(key, isPlayer, sb);
       const down = sb.anim === 'down' && !v.sprite;
       v.body.setPosition(x, y).setDepth(y).setAngle(down ? 90 * sb.facing : 0);
       const away = sb.connected === false || sb.away;
       v.body.setAlpha(away ? 0.35 : 1);
       if (v.sprite) {
-        this.drawHero(v, sb, x, y, f, !!away);
+        const lead = live ? Math.min(TICK_MS, performance.now() - this.session.snapshots[this.session.snapshots.length - 1].t) : 0;
+        this.drawHero(v, sb, x, y, live ? 1 : f, !!away, lead);
       }
       v.body.setFillStyle(sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : sb.dummy ? 0xb08d57 : 0x8a8f98));
       const hitting = !v.sprite && (sb.anim === 'attack' || sb.anim === 'heavy');
@@ -281,7 +282,13 @@ export class GameScene extends Phaser.Scene {
       v.label?.setPosition(x, y - head - 3).setDepth(y + 0.7);
       v.bubble?.setPosition(x, y - HEAD - 18);
     };
-    for (const [id, sb] of b.players) draw('p:' + id, true, a.players.get(id), sb);
+    // Свою героиню рисуем по самому свежему снимку: отставание 60 мс остаётся только у остальных
+    const latest = this.session.snapshots[this.session.snapshots.length - 1];
+    for (const [id, sb] of b.players) {
+      const mine = id === this.session.me ? latest?.players.get(id) : undefined;
+      if (mine) draw('p:' + id, true, undefined, mine, true);
+      else draw('p:' + id, true, a.players.get(id), sb);
+    }
     for (const [id, sb] of b.enemies) draw('e:' + id, false, a.enemies.get(id), sb);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;

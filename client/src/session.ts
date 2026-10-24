@@ -33,7 +33,7 @@ export interface GameSession {
   leave(): void;
 }
 
-const BUFFER = 20;
+const BUFFER = 40;
 function pushSnap(list: Snapshot[], s: Snapshot) {
   list.push(s);
   if (list.length > BUFFER) list.shift();

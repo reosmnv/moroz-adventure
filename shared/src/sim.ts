@@ -6,7 +6,7 @@ import {
   hitTimesMs, isLoop, moveDurMs, type Strike,
 } from './hero-data.ts';
 
-export const TICK_MS = 50;
+export const TICK_MS = 17; // ~60 Гц: нажатие ждёт тик не дольше 17 мс
 export const VIEW_W = 480;
 export const VIEW_H = 270;
 export const LANE_TOP = 150;

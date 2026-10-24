@@ -96,6 +96,7 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (p) { p.away = !!on; this.playerInputs[client.sessionId] = emptyInput(); }
     });
 
+    this.setPatchRate(TICK_MS); // состояние уходит клиентам каждый тик, а не раз в 50 мс
     this.setSimulationInterval(() => this.tick(), TICK_MS);
   }
 

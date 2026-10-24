@@ -60,9 +60,13 @@ export const dirOf = (facing: number): 'east' | 'west' => (facing >= 0 ? 'east' 
 export const animDef = (form: Form, move: string): AnimDef | undefined => HERO_ANIMS[form][move];
 export const isLoop = (form: Form, move: string) => !!animDef(form, move)?.loop;
 
+// Удары проигрываются быстрее исходных fps: меньше задержка от нажатия до попадания (mr.R 24.10)
+export const ATTACK_SPEED = 1.4;
+export const moveSpeed = (form: Form, move: string): number => (STRIKES[form][move] ? ATTACK_SPEED : 1);
+
 export function moveDurMs(form: Form, move: string, facing: number): number {
   const a = animDef(form, move);
-  return a ? (a[dirOf(facing)] * 1000) / a.fps : 0;
+  return a ? (a[dirOf(facing)] * 1000) / (a.fps * moveSpeed(form, move)) : 0;
 }
 
 // Моменты попаданий от начала анимации, мс (начало кадра удара)
@@ -70,5 +74,5 @@ export function hitTimesMs(form: Form, move: string, facing: number): number[] {
   const a = animDef(form, move);
   if (!a) return [];
   const frames = a.hits ?? (a.hit ? [a.hit[dirOf(facing)]] : []);
-  return frames.map(f => (f * 1000) / a.fps);
+  return frames.map(f => (f * 1000) / (a.fps * moveSpeed(form, move)));
 }
