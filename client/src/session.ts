@@ -2,12 +2,12 @@
 // Сцена знает только снимки и события, режим ей не важен.
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  TICK_MS, addPlayer, createWorld, emptyInput, step, takenChars,
+  TEST_TOOLS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, takenChars,
   type Anim, type Form, type Input, type SimEvent, type World,
 } from '@bc/shared';
 
 export interface EntitySnap {
-  x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number;
+  x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean;
   form?: Form; move?: string; moveT?: number; formMs?: number; combo?: number; invuln?: boolean;
 }
 export interface Snapshot { t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
@@ -22,6 +22,7 @@ export interface GameSession {
   onEvents: (evs: SimEvent[]) => void;
   move(mx: number, my: number, run: boolean): void;
   press(b: Button): void;
+  spawn(): void;
   pick(char: string): void;
   setPaused(on: boolean): void;
   isPaused(): boolean;
@@ -45,7 +46,7 @@ export class LocalSession implements GameSession {
   status = 'офлайн';
   snapshots: Snapshot[] = [];
   onEvents: (evs: SimEvent[]) => void = () => {};
-  private world: World = createWorld(Date.now() & 0xffff);
+  private world: World = createWorld(Date.now() & 0xffff, TEST_TOOLS);
   private input: Input = emptyInput();
   private timer = 0;
   private paused = false;
@@ -68,6 +69,7 @@ export class LocalSession implements GameSession {
 
   move(mx: number, my: number, run: boolean) { this.input.mx = mx; this.input.my = my; this.input.run = run; }
   press(b: Button) { this.input[b] = true; }
+  spawn() { if (TEST_TOOLS) spawnEnemies(this.world, 3); }
   pick(char: string) { addPlayer(this.world, this.me, char); }
   setPaused(on: boolean) { this.paused = on; }
   isPaused() { return this.paused; }
@@ -134,7 +136,7 @@ export class OnlineSession implements GameSession {
       const players = new Map<string, EntitySnap>();
       state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
-      state.enemies.forEach((e: any, id: string) => enemies.set(id, { x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, facing: e.facing, anim: e.anim }));
+      state.enemies.forEach((e: any, id: string) => enemies.set(id, { x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, facing: e.facing, anim: e.anim }));
       pushSnap(this.snapshots, { t: performance.now(), players, enemies, wave: state.wave, tick: state.tick });
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;
@@ -175,6 +177,7 @@ export class OnlineSession implements GameSession {
     this.room.send('move', { mx, my, run });
   }
   press(b: Button) { this.room.send('btn', b); }
+  spawn() { this.safeSend('spawn', true); }
   pick(char: string) { this.room.send('pick', char); }
   setPaused(on: boolean) { this.safeSend('pause', on); }
   isPaused() { return this.paused; }

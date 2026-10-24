@@ -1,7 +1,7 @@
 import { Room, type Client } from 'colyseus';
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
-  CHARACTERS, TICK_MS, addPlayer, createWorld, emptyInput, removePlayer, step, takenChars,
+  CHARACTERS, TEST_TOOLS, TICK_MS, addPlayer, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars,
   type Input, type World,
 } from '@bc/shared';
 
@@ -29,6 +29,7 @@ export const EnemyState = schema({
   y: t.number(),
   hp: t.number(),
   maxHp: t.number(),
+  dummy: t.boolean(),
   facing: t.number(),
   anim: t.string(),
 }, 'EnemyState');
@@ -50,7 +51,7 @@ const round = (v: number) => Math.round(v * 10) / 10;
 export class GameRoom extends Room<{ state: GameState }> {
   maxClients = 2;
   state = new GameState();
-  world: World = createWorld(Date.now() & 0xffff);
+  world: World = createWorld(Date.now() & 0xffff, TEST_TOOLS);
   playerInputs: Record<string, Input> = {};
 
   onCreate() {
@@ -76,6 +77,11 @@ export class GameRoom extends Room<{ state: GameState }> {
     this.onMessage('btn', (client: Client, b: string) => {
       const inp = this.playerInputs[client.sessionId];
       if (inp && (b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult')) inp[b] = true;
+    });
+
+    // Тестовая кнопка «+3 врага»; в релизе TEST_TOOLS = false
+    this.onMessage('spawn', (client: Client) => {
+      if (TEST_TOOLS && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
     });
 
     // Пауза общая на комнату: поставить и снять может любой из двоих
@@ -119,7 +125,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
-      es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.facing = e.facing; es.anim = e.anim;
+      es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.facing = e.facing; es.anim = e.anim;
     }
   }
 

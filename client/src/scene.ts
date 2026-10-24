@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { CHARACTERS, HEAVY, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { CHARACTERS, TEST_TOOLS, HEAVY, HERO_ANIMS, HERO_ID, MOVE_NAMES, LANE_BOTTOM, LANE_TOP, TICK_MS, ULT_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import type { Button, EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
 
@@ -213,7 +213,7 @@ export class GameScene extends Phaser.Scene {
     let v = this.views.get(key);
     if (!v) {
       const ch = CHARACTERS.find(c => c.id === snap.char);
-      const color = isPlayer ? (ch?.color ?? 0xffffff) : 0x8a8f98;
+      const color = isPlayer ? (ch?.color ?? 0xffffff) : snap.dummy ? 0xb08d57 : 0x8a8f98;
       v = {
         body: this.add.rectangle(0, 0, 30, isPlayer ? 82 : 75, color).setOrigin(0.5, 1),
         fist: this.add.rectangle(0, 0, 10, 5, 0xffffff).setVisible(false),
@@ -272,7 +272,7 @@ export class GameScene extends Phaser.Scene {
       if (v.sprite) {
         this.drawHero(v, sb, x, y, f, !!away);
       }
-      v.body.setFillStyle(sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : 0x8a8f98));
+      v.body.setFillStyle(sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : sb.dummy ? 0xb08d57 : 0x8a8f98));
       const hitting = !v.sprite && (sb.anim === 'attack' || sb.anim === 'heavy');
       v.fist.setVisible(hitting).setPosition(x + sb.facing * (sb.anim === 'heavy' ? 16 : 12), y - 18).setSize(sb.anim === 'heavy' ? 14 : 10, 5).setDepth(y + 0.5);
       const maxHp = sb.maxHp ?? 100;
@@ -292,7 +292,7 @@ export class GameScene extends Phaser.Scene {
     const ultimate = me?.form === 'ultimate';
     this.ultBar.setSize(me ? (ultimate ? 100 * Math.max(0, me.formMs ?? 0) / ULT_MS : me.ult ?? 0) : 0, 6);
     this.ultBar.setFillStyle(ultimate ? 0xff7a1a : 0x9b59ff);
-    this.waveText.setText(`Волна ${b.wave}`);
+    this.waveText.setText(TEST_TOOLS ? 'Тест: манекен' : `Волна ${b.wave}`);
     // Подсказки к кнопкам: сколько ударов серии набрано и что даст B прямо сейчас
     if (me?.char === HERO_ID) {
       const c = Math.min(me.combo ?? 0, 2);

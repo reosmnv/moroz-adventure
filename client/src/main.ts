@@ -1,4 +1,4 @@
-import { CHARACTERS } from '@bc/shared';
+import { CHARACTERS, TEST_TOOLS } from '@bc/shared';
 import { LocalSession, OnlineSession, type GameSession } from './session.ts';
 import { startGame } from './scene.ts';
 import { audioState, unlockAudio } from './audio.ts';
@@ -62,10 +62,14 @@ async function begin(code?: string) {
   }
   $('menu').classList.add('hidden');
   $('topbar').classList.remove('hidden');
+  $('spawnBtn').classList.toggle('hidden', !TEST_TOOLS);
   game = startGame('game', session);
   // Уже в мире (вернулись по токену) — выбор персонажа не нужен
   setTimeout(() => { if (!session!.hasMe()) showPicker(); }, 300);
 }
+
+// Тестовая кнопка: три настоящих врага
+$('spawnBtn').onclick = () => session?.spawn();
 
 // Пауза: офлайн останавливает браузерную симуляцию, онлайн ставит на паузу всю комнату
 $('pauseBtn').onclick = () => session?.setPaused(true);

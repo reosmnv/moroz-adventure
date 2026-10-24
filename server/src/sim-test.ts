@@ -1,5 +1,5 @@
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { HERO_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, step, moveDurMs, type Input, type World } from '@bc/shared';
+import { HERO_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -84,7 +84,7 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   const { log } = run(w, 400, press([0], 'ult'));
   check('ульта запускает превращение', log.includes('transform-up') && p.invulnMs > 0 && p.ult === 0, log.join('>'));
   run(w, 1000);
-  check('после превращения Ultimate', p.form === 'ultimate' && p.formMs > 7000, `${p.form} ${p.formMs}`);
+  check('после превращения Ultimate', p.form === 'ultimate' && p.formMs > ULT_MS - 1500, `${p.form} ${p.formMs}`);
   check('в Ultimate серия другая', run(w, 600, press([0], 'attack')).log.includes('elbow'));
   run(w, ULT_MS - 1500);
   const r = run(w, 1500);
@@ -149,6 +149,26 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'taunt') => (t: n
   const frames: number[] = [];
   for (let t = 0; t < 600; t += TICK_MS) { step(w, { h: { ...emptyInput(), attack: t === 0 } }); frames.push(w.players.h.moveT); }
   check('хитстоп замораживает анимацию', frames.some((v, i) => i > 0 && v === frames[i - 1]));
+}
+// 9. Тестовый режим: манекен, кнопка «+3 врага», ульта отбрасывает всех
+{
+  const w = createWorld(3, true);
+  const p = addPlayer(w, 'h', HERO_ID); p.x = 300; p.y = 205;
+  step(w, { h: emptyInput() });
+  const d = Object.values(w.enemies);
+  check('в тесте один манекен, волн нет', d.length === 1 && !!d[0].dummy && w.wave === 0);
+  d[0].hp = 1; run(w, 100, press([0], 'attack'));
+  check('манекен не умирает', Object.values(w.enemies).some(e => e.dummy && e.hp > 0));
+  spawnEnemies(w, 3);
+  check('кнопка: +3 врага', Object.keys(w.enemies).length === 4);
+}
+{
+  const { w, p } = setup();
+  w.enemies.a = { id: 'a', x: 20, y: 160, hp: 100, maxHp: 100, facing: 1, anim: 'idle', animMs: 0, cdMs: 1e9 };
+  w.enemies.b = { id: 'b', x: 460, y: 250, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 1e9 };
+  p.ult = 100;
+  run(w, 50, press([0], 'ult'));
+  check('ульта отбрасывает всех врагов', w.enemies.a.x < 20 && w.enemies.b.x > 460 && (w.enemies.a.anim as string) === 'down', `${Math.round(w.enemies.a.x)} ${Math.round(w.enemies.b.x)}`);
 }
 check('длительности из данных', moveDurMs('prime', 'jab', 1) > 400);
 

@@ -23,7 +23,7 @@ async function main() {
   const tick0 = (a.state as any).tick;
   await sleep(500);
   check('сервер тикает', (a.state as any).tick > tick0, `tick ${(a.state as any).tick}`);
-  check('волна врагов появилась', (a.state as any).enemies.size > 0, `врагов ${(a.state as any).enemies.size}`);
+  check('манекен на месте', (a.state as any).enemies.size > 0, `врагов ${(a.state as any).enemies.size}`);
 
   // 2. Движение считает сервер
   const x0 = players(a).get(a.sessionId).x;
@@ -51,9 +51,19 @@ async function main() {
   // 4. Удар по врагу: урон считает сервер, событие приходит обоим
   let hits = 0;
   b.onMessage('ev', (evs: any[]) => { hits += evs.filter(e => e.t === 'hit').length; });
-  // Враги идут из-за края экрана, ждём до 15 с, пока дойдут
+  // Тест-режим: вместо волн стоит манекен, идём к нему
+  a.send('move', { mx: 1, my: 0 }); b.send('move', { mx: 1, my: 0 });
+  await sleep(2600);
+  a.send('move', { mx: 0, my: 0 }); b.send('move', { mx: 0, my: 0 });
+  await sleep(200);
   for (let i = 0; i < 150 && hits === 0; i++) { a.send('btn', 'attack'); b.send('btn', 'attack'); await sleep(100); }
   check('события боя доходят', hits > 0, `hit-событий у B: ${hits}`);
+
+  // 4a. Кнопка «+3 врага»
+  const before = (a.state as any).enemies.size;
+  a.send('spawn', true);
+  await sleep(300);
+  check('кнопка +3 врага работает', (a.state as any).enemies.size === before + 3, `${before} → ${(a.state as any).enemies.size}`);
 
   // 5. Третий не влезает
   let third = 'вошёл';

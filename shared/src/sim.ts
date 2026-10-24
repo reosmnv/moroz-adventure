@@ -12,6 +12,9 @@ export const VIEW_H = 270;
 export const LANE_TOP = 150;
 export const LANE_BOTTOM = 255;
 
+// Тестовые инструменты (манекен вместо волн, кнопка «+3 врага»). false перед релизом
+export const TEST_TOOLS = true;
+
 const PLAYER_SPEED = 90; // единиц в секунду
 const ENEMY_SPEED = 45;
 const PLAYER_HP = 100;
@@ -74,6 +77,9 @@ export interface Enemy {
   anim: Anim;
   animMs: number;
   cdMs: number;
+  dummy?: boolean; // манекен: стоит, не бьёт, не умирает
+  homeX?: number;
+  homeY?: number;
 }
 
 export interface World {
@@ -83,6 +89,7 @@ export interface World {
   nextEnemyId: number;
   players: Record<string, Player>;
   enemies: Record<string, Enemy>;
+  testTools: boolean;
 }
 
 export interface Input {
@@ -116,8 +123,8 @@ function rand(w: World): number {
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
-export function createWorld(seed = 1): World {
-  return { tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {} };
+export function createWorld(seed = 1, testTools = false): World {
+  return { tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools };
 }
 
 export function takenChars(w: World): string[] {
@@ -143,9 +150,13 @@ export function removePlayer(w: World, id: string) {
   delete w.players[id];
 }
 
-function spawnWave(w: World, ev: SimEvent[]) {
-  w.wave++;
-  const count = 2 + w.wave;
+function ensureDummy(w: World) {
+  if (Object.values(w.enemies).some(e => e.dummy)) return;
+  const id = 'e' + w.nextEnemyId++;
+  w.enemies[id] = { id, x: 330, y: 205, hp: 200, maxHp: 200, facing: -1, anim: 'idle', animMs: 0, cdMs: 0, dummy: true, homeX: 330, homeY: 205 };
+}
+
+export function spawnEnemies(w: World, count: number) {
   for (let i = 0; i < count; i++) {
     const id = 'e' + w.nextEnemyId++;
     const fromRight = rand(w) < 0.7;
@@ -157,23 +168,29 @@ function spawnWave(w: World, ev: SimEvent[]) {
       hp, maxHp: hp, facing: fromRight ? -1 : 1, anim: 'walk', animMs: 0, cdMs: 800 + rand(w) * 800,
     };
   }
+}
+
+function spawnWave(w: World, ev: SimEvent[]) {
+  w.wave++;
+  spawnEnemies(w, 2 + w.wave);
   ev.push({ t: 'wave', n: w.wave });
 }
 
 function hitEnemies(
   w: World, p: Player, range: number, dmg: number, ev: SimEvent[], allAround = false,
-  opts: { kb?: number; stun?: number; down?: boolean } = {},
+  opts: { kb?: number; stun?: number; down?: boolean; everyone?: boolean; silent?: boolean } = {},
 ): number {
   let hits = 0;
   for (const e of Object.values(w.enemies)) {
     const dx = e.x - p.x;
     const inFront = allAround || Math.sign(dx) === p.facing || Math.abs(dx) < 6;
-    if (inFront && Math.abs(dx) < range && Math.abs(e.y - p.y) < (allAround ? 60 : LANE_TOLERANCE)) {
+    if (opts.everyone || (inFront && Math.abs(dx) < range && Math.abs(e.y - p.y) < (allAround ? 60 : LANE_TOLERANCE))) {
       e.hp -= dmg;
       e.anim = opts.down ? 'down' : 'hurt';
       e.animMs = opts.down ? 900 : (opts.stun ?? 250);
       e.x = clamp(e.x + Math.sign(dx || p.facing) * (opts.kb ?? (allAround ? 30 : 8)), -40, VIEW_W + 40);
       hits++;
+      if (opts.silent) continue;
       if (p.form !== 'ultimate') p.ult = Math.min(100, p.ult + dmg); // в Ultimate шкала не копится
       ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y });
     }
@@ -278,6 +295,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
     const turn = () => { if (mx !== 0) p.facing = mx > 0 ? 1 : -1; };
     if (inp.ult && p.form === 'prime' && p.ult >= 100) {
       p.ult = 0; p.queued = null; p.combo = 0;
+      hitEnemies(w, p, 0, 0, ev, true, { everyone: true, silent: true, kb: 90, stun: 700, down: true }); // в момент нажатия всех врагов отбрасывает
       startMove(p, 'transform-up');
       p.invulnMs = moveDurMs('prime', 'transform-up', p.facing);
       ev.push({ t: 'ult', id: p.id });
@@ -326,7 +344,8 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   if (active.length === 0) return ev;
   w.tick++;
 
-  if (Object.keys(w.enemies).length === 0) spawnWave(w, ev);
+  if (w.testTools) ensureDummy(w);
+  else if (Object.keys(w.enemies).length === 0) spawnWave(w, ev);
 
   for (const p of active) {
     const inp = inputs[p.id] ?? emptyInput();
@@ -380,6 +399,15 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   for (const e of Object.values(w.enemies)) {
     e.animMs = Math.max(0, e.animMs - dtMs);
     e.cdMs = Math.max(0, e.cdMs - dtMs);
+    if (e.dummy) {
+      if (e.hp <= 0) e.hp = e.maxHp;
+      if ((e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0) continue;
+      e.anim = 'idle';
+      e.hp = Math.min(e.maxHp, e.hp + 40 * dt);
+      const hx = (e.homeX ?? e.x) - e.x, hy = (e.homeY ?? e.y) - e.y, hl = Math.hypot(hx, hy);
+      if (hl > 3) { e.x += (hx / hl) * 60 * dt; e.y += (hy / hl) * 60 * dt; }
+      continue;
+    }
     if (e.hp <= 0) { delete w.enemies[e.id]; continue; }
     if ((e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0) continue;
     if (targets.length === 0) { e.anim = 'idle'; continue; }

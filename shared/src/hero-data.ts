@@ -2,7 +2,7 @@
 import { HERO_ANIMS, type AnimDef, type Form } from './anims-data.ts';
 
 export const HERO_ID = 'anastasia';
-export const ULT_MS = 8000; // сколько длится Ultimate
+export const ULT_MS = 16000; // сколько длится Ultimate
 export const COMBO_MS = 700; // окно, в которое следующий удар продолжает серию
 export const HURT_INVULN_MS = 800;
 export const IMMUNE_INVULN_MS = 300; // в Ultimate удары по героине не прерывают её, но подряд не копятся
@@ -54,7 +54,7 @@ export const MOVE_NAMES: Record<string, string> = {
   'spin-elbow': 'Локоть с разворота', 'flying-knee': 'Колено в прыжке', hurricane: 'Ураган',
 };
 
-export const SPEED_MULT: Record<Form, number> = { prime: 1, ultimate: 1.25 };
+export const SPEED_MULT: Record<Form, number> = { prime: 1, ultimate: 2.5 };
 
 export const dirOf = (facing: number): 'east' | 'west' => (facing >= 0 ? 'east' : 'west');
 export const animDef = (form: Form, move: string): AnimDef | undefined => HERO_ANIMS[form][move];
