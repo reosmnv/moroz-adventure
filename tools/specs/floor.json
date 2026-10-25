@@ -1,0 +1,28 @@
+[
+ {
+  "name": "floor1",
+  "tool": "inpaint_image",
+  "args": {
+   "image_base64": "@assets/level1/floor1.png",
+   "description": "uniform grey concrete sidewalk of large square tiles continuing seamlessly from left to right, same perspective lines and same color, no seam, no stripe",
+   "mask_x": 80,
+   "mask_y": 118,
+   "mask_width": 96,
+   "mask_height": 62,
+   "seed": 9
+  }
+ },
+ {
+  "name": "floor2",
+  "tool": "inpaint_image",
+  "args": {
+   "image_base64": "@assets/level1/floor2.png",
+   "description": "uniform grey concrete sidewalk of large square tiles continuing seamlessly from left to right, same perspective lines and same color, no seam, no stripe",
+   "mask_x": 80,
+   "mask_y": 118,
+   "mask_width": 96,
+   "mask_height": 62,
+   "seed": 9
+  }
+ }
+]

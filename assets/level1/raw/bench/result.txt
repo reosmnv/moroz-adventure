@@ -1,0 +1,10 @@
+status: completed
+id: e5485a34-03a3-48e2-8833-b76af2cf6fb3
+description: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, Moscow city park bench, dark green metal frame with wooden slats
+size: 80x48px
+view: side
+background: transparent
+created: 2026-10-25 03:01
+download: https://api.pixellab.ai/mcp/map-objects/e5485a34-03a3-48e2-8833-b76af2cf6fb3/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="e5485a34-03a3-48e2-8833-b76af2cf6fb3")

@@ -1,0 +1,11 @@
+{
+ "seam0": {
+  "out": "id: 5cb39b3a-8a92-4327-bd50-6c17da47cc71\njob_id: 5cb39b3a-8a92-4327-bd50-6c17da47cc71\nsize: 256x180px\nmask: box 48x180 at (104,0)\nfill: seamless continuation of the building facade and the grey tiled sidewalk, smoothly joining the left part and the right part, a vertical drainpipe or a corner pillar at the join, same pixel art style\ntransparent: False — auto (input is opaque)\nseed: 5\nasset_id: 0fa33870-e6c6-52fd-8cef-4eecc2595b7f\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"5cb39b3a-8a92-4327-bd50-6c17da47cc"
+ },
+ "seam1": {
+  "out": "id: 0ade0024-f0e5-43b9-8ff1-68b0557307d1\njob_id: 0ade0024-f0e5-43b9-8ff1-68b0557307d1\nsize: 256x180px\nmask: box 48x180 at (104,0)\nfill: seamless continuation of the building facade and the grey tiled sidewalk, smoothly joining the left part and the right part, a vertical drainpipe or a corner pillar at the join, same pixel art style\ntransparent: False — auto (input is opaque)\nseed: 5\nasset_id: 5dcedd19-4bec-55f9-94c7-6640558eb583\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"0ade0024-f0e5-43b9-8ff1-68b0557307"
+ },
+ "seam2": {
+  "out": "id: fc6e1e23-5e57-4065-ae47-06ddcb718d7e\njob_id: fc6e1e23-5e57-4065-ae47-06ddcb718d7e\nsize: 256x180px\nmask: box 48x180 at (104,0)\nfill: seamless continuation of the building facade and the grey tiled sidewalk, smoothly joining the left part and the right part, a vertical drainpipe or a corner pillar at the join, same pixel art style\ntransparent: False — auto (input is opaque)\nseed: 5\nasset_id: d2f99cc4-5acf-5c2b-a793-662a29ecf760\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"fc6e1e23-5e57-4065-ae47-06ddcb718d"
+ }
+}

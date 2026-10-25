@@ -1,0 +1,64 @@
+[
+ {
+  "name": "s1_v0",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background in the style of Streets of Rage 2 and Scott Pilgrim pixel art, flat orthographic side view, horizontal composition. Top 55% of the image: the ground floor of a huge modern Moscow residential high-rise complex: cream-beige ceramic tile facade, vertical protruding bay columns, white stone stylobate with large glass windows. Bottom 45% of the image: a wide empty grey paved sidewalk of square concrete tiles seen slightly from above, receding upward, clean open floor for fighting, no people, no characters. Center: residential entrance door number 3: dark metal door with intercom panel, small concrete canopy over it, three low steps, a blank square plate above the door, a bench and a trash bin beside it, a few green bushes. Late afternoon warm light.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 11,
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "real building: facade colors, cream tile, white glass stylobate"
+    }
+   ]
+  }
+ },
+ {
+  "name": "s1_v1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background in the style of Streets of Rage 2 and Scott Pilgrim pixel art, flat orthographic side view, horizontal composition. Top 55% of the image: the ground floor of a huge modern Moscow residential high-rise complex: cream-beige ceramic tile facade, vertical protruding bay columns, white stone stylobate with large glass windows. Bottom 45% of the image: a wide empty grey paved sidewalk of square concrete tiles seen slightly from above, receding upward, clean open floor for fighting, no people, no characters. Center: residential entrance door number 3: dark metal door with intercom panel, small concrete canopy over it, three low steps, a blank square plate above the door, a bench and a trash bin beside it, a few green bushes. Late afternoon warm light.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 22,
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "real building: facade colors, cream tile, white glass stylobate"
+    }
+   ]
+  }
+ },
+ {
+  "name": "s1_v2",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background in the style of Streets of Rage 2 and Scott Pilgrim pixel art, flat orthographic side view, horizontal composition. Top 55% of the image: the ground floor of a huge modern Moscow residential high-rise complex: cream-beige ceramic tile facade, vertical protruding bay columns, white stone stylobate with large glass windows. Bottom 45% of the image: a wide empty grey paved sidewalk of square concrete tiles seen slightly from above, receding upward, clean open floor for fighting, no people, no characters. Center: residential entrance door number 3: dark metal door with intercom panel, small concrete canopy over it, three low steps, a blank square plate above the door, a bench and a trash bin beside it, a few green bushes. Late afternoon warm light.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 33,
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "real building: facade colors, cream tile, white glass stylobate"
+    }
+   ]
+  }
+ },
+ {
+  "name": "card",
+  "tool": "image_to_pixelart",
+  "args": {
+   "image_base64": "@assets/source/begovaya/complex-front.jpg",
+   "output_width": 300,
+   "output_height": 200,
+   "faithful": true,
+   "init_image_strength": 200
+  }
+ }
+]

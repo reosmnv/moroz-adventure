@@ -1,0 +1,24 @@
+[
+ {
+  "name": "card_pro",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "pixel art title card illustration: a huge modern Moscow residential complex, several tall cream-beige 30-38 storey towers with vertical protruding bays joined into one long wall, standing on a long low white stone and glass shopping-mall stylobate, blue sky, warm late afternoon light, trees and a road in front, wide shot, Streets of Rage 2 style background art",
+   "width": 288,
+   "height": 192,
+   "no_background": false,
+   "seed": 7,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "composition and shape of the real building"
+    },
+    {
+     "base64": "@assets/source/begovaya/complex-front.jpg",
+     "usage": "tower shapes and colors"
+    }
+   ]
+  }
+ }
+]

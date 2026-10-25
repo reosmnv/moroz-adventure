@@ -1,0 +1,10 @@
+status: completed
+id: d55833a0-6d27-45e3-8a34-0071cf4288c4
+description: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, empty supermarket shopping trolley, chrome metal
+size: 48x48px
+view: side
+background: transparent
+created: 2026-10-25 03:01
+download: https://api.pixellab.ai/mcp/map-objects/d55833a0-6d27-45e3-8a34-0071cf4288c4/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="d55833a0-6d27-45e3-8a34-0071cf4288c4")

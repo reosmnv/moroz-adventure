@@ -1,0 +1,41 @@
+[
+ {
+  "name": "seam0",
+  "tool": "inpaint_image",
+  "args": {
+   "image_base64": "@assets/level1/seam0.png",
+   "description": "seamless continuation of the building facade and the grey tiled sidewalk, smoothly joining the left part and the right part, a vertical drainpipe or a corner pillar at the join, same pixel art style",
+   "mask_x": 104,
+   "mask_y": 0,
+   "mask_width": 48,
+   "mask_height": 180,
+   "seed": 5
+  }
+ },
+ {
+  "name": "seam1",
+  "tool": "inpaint_image",
+  "args": {
+   "image_base64": "@assets/level1/seam1.png",
+   "description": "seamless continuation of the building facade and the grey tiled sidewalk, smoothly joining the left part and the right part, a vertical drainpipe or a corner pillar at the join, same pixel art style",
+   "mask_x": 104,
+   "mask_y": 0,
+   "mask_width": 48,
+   "mask_height": 180,
+   "seed": 5
+  }
+ },
+ {
+  "name": "seam2",
+  "tool": "inpaint_image",
+  "args": {
+   "image_base64": "@assets/level1/seam2.png",
+   "description": "seamless continuation of the building facade and the grey tiled sidewalk, smoothly joining the left part and the right part, a vertical drainpipe or a corner pillar at the join, same pixel art style",
+   "mask_x": 104,
+   "mask_y": 0,
+   "mask_width": 48,
+   "mask_height": 180,
+   "seed": 5
+  }
+ }
+]

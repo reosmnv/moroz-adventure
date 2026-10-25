@@ -1,8 +1,9 @@
 import * as Phaser from 'phaser';
-import { AIR_MS, PLAYER_HP, STORM_RADIUS, CHARACTERS, moveSpeed, HERO_ANIMS, HERO_ID, LANE_BOTTOM, LANE_TOP, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { AIR_MS, PLAYER_HP, STORM_RADIUS, CHARACTERS, moveSpeed, HERO_ANIMS, HERO_ID, LANE_BOTTOM, LANE_TOP, LEVEL_W, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
 import { FONT, UIScene, textStyle } from './ui.ts';
+import { buildLevel, preloadLevel, showCard } from './level.ts';
 
 const INTERP_MS = 60; // буфер интерполяции чужих и врагов: мир на 60 мс в прошлом. Свою героиню рисуем без отставания
 const CELL = 128; // кадр спрайта героини
@@ -22,6 +23,7 @@ export class GameScene extends Phaser.Scene {
   constructor() { super('game'); }
 
   preload() {
+    preloadLevel(this);
     for (const form of Object.keys(HERO_ANIMS) as Form[]) {
       for (const name of Object.keys(HERO_ANIMS[form])) {
         for (const d of ['east', 'west']) {
@@ -34,17 +36,25 @@ export class GameScene extends Phaser.Scene {
   init(data: { session: GameSession }) { this.session = data.session; }
 
   create() {
-    // Фон шире мира: на вытянутом экране по бокам не чёрные поля, а продолжение сцены
-    this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W * 3, VIEW_H, 0x1b1f33);
-    this.add.rectangle(VIEW_W / 2, (LANE_TOP + LANE_BOTTOM) / 2 + 8, VIEW_W * 3, LANE_BOTTOM - LANE_TOP + 40, 0x2c3350);
+    buildLevel(this);
+    showCard(this);
     this.layout();
     this.scale.on('resize', () => this.layout());
     this.session.onEvents = evs => this.onEvents(evs);
   }
 
-  // Мир по центру вытянутого экрана; интерфейс в отдельной сцене ui.ts
+  // Камера ездит по уровню за своей героиней; интерфейс в отдельной сцене ui.ts
   private layout() {
-    this.cameras.main.setScroll((VIEW_W - this.scale.width) / 2, 0);
+    this.cameras.main.setBounds(0, 0, LEVEL_W, VIEW_H);
+  }
+
+  private camX?: number;
+  private follow(x: number) {
+    const cam = this.cameras.main;
+    const target = Math.max(0, Math.min(LEVEL_W - this.scale.width, x - this.scale.width / 2));
+    // Мягкое следование без дрожи пикселей
+    this.camX = this.camX === undefined ? target : this.camX + (target - this.camX) * 0.15;
+    cam.setScroll(Math.round(this.camX), 0);
   }
 
   private onEvents(evs: SimEvent[]) {
@@ -215,7 +225,7 @@ export class GameScene extends Phaser.Scene {
     const latest = this.session.snapshots[this.session.snapshots.length - 1];
     for (const [id, sb] of b.players) {
       const mine = id === this.session.me ? latest?.players.get(id) : undefined;
-      if (mine) draw('p:' + id, true, undefined, mine, true);
+      if (mine) { draw('p:' + id, true, undefined, mine, true); this.follow(mine.x); }
       else draw('p:' + id, true, a.players.get(id), sb);
     }
     for (const [id, sb] of b.enemies) draw('e:' + id, false, a.enemies.get(id), sb);

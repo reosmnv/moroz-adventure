@@ -4,3 +4,4 @@ dist/
 .env
 assets/source/
 __pycache__/
+assets/level1/raw/card/

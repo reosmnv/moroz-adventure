@@ -1,0 +1,93 @@
+[
+ {
+  "name": "bench",
+  "tool": "create_map_object",
+  "args": {
+   "description": "pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, Moscow city park bench, dark green metal frame with wooden slats",
+   "width": 80,
+   "height": 48,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "urn",
+  "tool": "create_map_object",
+  "args": {
+   "description": "pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, round grey Moscow street trash bin with black lid",
+   "width": 32,
+   "height": 48,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "scooter",
+  "tool": "create_map_object",
+  "args": {
+   "description": "pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, green electric rental kick scooter parked on its kickstand",
+   "width": 48,
+   "height": 48,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "metro_sign",
+  "tool": "create_map_object",
+  "args": {
+   "description": "pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, Moscow metro entrance sign: tall grey pole with a big glowing red letter M in a white circle on top",
+   "width": 48,
+   "height": 128,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "planter",
+  "tool": "create_map_object",
+  "args": {
+   "description": "pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, square grey concrete street flower planter with small yellow-green bush",
+   "width": 64,
+   "height": 48,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "cart",
+  "tool": "create_map_object",
+  "args": {
+   "description": "pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, empty supermarket shopping trolley, chrome metal",
+   "width": 48,
+   "height": 48,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "lamp",
+  "tool": "create_map_object",
+  "args": {
+   "description": "pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, modern Moscow street lamp post, dark grey, tall",
+   "width": 32,
+   "height": 160,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ }
+]

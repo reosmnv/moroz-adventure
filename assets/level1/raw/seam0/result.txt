@@ -1,0 +1,11 @@
+status: completed
+id: 5cb39b3a-8a92-4327-bd50-6c17da47cc71
+job_id: 5cb39b3a-8a92-4327-bd50-6c17da47cc71
+frames: 1
+transparent: no — every pixel is opaque. If you asked for no_background, background removal did not find one; retry or describe the subject on a plain background.
+asset_id: 0fa33870-e6c6-52fd-8cef-4eecc2595b7f
+asset_type: image
+asset_status: saved
+gallery: saved to your PixelLab gallery (pixellab.ai/create)
+charged: 10 generations
+download: https://api.pixellab.ai/mcp/images/5cb39b3a-8a92-4327-bd50-6c17da47cc71/download

@@ -1,0 +1,23 @@
+{
+ "bench": {
+  "out": "id: e5485a34-03a3-48e2-8833-b76af2cf6fb3\ndescription: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, Moscow city park bench, dark green metal frame with wooden slats\nsize: 80x48px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"e5485a34-03a3-48e2-8833-b76af2cf6fb3\")"
+ },
+ "urn": {
+  "out": "id: 0289a028-a590-45ed-9e5c-56784eabccae\ndescription: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, round grey Moscow street trash bin with black lid\nsize: 32x48px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"0289a028-a590-45ed-9e5c-56784eabccae\")"
+ },
+ "scooter": {
+  "out": "id: 016f797c-ef0b-453b-9248-c2a2a0c4b7a3\ndescription: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, green electric rental kick scooter parked on its kickstand\nsize: 48x48px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"016f797c-ef0b-453b-9248-c2a2a0c4b7a3\")"
+ },
+ "metro_sign": {
+  "out": "id: caf89bab-9fe5-4412-8fc6-2a0e1588df7b\ndescription: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, Moscow metro entrance sign: tall grey pole with a big glowing red letter M in a white circle on top\nsize: 48x128px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"caf89bab-9fe5-4412-8fc6-2a0e1588df7b\")"
+ },
+ "planter": {
+  "out": "id: 186f0122-5d37-4fed-920c-4d6e637aedde\ndescription: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, square grey concrete street flower planter with small yellow-green bush\nsize: 64x48px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"186f0122-5d37-4fed-920c-4d6e637aedde\")"
+ },
+ "cart": {
+  "out": "id: d55833a0-6d27-45e3-8a34-0071cf4288c4\ndescription: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, empty supermarket shopping trolley, chrome metal\nsize: 48x48px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"d55833a0-6d27-45e3-8a34-0071cf4288c4\")"
+ },
+ "lamp": {
+  "out": "id: a5597da7-3859-4e11-a07f-d3963fec0051\ndescription: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, modern Moscow street lamp post, dark grey, tall\nsize: 32x160px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"a5597da7-3859-4e11-a07f-d3963fec0051\")"
+ }
+}

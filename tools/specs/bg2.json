@@ -1,0 +1,110 @@
+[
+ {
+  "name": "s2_v0",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style, palette and lighting as the style image (warm late afternoon). Top 62% of the image: building ground floor facade. Bottom 38%: the same wide empty grey paved sidewalk of large square concrete tiles seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people. An archway: a wide dark arched passage through the residential building in the center, through the arch a glimpse of a bright inner courtyard; on both sides of the arch small shop fronts in the ground floor with glass display windows and blank light signboards above them: a grocery shop with fruit in the window, a pharmacy with a green cross, a flower shop with buckets of flowers by the door. Cream-beige tile facade with protruding bays above.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 11,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "real place: cream tile towers above a white glass shopping stylobate"
+    }
+   ]
+  }
+ },
+ {
+  "name": "s2_v1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style, palette and lighting as the style image (warm late afternoon). Top 62% of the image: building ground floor facade. Bottom 38%: the same wide empty grey paved sidewalk of large square concrete tiles seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people. An archway: a wide dark arched passage through the residential building in the center, through the arch a glimpse of a bright inner courtyard; on both sides of the arch small shop fronts in the ground floor with glass display windows and blank light signboards above them: a grocery shop with fruit in the window, a pharmacy with a green cross, a flower shop with buckets of flowers by the door. Cream-beige tile facade with protruding bays above.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 22,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "real place: cream tile towers above a white glass shopping stylobate"
+    }
+   ]
+  }
+ },
+ {
+  "name": "s3_v0",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style, palette and lighting as the style image (warm late afternoon). Top 62% of the image: building ground floor facade. Bottom 38%: the same wide empty grey paved sidewalk of large square concrete tiles seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people. The long white stone and glass stylobate of a shopping mall under the residential towers: row of big glass shop windows with goods, glass entrance doors of the mall with a blank signboard, a city bus stop shelter with a bench and an advertising poster, trees in square planters.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 11,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "real place: cream tile towers above a white glass shopping stylobate"
+    }
+   ]
+  }
+ },
+ {
+  "name": "s3_v1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style, palette and lighting as the style image (warm late afternoon). Top 62% of the image: building ground floor facade. Bottom 38%: the same wide empty grey paved sidewalk of large square concrete tiles seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people. The long white stone and glass stylobate of a shopping mall under the residential towers: row of big glass shop windows with goods, glass entrance doors of the mall with a blank signboard, a city bus stop shelter with a bench and an advertising poster, trees in square planters.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 22,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "real place: cream tile towers above a white glass shopping stylobate"
+    }
+   ]
+  }
+ },
+ {
+  "name": "s4_v0",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style, palette and lighting as the style image (warm late afternoon). Top 62% of the image: building ground floor facade. Bottom 38%: the same wide empty grey paved sidewalk of large square concrete tiles seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people. A Moscow metro station entrance: a wide staircase going down into an underground pedestrian passage, glass and steel canopy over the stairs, metal railings, a newspaper kiosk next to it, the corner of the white mall building on the left and a busy street with trolleybus wires in the background on the right.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 11,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "real place: cream tile towers above a white glass shopping stylobate"
+    }
+   ]
+  }
+ },
+ {
+  "name": "s4_v1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style, palette and lighting as the style image (warm late afternoon). Top 62% of the image: building ground floor facade. Bottom 38%: the same wide empty grey paved sidewalk of large square concrete tiles seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people. A Moscow metro station entrance: a wide staircase going down into an underground pedestrian passage, glass and steel canopy over the stairs, metal railings, a newspaper kiosk next to it, the corner of the white mall building on the left and a busy street with trolleybus wires in the background on the right.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 22,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/complex-side.jpg",
+     "usage": "real place: cream tile towers above a white glass shopping stylobate"
+    }
+   ]
+  }
+ }
+]

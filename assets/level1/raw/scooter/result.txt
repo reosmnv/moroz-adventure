@@ -1,0 +1,10 @@
+status: completed
+id: 016f797c-ef0b-453b-9248-c2a2a0c4b7a3
+description: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, green electric rental kick scooter parked on its kickstand
+size: 48x48px
+view: side
+background: transparent
+created: 2026-10-25 03:01
+download: https://api.pixellab.ai/mcp/map-objects/016f797c-ef0b-453b-9248-c2a2a0c4b7a3/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="016f797c-ef0b-453b-9248-c2a2a0c4b7a3")

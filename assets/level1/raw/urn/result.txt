@@ -1,0 +1,10 @@
+status: completed
+id: 0289a028-a590-45ed-9e5c-56784eabccae
+description: pixel art game prop for a side-view beat 'em up, Streets of Rage 2 style, seen from the side and slightly above, round grey Moscow street trash bin with black lid
+size: 32x48px
+view: side
+background: transparent
+created: 2026-10-25 03:01
+download: https://api.pixellab.ai/mcp/map-objects/0289a028-a590-45ed-9e5c-56784eabccae/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="0289a028-a590-45ed-9e5c-56784eabccae")

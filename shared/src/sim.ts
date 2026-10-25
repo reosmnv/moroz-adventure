@@ -9,8 +9,9 @@ import {
 export const TICK_MS = 17; // ~60 Гц: нажатие ждёт тик не дольше 17 мс
 export const VIEW_W = 480;
 export const VIEW_H = 270;
-export const LANE_TOP = 150;
+export const LANE_TOP = 168; // линия стены на фоне уровня 1
 export const LANE_BOTTOM = 255;
+export const LEVEL_W = 1920; // длина уровня: 4 экрана по 480
 
 // Тестовые инструменты (манекен вместо волн, кнопка «+3 врага»). false перед релизом
 export const TEST_TOOLS = true;
@@ -130,6 +131,12 @@ function rand(w: World): number {
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
+// Середина между живыми игроками: от неё спавнятся враги и считается край экрана
+function focusX(w: World): number {
+  const ps = Object.values(w.players).filter(p => p.connected);
+  return ps.length ? ps.reduce((s, p) => s + p.x, 0) / ps.length : VIEW_W / 2;
+}
+
 export function createWorld(seed = 1, testTools = false): World {
   return { tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools };
 }
@@ -143,7 +150,7 @@ export function addPlayer(w: World, id: string, char: string): Player {
   const buddy = Object.values(w.players).find(p => p.connected && p.hp > 0);
   const p: Player = {
     id, char,
-    x: buddy ? clamp(buddy.x - 30, 20, VIEW_W - 20) : 80,
+    x: buddy ? clamp(buddy.x - 30, 20, LEVEL_W - 20) : 80,
     y: buddy ? clamp(buddy.y + 20, LANE_TOP, LANE_BOTTOM) : 200,
     hp: PLAYER_HP, facing: 1, anim: 'idle', animMs: 0, cdMs: 0, tauntCdMs: 0, ult: 0, downMs: 0,
     connected: true, away: false,
@@ -169,13 +176,14 @@ export function chargeUlt(w: World, id: string) {
 }
 
 export function spawnEnemies(w: World, count: number) {
+  const cx = focusX(w);
   for (let i = 0; i < count; i++) {
     const id = 'e' + w.nextEnemyId++;
     const fromRight = rand(w) < 0.7;
     const hp = 40;
     w.enemies[id] = {
       id,
-      x: fromRight ? VIEW_W + 20 + i * 25 : -20 - i * 25,
+      x: fromRight ? Math.min(cx + 280, LEVEL_W + 20) + i * 25 : Math.max(cx - 280, -20) - i * 25,
       y: LANE_TOP + rand(w) * (LANE_BOTTOM - LANE_TOP),
       hp, maxHp: hp, facing: fromRight ? -1 : 1, anim: 'walk', animMs: 0, cdMs: 800 + rand(w) * 800,
     };
@@ -202,7 +210,7 @@ function hitEnemies(
         e.anim = opts.down ? 'down' : 'hurt';
         e.animMs = opts.down ? 900 : (opts.stun ?? 250);
         if (opts.launch) e.air = AIR_MS;
-        e.x = clamp(e.x + Math.sign(dx || p.facing) * (opts.kb ?? (allAround ? 30 : 8)), -40, VIEW_W + 40);
+        e.x = clamp(e.x + Math.sign(dx || p.facing) * (opts.kb ?? (allAround ? 30 : 8)), Math.max(-40, focusX(w) - 300), Math.min(LEVEL_W + 40, focusX(w) + 300));
       }
       hits++;
       if (opts.silent) continue;
@@ -359,7 +367,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       const moving = mx !== 0 || my !== 0;
       const run = moving && inp.run;
       const speed = PLAYER_SPEED * SPEED_MULT[p.form] * (run ? RUN_MULT : 1);
-      p.x = clamp(p.x + mx * speed * dt, 10, VIEW_W - 10);
+      p.x = clamp(p.x + mx * speed * dt, 10, LEVEL_W - 10);
       p.y = clamp(p.y + my * speed * 0.7 * dt, LANE_TOP, LANE_BOTTOM);
       if (mx !== 0) p.facing = mx > 0 ? 1 : -1;
       const want2 = run ? 'dash' : moving ? 'walk' : 'idle';
@@ -411,7 +419,7 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     const busy = p.animMs > 0 && (p.anim === 'attack' || p.anim === 'heavy' || p.anim === 'ult' || p.anim === 'hurt');
     if (!busy) {
       const mx = clamp(inp.mx, -1, 1), my = clamp(inp.my, -1, 1);
-      p.x = clamp(p.x + mx * PLAYER_SPEED * dt, 10, VIEW_W - 10);
+      p.x = clamp(p.x + mx * PLAYER_SPEED * dt, 10, LEVEL_W - 10);
       p.y = clamp(p.y + my * PLAYER_SPEED * 0.7 * dt, LANE_TOP, LANE_BOTTOM);
       if (mx !== 0) p.facing = mx > 0 ? 1 : -1;
       if (p.animMs === 0) p.anim = mx !== 0 || my !== 0 ? 'walk' : 'idle';

@@ -1,0 +1,8 @@
+{
+ "floor1": {
+  "out": "id: cdaf0b0c-e8a1-4cdf-8f05-492d7a7385f0\njob_id: cdaf0b0c-e8a1-4cdf-8f05-492d7a7385f0\nsize: 256x180px\nmask: box 96x62 at (80,118)\nfill: uniform grey concrete sidewalk of large square tiles continuing seamlessly from left to right, same perspective lines and same color, no seam, no stripe\ntransparent: False — auto (input is opaque)\nseed: 9\nasset_id: 92e80135-2c73-516b-bf59-1d37c5dedc50\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"cdaf0b0c-e8a1-4cdf-8f05-492d7a7385f0\")"
+ },
+ "floor2": {
+  "out": "id: 612eef0a-240a-4d05-84c5-237cd55246b8\njob_id: 612eef0a-240a-4d05-84c5-237cd55246b8\nsize: 256x180px\nmask: box 96x62 at (80,118)\nfill: uniform grey concrete sidewalk of large square tiles continuing seamlessly from left to right, same perspective lines and same color, no seam, no stripe\ntransparent: False — auto (input is opaque)\nseed: 9\nasset_id: cfa6f2b9-1775-5155-8452-375de56ada60\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"612eef0a-240a-4d05-84c5-237cd55246b8\")"
+ }
+}
