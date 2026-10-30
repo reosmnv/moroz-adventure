@@ -24,7 +24,7 @@ HEROES = {
         "stab": ["a1", "a2", "a3"],
         "fps": {"idle": (10, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False),
                 "fall": (12, False), "getup": (10, False), "static": (1, True)},
-        "strike_fps": 16,
+        "strike_fps": 18,  # единый темп ударов у всех героев (mr.R 30.10)
     },
     "kris": {
         # cam-*: переходы от стойки с камерой наготове (mr.R 30.10); a3 убран из серии, старые a*-in/out не собираются
@@ -38,8 +38,9 @@ HEROES = {
         # ходьба и бег с камерой в руках (pixminimax от стойки с камерой, mr.R 30.10) вместо skeleton-v3 с кулаками
         "alias": {"walk": None, "dash": None, "walk-cam8": "walk", "dash-cam8": "dash", "walk-cam16": None, "dash-cam16": None},
         "fps": {"idle": (10, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False),
-                "fall": (12, False), "getup": (10, False), "static": (1, True)},
-        "strike_fps": 16,
+                "fall": (12, False), "getup": (10, False), "static": (1, True),
+                "hop": (16, False)},  # отскок: длительность в sim считается от 16 кадров/с (HOP_MS)
+        "strike_fps": 18,  # единый темп ударов у всех героев (mr.R 30.10)
     },
 }
 

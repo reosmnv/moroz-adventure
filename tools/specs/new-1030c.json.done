@@ -1,0 +1,8 @@
+{
+ "axe3-in-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (from a Muay Thai fighting stance she swings her rear leg straight up high above her head for an axe kick. Body stays in side profile facing left. Clean pixel art frames, no motion blur, no white smear, no effects.)\ndirections: west (1 jobs)\njob_ids: west=ec726294-4385-41b2-88a5-abec16d73d96\ngroup: 5da3bd96-943d-44ba-8aa7-083e0fcee640\nframes: 5 (1 reference + 4 animated)\ncanvas: west 80x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 m"
+ },
+ "axe3-out-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (she brings her raised leg straight down, heel chopping hard to the ground in front of her (axe kick), then steps back into her Muay Thai fighting stance. Body stays in side profile facing left. Clean pixel art frames, no motion blur, no white smear, no effects.)\ndirections: west (1 jobs)\njob_ids: west=d3a8100a-c5a3-4ba2-a843-9044e4596065\ngroup: 6c2a95f9-23ec-4bb4-9961-ee97fa5e64d0\nframes: 7 (1 reference + 6 animated)\ncanvas: west 80x88 (generated at this size; with custom frames the stored canvas is re-measured around the mo"
+ }
+}

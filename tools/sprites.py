@@ -21,8 +21,8 @@ DIRS = ("east", "west")
 # idle-live16: живая стойка pixminimax 16 кадров (mr.R 30.10: старые стояли почти неподвижно), старые idle не собираются
 ALIAS = {"pilot-idle-skel": None, "idle": None, "idle-live": None, "idle-live16": "idle", "running": "dash", "full-sprint": "dash",
          "hurricane-pmm": "hurricane", "hurricane": None, "uppercut": None, "uppercut-pmm": None,
-         # добивание сверху (30.10): части собраны в axe-in/axe-out; axe-out-* со смазом заменён axe2-out-*
-         **{f"{p}-{d}": None for p in ("axe-in", "axe-out", "axe2-out") for d in ("east", "west")}}
+         # добивание сверху (30.10): части собраны в axe-in/axe-out; east = axe-in-east + axe2-out-east, west = axe3-* (другая нога, mr.R 30.10)
+         **{f"{p}-{d}": None for p in ("axe-in", "axe-out", "axe2-out", "axe3-in", "axe3-out") for d in ("east", "west")}}
 # скорость (кадров/с) и зацикливание для игры; удары быстрые, стойка и ходьба петлёй
 FPS = {"hurricane": (16, False), "idle": (10, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False), "fall": (12, False),
        "getup": (10, False), "transform-up": (12, False), "transform-down": (12, False), "static": (1, True)}
@@ -37,8 +37,7 @@ HITS = {("ultimate", "hurricane"): [4, 8, 12]}
 DROP = {("prime", "cross", "east"): [2], ("prime", "cross", "west"): [2, 3],
         ("prime", "uppercut", "east"): [3, 4, 7, 8], ("prime", "uppercut", "west"): [1, 2, 7, 8],
         ("prime", "superman", "west"): [1, 2, 3],
-        ("ultimate", "flying-knee", "east"): [4],
-        ("prime", "axe", "west"): [7, 8]}  # axe west: разворот к зрителю и белый смаз (30.10)
+        ("ultimate", "flying-knee", "east"): [4]}
 # удар = выпад (<name>-in: стойка -> ключевая поза) + возврат (<name>-out: ключевая поза -> стойка);
 # общий ключевой кадр берётся один раз, его номер пишется в anims.json как hit
 

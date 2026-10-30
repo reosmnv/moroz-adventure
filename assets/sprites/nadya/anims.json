@@ -48,7 +48,7 @@
    "a1": {
     "east": 9,
     "west": 9,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 4,
@@ -58,7 +58,7 @@
    "a2": {
     "east": 10,
     "west": 10,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 6,
@@ -68,7 +68,7 @@
    "a3": {
     "east": 11,
     "west": 11,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 8,
@@ -78,7 +78,7 @@
    "b1": {
     "east": 6,
     "west": 6,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 3,
@@ -88,7 +88,7 @@
    "b2": {
     "east": 6,
     "west": 6,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 3,
@@ -98,7 +98,7 @@
    "ult": {
     "east": 11,
     "west": 11,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 6,
@@ -108,7 +108,7 @@
    "b3-draw": {
     "east": 9,
     "west": 9,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 8,
@@ -118,13 +118,13 @@
    "b3-dash": {
     "east": 3,
     "west": 3,
-    "fps": 16,
+    "fps": 18,
     "loop": false
    },
    "b3-end": {
     "east": 7,
     "west": 7,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 1,
@@ -134,7 +134,7 @@
    "b3": {
     "east": 19,
     "west": 19,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 13,

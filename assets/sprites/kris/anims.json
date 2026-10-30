@@ -48,7 +48,7 @@
    "a1": {
     "east": 9,
     "west": 9,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 4,
@@ -58,7 +58,7 @@
    "a2": {
     "east": 9,
     "west": 9,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 6,
@@ -68,7 +68,7 @@
    "b": {
     "east": 9,
     "west": 9,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 4,
@@ -78,7 +78,7 @@
    "ball": {
     "east": 8,
     "west": 8,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 4,
@@ -88,7 +88,7 @@
    "a1-back": {
     "east": 8,
     "west": 8,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 3,
@@ -108,7 +108,7 @@
    "ult-setup": {
     "east": 10,
     "west": 10,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 9,
@@ -118,19 +118,19 @@
    "ult-hold": {
     "east": 2,
     "west": 2,
-    "fps": 16,
+    "fps": 18,
     "loop": false
    },
    "ult-out": {
     "east": 4,
     "west": 4,
-    "fps": 16,
+    "fps": 18,
     "loop": false
    },
    "ult": {
     "east": 26,
     "west": 26,
-    "fps": 16,
+    "fps": 18,
     "loop": false,
     "hit": {
      "east": 16,
