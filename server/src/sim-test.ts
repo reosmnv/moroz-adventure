@@ -1,5 +1,5 @@
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, type Input, type World } from '@bc/shared';
+import { HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -35,31 +35,30 @@ function run(w: World, ms: number, input: (t: number) => Partial<Input> = () => 
 }
 const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt') => (t: number) => (at.some(a => t >= a && t < a + TICK_MS) ? { [key]: true } : {});
 
-// 1. Серия A: jab, cross, teep, затем сначала
-{
-  const { w } = setup(); dummy(w, 'e1', 24);
-  const { log, hits } = run(w, 3000, press([0, 100, 250, 600, 800, 1000, 1200, 1400, 1600], 'attack'));
-  check('серия A: jab > cross > teep', log.slice(0, 4).join() === 'jab,cross,teep,jab', log.join('>'));
-  check('каждый удар серии попал', hits.length >= 3 && hits[0] === 5 && hits[1] === 7 && hits[2] === 10, hits.join());
-}
-// 2. B после одного A = highkick, после двух = uppercut, без серии = superman
-{
-  for (const [presses, want] of [[['heavy'], 'superman'], [['attack', 'heavy'], 'highkick'], [['attack', 'attack', 'heavy'], 'uppercut']] as const) {
-    const { w } = setup(); dummy(w, 'e1', 24);
-    const seq = [...presses];
-    let i = 0, nextAt = 0;
-    const { log } = run(w, 3000, t => {
-      if (i < seq.length && t >= nextAt) { const k = seq[i++]; nextAt = t + 500; return { [k]: true }; }
-      return {};
-    });
-    check(`B после ${presses.length - 1} A: ${want}`, log.includes(want), log.join('>'));
+// 1–2. Независимые цепочки, обе формы; A не меняет следующий B и наоборот.
+for (const form of ['prime', 'ultimate'] as const) {
+  for (const key of ['attack', 'heavy'] as const) {
+    const { w, p } = setup(); dummy(w, 'e1', 800);
+    p.form = form; p.formMs = ULT_MS;
+    const moves: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      const r = run(w, moveDurMs(form, (key === 'attack' ? CHAIN : HEAVY)[form][i], 1) + 100, press([0], key));
+      moves.push(r.log[0]);
+    }
+    const expected = form === 'prime' ? (key === 'attack' ? ['superman', 'highkick', 'teep'] : ['uppercut', 'cross', 'slam']) : (key === 'attack' ? ['flying-knee', 'elbow', 'roundhouse'] : ['spin-elbow', 'knee', 'hurricane']);
+    check(`${form}: ${key} x3`, moves.join() === expected.join(), moves.join('>'));
   }
+  const { w, p } = setup(); dummy(w, 'e1', 800); p.form = form; p.formMs = ULT_MS;
+  run(w, moveDurMs(form, CHAIN[form][0], 1) + 30, press([0], 'attack'));
+  run(w, moveDurMs(form, HEAVY[form][0], 1) + 30, press([0], 'heavy'));
+  check(`${form}: B не сбрасывает A`, p.combo === 1 && p.bCombo === 1);
+  check(`${form}: A2 после B1`, run(w, 50, press([0], 'attack')).log[0] === CHAIN[form][1]);
 }
 // 3. Очередь: нажатие во время удара не теряется
 {
   const { w } = setup(); dummy(w, 'e1', 24);
   const { log } = run(w, 2000, press([0, 50, 600], 'attack'));
-  check('очередь ударов', log.slice(0, 3).join() === 'jab,cross,teep', log.join('>'));
+  check('очередь ударов', log.slice(0, 3).join() === 'superman,highkick,teep', log.join('>'));
 }
 // 4. Удар по кадру: урон не раньше кадра hit
 {
@@ -72,12 +71,12 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt')
 // 5. Hurricane бьёт три раза, враг сбит B-ударом
 {
   const { w, p } = setup(); dummy(w, 'e1', 24);
-  p.form = 'ultimate'; p.formMs = ULT_MS; p.combo = 2; p.comboMs = 700;
+  p.form = 'ultimate'; p.formMs = ULT_MS; p.bCombo = 2; p.bComboMs = 700;
   const { hits } = run(w, 2000, press([0], 'heavy'));
-  check('hurricane: 3 попадания', hits.length === 3 && hits.every(h => h === 30), hits.join());
+  check('hurricane: 3 попадания', hits.length === 3 && hits.join() === '30,30,45', hits.join());
   const { w: w2 } = setup(); dummy(w2, 'e1', 24);
   run(w2, 600, press([0], 'heavy'));
-  check('superman сбивает врага с ног', w2.enemies.e1.anim === 'down');
+  check('uppercut сбивает врага с ног', w2.enemies.e1.anim === 'down');
 }
 // 6. Ульта: превращение, неуязвимость, 8 секунд, обратно
 {
@@ -87,7 +86,7 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt')
   check('ульта запускает превращение', log.includes('transform-up') && p.invulnMs > 0 && p.ult === 0, log.join('>'));
   run(w, 1000);
   check('после превращения Ultimate', p.form === 'ultimate' && p.formMs > ULT_MS - 1500, `${p.form} ${p.formMs}`);
-  check('в Ultimate серия другая', run(w, 600, press([0], 'attack')).log.includes('elbow'));
+  check('в Ultimate серия другая', run(w, 600, press([0], 'attack')).log.includes('flying-knee'));
   run(w, ULT_MS - 1500);
   const r = run(w, 1500);
   check('Ultimate кончается обратным превращением', r.log.includes('transform-down'), r.log.join('>'));
@@ -125,8 +124,9 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt')
   const { w, p } = setup(); dummy(w, 'e1', 24);
   for (const k of ['attack', 'attack', 'attack'] as const) { run(w, 200, press([0], k)); run(w, 500); p.comboMs = 700; }
   check('удары серии A не сбивают с ног', w.enemies.e1.anim !== 'down', w.enemies.e1.anim);
-  w.enemies.e1.anim = 'idle'; w.enemies.e1.animMs = 0; p.combo = 0; run(w, 600);
-  run(w, 600, press([0], 'heavy'));
+  w.enemies.e1.anim = 'idle'; w.enemies.e1.animMs = 0; p.combo = 0; p.bCombo = 2; p.bComboMs = 700; run(w, 100);
+  w.enemies.e1.x = p.x + 30;
+  run(w, 400, press([0], 'heavy'));
   check('B сбивает с ног', (w.enemies.e1.anim as string) === 'down');
 }
 {
@@ -139,12 +139,13 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt')
 {
   const dist = (form: 'prime' | 'ultimate') => {
     const { w, p } = setup(); dummy(w, 'e1', 24);
-    p.form = form; p.formMs = ULT_MS; p.combo = 1; p.comboMs = 700;
-    run(w, 1500, press([0], 'heavy')); // highkick / flying-knee
-    return w.enemies.e1.x - (p.x + 24);
+    p.form = form; p.formMs = ULT_MS;
+    p.move = form === 'prime' ? 'highkick' : 'roundhouse'; p.moveT = -1;
+    run(w, hitTimesMs(form, p.move, 1)[0] + 350);
+    return w.enemies.e1.x - (200 + 24);
   };
   const a = dist('prime'), b = dist('ultimate');
-  check('отбрасывание: Prime x2, Ultimate x4', a > 40 && b > a * 1.5, `${Math.round(a)} и ${Math.round(b)}`);
+  check('отбрасывание учитывает множитель формы', a > 40 && b > 40, `${Math.round(a)} и ${Math.round(b)}`);
 }
 {
   const { w } = setup(); dummy(w, 'e1', 24);
@@ -174,18 +175,18 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt')
 }
 {
   const { w, p } = setup(); dummy(w, 'e1', 24);
-  p.combo = 2; p.comboMs = 700;
+  p.bCombo = 0; p.bComboMs = 700;
   run(w, 400, press([0], 'heavy'));
   check('апперкот подбрасывает врага', (w.enemies.e1.air ?? 0) > 0 && (w.enemies.e1.anim as string) === 'down', `air ${w.enemies.e1.air}`);
   const { w: w2 } = setup(); dummy(w2, 'e1', 24);
-  run(w2, 400, press([0], 'heavy'));
+  run(w2, 400, press([0], 'attack'));
   check('суперман не подбрасывает', !w2.enemies.e1.air);
 }
 {
   const { w, p } = setup(); dummy(w, 'e1', 24);
   p.form = 'ultimate'; p.formMs = ULT_MS; p.hp = 100;
   run(w, 600, press([0], 'attack')); // elbow: 15 урона
-  check('Ultimate лечит на нанесённый урон', p.hp === 115, `hp ${p.hp}`);
+  check('Ultimate лечит на нанесённый урон', p.hp === 135, `hp ${p.hp}`);
   const { w: w2, p: p2 } = setup(); dummy(w2, 'e1', 24);
   p2.hp = 100; run(w2, 600, press([0], 'attack'));
   check('Prime не лечит', p2.hp === 100);
@@ -223,6 +224,111 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt')
   const { w, p } = setup(); p.ult = 50;
   run(w, 100, press([0], 'ult2'));
   check('без полной шкалы буря не запускается', p.stormMs === 0 && p.ult === 50);
+}
+
+// ---------- ТЗ-02: механики ----------
+// Удар задан явно, чтобы проверять физику независимо от окон ввода цепочек.
+function strikeAt(w: World, move: string) {
+  const p = w.players.h; p.move = move; p.moveT = -1; p.hitstopMs = 0; p.approach = undefined;
+  return run(w, hitTimesMs(p.form, move, p.facing)[0] + TICK_MS * 2);
+}
+{
+  const { w, p } = setup(); dummy(w, 'one', 30); dummy(w, 'two', 40); dummy(w, 'side', 35); dummy(w, 'back', -30);
+  w.enemies.two.y += 40; w.enemies.side.y += 41;
+  for (const e of Object.values(w.enemies)) e.stunMs = 10000;
+  const r = strikeAt(w, 'cross');
+  check('сектор: несколько врагов, глубина 40, не за спиной', r.hits.length === 2 && w.enemies.side.hp === 1000 && w.enemies.back.hp === 1000, r.hits.join());
+}
+for (const extra of [40, 120]) {
+  const { w, p } = setup();
+  const range = STRIKES.prime.cross.range * RANGE_MULT;
+  dummy(w, 'e1', range + extra); w.enemies.e1.y += 20; w.enemies.e1.stunMs = 10000;
+  p.bCombo = 1; p.bComboMs = 700;
+  const r = run(w, 400, press([0], 'heavy'));
+  check(`магнит: +${extra}`, extra === 40 ? p.x > 230 && p.x < w.enemies.e1.x && p.y === 220 && r.hits.length === 1 : p.x === 200 && p.y === 200 && r.hits.length === 0, `x=${p.x} y=${p.y}`);
+}
+{
+  const { w, p } = setup(); dummy(w, 'one', 30); dummy(w, 'two', 80); dummy(w, 'back', -30);
+  const r = run(w, 400, press([0], 'attack'));
+  check('врыв: 110, урон всем на пути', p.x === 310 && w.enemies.one.hp < 1000 && w.enemies.two.hp < 1000 && w.enemies.back.hp === 1000, `x=${p.x} hits=${r.hits}`);
+  const { w: empty, p: ep } = setup(); dummy(empty, 'back', -100);
+  run(empty, 400, press([0], 'attack'));
+  check('врыв без врагов впереди на месте', ep.x === 200);
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 30);
+  strikeAt(w, 'uppercut');
+  const first = strikeAt(w, 'cross'); const second = strikeAt(w, 'cross');
+  const e = w.enemies.e1;
+  check('подброс и два удара: ещё в воздухе, высота в sim', (e.air ?? 0) > 0 && (e.height ?? 0) > 0 && e.airHits === 2);
+  check('урон в воздухе растёт, заряд x1.5', first.hits[0] === 7 * 1.25 && second.hits[0] === 7 * 1.35 && Math.abs(p.ult - (25 + (7 * 1.25 + 7 * 1.35) * 1.5)) < 0.001);
+  const slam = strikeAt(w, 'slam');
+  check('slam: x1.5 и короткий отскок', slam.hits[0] === 37.5 && e.bouncing === true && (e.air ?? 0) <= 250 && e.anim === 'down');
+  run(w, 300); check('slam: отскок кончился, враг лежит', !e.air && e.height === 0 && e.anim === 'down');
+}
+{
+  const { w } = setup(); dummy(w, 'e1', 30); strikeAt(w, 'uppercut');
+  const e = w.enemies.e1;
+  for (let i = 0; i < 30; i++) strikeAt(w, 'cross');
+  check('воздух ограничен 3500 мс', !e.air && e.height === 0);
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 30); strikeAt(w, 'uppercut');
+  w.enemies.e1.airTotal = JUGGLE_MAX_MS - TICK_MS; w.enemies.e1.cdMs = 0;
+  run(w, TICK_MS); check('принудительное падение на лимите', !w.enemies.e1.air && w.enemies.e1.anim === 'down');
+  check('счётчик в sim', p.hitCount === 1);
+  run(w, 1600); check('счётчик сброшен через 1.5 с', p.hitCount === 0);
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 30);
+  p.form = 'ultimate'; p.formMs = ULT_MS;
+  strikeAt(w, 'spin-elbow');
+  p.move = 'hurricane'; p.moveT = -1; p.hitstopMs = 0;
+  const r = run(w, hitTimesMs('ultimate', 'hurricane', 1).at(-1)! + 250);
+  check('hurricane: воздушные попадания и последнее вбивает', r.hits.length === 3 && r.hits[0] === 37.5 && r.hits[1] === 40.5 && r.hits[2] === 45 && w.enemies.e1.bouncing === true, r.hits.join());
+}
+{
+  const { w, p } = setup();
+  for (let i = 0; i < 5; i++) dummy(w, 'e' + i, 20 + i * 4);
+  strikeAt(w, 'cross'); check('пять попаданий по толпе = 5 HITS', p.hitCount === 5);
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 34); strikeAt(w, 'uppercut');
+  const e = w.enemies.e1, x = e.x, y = e.y, hp = p.hp;
+  e.cdMs = 0; e.animMs = 0;
+  run(w, 200);
+  check('в воздухе враг не ходит и не бьёт', e.x === x && e.y === y && p.hp === hp);
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 34); w.enemies.e1.cdMs = 0;
+  run(w, 100, press([0], 'attack'));
+  check('врыв: неуязвимость в замахе', p.hp === 150 && p.invulnMs > 0);
+}
+{
+  const { w } = setup(); dummy(w, 'e1', 30); strikeAt(w, 'uppercut');
+  const hits: number[] = [];
+  for (let i = 0; i < 8; i++) hits.push(...strikeAt(w, 'cross').hits);
+  check('воздушный множитель ограничен 1.75', hits.at(-1) === 7 * 1.75 && hits.at(-2) === 7 * 1.75, hits.join());
+}
+for (const char of [HERO_ID, NADYA_ID, KRIS_ID]) {
+  const { w, p } = setup(false, char); dummy(w, 'one', 70); dummy(w, 'two', 110);
+  w.enemies.one.stunMs = 10000; w.enemies.two.stunMs = 10000;
+  const move = char === HERO_ID ? 'teep' : 'a3';
+  let hits: number[];
+  if (char === KRIS_ID) {
+    w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: STRIKES.kris.ball, ids: ['one'] });
+    hits = run(w, 350).hits;
+  } else hits = [...strikeAt(w, move).hits, ...run(w, 350).hits];
+  check(`${char}: кегля задевает второго один раз`, hits.filter(h => h === 5).length === 1 && w.enemies.two.hp === 995, hits.join());
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 30, 1); p.form = 'ultimate'; p.formMs = 4000;
+  const { w: control, p: cp } = setup(); dummy(control, 'e1', 30); cp.form = 'ultimate'; cp.formMs = 4000;
+  strikeAt(w, 'elbow'); strikeAt(control, 'elbow');
+  check('кураж: убийство +500 мс', p.formMs - cp.formMs === KILL_EXTEND_MS, `${p.formMs} vs ${cp.formMs}`);
+  p.ultimateExtraMs = ULT_MS; dummy(w, 'e2', 30, 1);
+  const b = p.formMs; strikeAt(w, 'elbow');
+  check('кураж: не больше исходной длительности сверху', p.formMs < b && p.ultimateExtraMs === ULT_MS);
 }
 
 // ---------- Надя ----------

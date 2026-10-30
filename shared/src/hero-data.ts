@@ -18,13 +18,39 @@ export const HITSTOP_MS = 50; // заморозка героини при поп
 export const HITSTOP_HEAVY_MS = 100; // при сбивании с ног
 export const RUN_MULT = 1.7; // бег: стик на максимум (или Shift)
 
+// Анастасия: врыв, магнит и воздушные серии.
+export const SLAM_ANIM = 'highkick'; // замена до генерации axe
+export const MAGNET_DIST = 60; // добавочная дистанция подведения
+export const RUSH_DIST = 110; // длина врыва
+export const ATTACK_BAND = 40; // глубина сектора
+export const MAGNET_GAP = 2; // запас до границы попадания
+export const LAUNCH_H = 90; // высота подброса
+export const JUGGLE_REFRESH_MS = 600; // новое время воздуха при попадании
+export const JUGGLE_MULT = 1.25; // первый воздушный множитель
+export const JUGGLE_STEP = 0.1; // прирост за воздушное попадание
+export const JUGGLE_MULT_MAX = 1.75; // предел множителя
+export const JUGGLE_MAX_MS = 3500; // предел непрерывного полёта
+export const SLAM_MULT = 1.5; // множитель добивания
+export const BOUNCE_MS = 250; // длительность отскока
+export const BOUNCE_H = 25; // высота отскока
+export const HIT_CHAIN_MS = 1500; // сброс счётчика без попаданий
+export const PIN_MS = 300; // полёт кегли и оглушение задетого
+export const PIN_KB_MIN = 14; // порог исходного kb для кегли
+export const PIN_SIZE = 20; // допуск столкновения по обеим осям
+export const PIN_DMG = 5; // урон от кегли
+export const PIN_KB = 20; // отброс задетого кеглей
+export const KILL_EXTEND_MS = 500; // продление Ultimate за убийство
+export const AIR_CHARGE_MULT = 1.5; // заряд за попадание в воздухе
+
 export interface Strike {
   range: number;
   dmg: number; // за одно попадание
   kb: number; // отбрасывание
   stun: number; // оглушение врага, мс
   down?: boolean; // сбивает с ног
-  launch?: boolean; // подбрасывает врага (только визуально, механика как у down)
+  launch?: boolean; // подбрасывает врага
+  slam?: boolean; // вбивает с коротким отскоком
+  rush?: boolean; // бьёт по всей линии врыва
   around?: boolean; // бьёт всех вокруг, а не только перед собой
   single?: boolean; // только ближайший враг перед героем
   slowMs?: number; slow?: number; // замедление врага: длительность и доля скорости, которую он теряет
@@ -34,17 +60,17 @@ export interface Strike {
 }
 export const AIR_MS = 900; // сколько враг летит после подброса
 
-// A: серия из трёх, B: завершающий, вариант зависит от числа ударов серии до него (0, 1, 2)
+// Анастасия: независимые серии A и B по три удара.
 // Надя: B своя серия из трёх (B, B B, B B B). Kris: серия A из двух (mr.R 30.10: третий удар убран), B всегда вспышка
 export const CHAIN: Record<Form, string[]> = {
-  prime: ['jab', 'cross', 'teep'],
-  ultimate: ['elbow', 'knee', 'roundhouse'],
+  prime: ['superman', 'highkick', 'teep'],
+  ultimate: ['flying-knee', 'elbow', 'roundhouse'],
   nadya: ['a1', 'a2', 'a3'],
   kris: ['a1', 'a2'],
 };
 export const HEAVY: Record<Form, string[]> = {
-  prime: ['superman', 'highkick', 'uppercut'],
-  ultimate: ['spin-elbow', 'flying-knee', 'hurricane'],
+  prime: ['uppercut', 'cross', 'slam'],
+  ultimate: ['spin-elbow', 'knee', 'hurricane'],
   nadya: ['b1', 'b2', 'b3-draw'],
   kris: ['b', 'b', 'b'],
 };
@@ -53,18 +79,19 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
   prime: {
     jab: { range: 52, dmg: 5, kb: 2, stun: 250 },
     cross: { range: 54, dmg: 7, kb: 3, stun: 250 },
-    teep: { range: 66, dmg: 10, kb: 14, stun: 400 },
-    superman: { range: 86, dmg: 15, kb: 28, stun: 500, down: true },
-    highkick: { range: 70, dmg: 25, kb: 30, stun: 500, down: true },
-    uppercut: { range: 58, dmg: 25, kb: 10, stun: 500, down: true, launch: true },
+    teep: { range: 66, dmg: 10, kb: 14, stun: 400, word: 'БУМ!' },
+    superman: { range: 86, dmg: 15, kb: 28, stun: 500, rush: true, word: 'ВЖУХ!' },
+    highkick: { range: 70, dmg: 25, kb: 30, stun: 500 },
+    uppercut: { range: 58, dmg: 25, kb: 10, stun: 500, down: true, launch: true, word: 'ОП!' },
+    slam: { range: 70, dmg: 25, kb: 30, stun: 500, down: true, slam: true, word: 'ХРЯСЬ!' },
   },
   ultimate: {
     elbow: { range: 52, dmg: 15, kb: 2, stun: 250 },
     knee: { range: 54, dmg: 20, kb: 3, stun: 250 },
-    roundhouse: { range: 72, dmg: 25, kb: 16, stun: 400 },
-    'spin-elbow': { range: 66, dmg: 30, kb: 24, stun: 500, down: true },
-    'flying-knee': { range: 86, dmg: 35, kb: 30, stun: 500, down: true },
-    hurricane: { range: 75, dmg: 30, kb: 1, stun: 400 }, // на каждое из трёх попаданий
+    roundhouse: { range: 72, dmg: 25, kb: 16, stun: 400, word: 'БУМ!' },
+    'spin-elbow': { range: 66, dmg: 30, kb: 24, stun: 500, down: true, launch: true, word: 'ОП!' },
+    'flying-knee': { range: 86, dmg: 35, kb: 30, stun: 500, rush: true, word: 'ВЖУХ!' },
+    hurricane: { range: 75, dmg: 30, kb: 1, stun: 400, word: 'УРАГАН!' }, // на каждое из трёх попаданий
   },
   // Надя: контроль, урон ниже (числа предварительные, nadezhda.md)
   nadya: {
@@ -122,7 +149,7 @@ export const HOLD_MS: Partial<Record<Form, Record<string, number>>> = {
 
 // Подписи для кнопки B
 export const MOVE_NAMES: Record<string, string> = {
-  superman: 'Суперман', highkick: 'Хай-кик', uppercut: 'Апперкот',
+  slam: 'Добивание', cross: 'Кросс', knee: 'Колено', superman: 'Суперман', highkick: 'Хай-кик', uppercut: 'Апперкот',
   'spin-elbow': 'Локоть с разворота', 'flying-knee': 'Колено в прыжке', hurricane: 'Ураган',
   b1: 'Пощёчина', b2: 'По яйцам', 'b3-draw': 'Самурай', b: 'Вспышка',
 };
@@ -137,7 +164,8 @@ export const STORM_RADIUS = Math.round(STRIKES.ultimate.hurricane.range * RANGE_
 export const SPEED_MULT: Record<Form, number> = { prime: 1, ultimate: 2.5, nadya: 1, kris: 1 };
 
 export const dirOf = (facing: number): 'east' | 'west' => (facing >= 0 ? 'east' : 'west');
-export const animDef = (form: Form, move: string): AnimDef | undefined => HERO_ANIMS[form][move];
+export const moveAnim = (form: Form, move: string) => form === 'prime' && move === 'slam' ? SLAM_ANIM : move;
+export const animDef = (form: Form, move: string): AnimDef | undefined => HERO_ANIMS[form][moveAnim(form, move)];
 export const isLoop = (form: Form, move: string) => !!animDef(form, move)?.loop;
 
 // Удары проигрываются быстрее исходных fps: меньше задержка от нажатия до попадания (mr.R 24.10)

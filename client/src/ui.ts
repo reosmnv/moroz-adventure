@@ -54,6 +54,14 @@ interface BtnView { base: Phaser.GameObjects.Image; icon: Phaser.GameObjects.Ima
 interface Panel { frame: Phaser.GameObjects.Image; root: Phaser.GameObjects.Container; portrait: Phaser.GameObjects.Image; badge: Phaser.GameObjects.Rectangle; name: Phaser.GameObjects.Text; bars: Phaser.GameObjects.Graphics }
 
 
+// Иконки временно из существующего набора, без новых ассетов.
+const NASTYA_HEAVY_ICON: Record<string, string> = { uppercut: 'uppercut', cross: 'superman', slam: 'highkick', 'spin-elbow': 'spin-elbow', knee: 'flying-knee', hurricane: 'hurricane' };
+const HITS_SHOW = 5;
+const HITS_Y = 55;
+const HITS_FONT = '14px';
+const HITS_PULSE = 1.2;
+const HITS_PULSE_MS = 120;
+
 export class UIScene extends Phaser.Scene {
   session!: GameSession;
   private joyId = -1;
@@ -65,6 +73,8 @@ export class UIScene extends Phaser.Scene {
   private ultRing!: Phaser.GameObjects.Graphics;
   private ultPulse!: Phaser.Tweens.Tween;
   private pips!: Phaser.GameObjects.Graphics;
+  private hitText!: Phaser.GameObjects.Text;
+  private shownHits = 0;
   private bHint!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
   private panels: Panel[] = [];
@@ -83,11 +93,13 @@ export class UIScene extends Phaser.Scene {
       this.load.image('ui-' + k, `ui/${k}.png`);
     }
     // Своя иконка B на каждый завершающий удар обеих форм
-    for (const m of new Set([...HEAVY.prime, ...HEAVY.ultimate])) this.load.image('ui-heavy-' + m, `ui/heavy-${m}.png`);
+    for (const m of new Set(Object.values(NASTYA_HEAVY_ICON))) this.load.image('ui-heavy-' + m, `ui/heavy-${m}.png`);
     for (const [char, h] of Object.entries(HERO_UI)) for (const n of h.icons) this.load.image(heroIcon(char, n), `ui/${h.dir}/${n}.png`);
   }
 
   create() {
+    this.shownHits = 0;
+    this.hitText = this.add.text(0, HITS_Y, '', { ...textStyle(), fontSize: HITS_FONT }).setOrigin(1, 0).setScrollFactor(0);
     this.waveText = this.add.text(0, 8, '', textStyle()).setOrigin(0.5, 0);
     for (let i = 0; i < 2; i++) this.panels.push(this.makePanel(PANEL_X + i * (PANEL_W + PANEL_GAP), PANEL_Y));
 
@@ -310,6 +322,14 @@ export class UIScene extends Phaser.Scene {
     // U: копится кольцом вокруг кнопки, полная шкала пульсирует, в Ultimate кольцо показывает остаток
     if (me?.char) this.setHeroIcons(me.char);
     const color = heroColor(me?.char);
+    const hits = me?.char === HERO_ID ? (me.hitCount ?? 0) : 0;
+    this.hitText.setPosition(this.scale.width - 10, HITS_Y).setColor('#' + color.toString(16).padStart(6, '0')).setText(hits >= HITS_SHOW ? `${hits} HITS!` : '');
+    if (hits >= HITS_SHOW && hits > this.shownHits) {
+      this.tweens.killTweensOf(this.hitText);
+      this.hitText.setScale(HITS_PULSE);
+      this.tweens.add({ targets: this.hitText, scale: 1, duration: HITS_PULSE_MS });
+    }
+    this.shownHits = hits;
     this.joyKnob.setTint(color);
     for (const id of ['ult', 'ult2'] as Button[]) {
       const v = this.btns.get(id)!;
@@ -385,9 +405,16 @@ export class UIScene extends Phaser.Scene {
         this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
         this.pips.fillStyle(color, i < c ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
       }
-      const move = HEAVY[me.form ?? 'prime'][c];
+      const bc = Math.min(me.bCombo ?? 0, 2);
+      const hb = this.btns.get('heavy')!;
+      for (let i = 0; i < 3; i++) {
+        const x = hb.base.x - 10 + i * PIP_STEP, y = hb.base.y + PIP_Y;
+        this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
+        this.pips.fillStyle(color, i < bc ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
+      }
+      const move = HEAVY[me.form ?? 'prime'][bc];
       this.bHint.setText(MOVE_NAMES[move] ?? '');
-      this.setHeavyIcon('ui-heavy-' + move);
+      this.setHeavyIcon('ui-heavy-' + NASTYA_HEAVY_ICON[move]);
     } else {
       this.bHint.setText('');
       this.setHeavyIcon('ui-icon-heavy');

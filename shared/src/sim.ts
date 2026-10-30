@@ -2,6 +2,7 @@
 // Чистые данные и функции, без Phaser и Colyseus.
 import type { Form } from './anims-data.ts';
 import {
+  ATTACK_BAND, MAGNET_GAP, MAGNET_DIST, RUSH_DIST, LAUNCH_H, JUGGLE_REFRESH_MS, JUGGLE_MULT, JUGGLE_STEP, JUGGLE_MULT_MAX, JUGGLE_MAX_MS, SLAM_MULT, BOUNCE_MS, BOUNCE_H, HIT_CHAIN_MS, PIN_MS, PIN_KB_MIN, PIN_SIZE, PIN_DMG, PIN_KB, KILL_EXTEND_MS, AIR_CHARGE_MULT,
   AIR_MS, AIM_MS, BALL_FLIGHT_MS, BALL_LINES, BALL_PER_HIT, BALL_NEAR_NASTYA, BALL_RADIUS, BALL_THROW, BEAM_DMG, BEAM_LEN, CHAIN, CHARM_LINE, CHARM_MS, COMBO_MS, COMBO_MS_BY,
   CONTROL_ULT, DASH_DELAY_MS, DASH_DIST, FLASH_CD_MS, FLASH_SPEED, HEAVY, HERO_FORM, HERO_ID, HURT_INVULN_MS, FREEZE_MS, HITSTOP_HEAVY_MS, HITSTOP_MS,
   IMMUNE_INVULN_MS, KISS_BAND, KISS_HALF_W, KISS_SPEED, KNOCK_MULT, KRIS_ID, KRIS_LENS, NADYA_ID, NEXT_MOVE, RANGE_MULT, RUN_MULT, STORM_DMG, STORM_MS, STORM_RADIUS, STORM_TICK_MS, SPEED_MULT, STRIKES, ULT_MS,
@@ -70,11 +71,15 @@ export interface Player {
   hitstopMs: number; // героиня замирает на мгновение после попадания
   stormMs: number; // сколько ещё идёт снежная буря
   stormTickMs: number;
-  bCombo: number; // Надя: сколько ударов серии B уже нанесено (0..2)
+  bCombo: number; // Анастасия и Надя: сколько ударов серии B уже нанесено (0..2)
   bComboMs: number;
   charge2: number; // Kris: шкала шара 0..100, копится от попаданий вспышкой
   dashFrom: number; // Надя: откуда начался рывок самурая
   charmSaid: boolean; // Надя: реплика ревности уже прозвучала за эту ульту
+  hitCount: number;
+  hitCountMs: number;
+  ultimateExtraMs: number; // уже добавленное куражом время
+  approach?: { x: number; y: number; tx: number; ty: number; ms: number; rush: boolean; target: string };
   wantBall: boolean; // Kris: шар нажат, пока была занята; полетит, как только сможет
 }
 
@@ -89,7 +94,15 @@ export interface Enemy {
   animMs: number;
   cdMs: number;
   frozenMs?: number; // заморожен: стоит и не бьёт, получает урон без отбрасывания
-  air?: number; // мс до приземления после подброса апперкотом (для отрисовки)
+  air?: number; // мс до приземления
+  height?: number; // высота над землёй из sim
+  airTotal?: number;
+  airSpan?: number;
+  airPeak?: number;
+  airStartH?: number;
+  airHits?: number;
+  bouncing?: boolean;
+  pin?: { ms: number; speed: number; dir: number; by: string; hit: string[] };
   dummy?: boolean; // манекен: стоит, не бьёт, не умирает
   slowMs?: number; slow?: number; // замедлен: сколько ещё и какую долю скорости теряет
   stunMs?: number; // оглушён: стоит и не бьёт
@@ -179,7 +192,7 @@ export function addPlayer(w: World, id: string, char: string): Player {
     hp: PLAYER_HP, facing: 1, anim: 'idle', animMs: 0, cdMs: 0, tauntCdMs: 0, ult: 0, downMs: 0,
     connected: true, away: false,
     form: HERO_FORM[char] ?? 'prime', move: 'idle', moveT: 0, combo: 0, comboMs: 0, queued: null, formMs: 0, invulnMs: 0, hitstopMs: 0, stormMs: 0, stormTickMs: 0,
-    bCombo: 0, bComboMs: 0, charge2: 0, dashFrom: 0, charmSaid: false, wantBall: false,
+    hitCount: 0, hitCountMs: 0, ultimateExtraMs: 0, bCombo: 0, bComboMs: 0, charge2: 0, dashFrom: 0, charmSaid: false, wantBall: false,
   };
   w.players[id] = p;
   return p;
@@ -222,49 +235,90 @@ function spawnWave(w: World, ev: SimEvent[]) {
 }
 
 type HitOpts = {
-  kb?: number; stun?: number; down?: boolean; launch?: boolean; everyone?: boolean; silent?: boolean;
+  kb?: number; stun?: number; down?: boolean; launch?: boolean; slam?: boolean; pin?: boolean; fixedDmg?: boolean; everyone?: boolean; silent?: boolean;
   slowMs?: number; slow?: number; stunMs?: number; single?: boolean; word?: string; noCharge?: boolean; flash?: boolean;
 };
 
 // Одно попадание по врагу: урон, отлёт, контроль, шкалы героя, событие
 function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: SimEvent[], opts: HitOpts, allAround = false) {
+  if (e.hp <= 0) return;
+  const airborne = (e.air ?? 0) > 0;
+  if (p.char === HERO_ID) {
+    if (opts.slam) dmg *= SLAM_MULT;
+    else if (airborne && !opts.fixedDmg) dmg *= Math.min(JUGGLE_MULT_MAX, JUGGLE_MULT + (e.airHits ?? 0) * JUGGLE_STEP);
+    if (airborne) e.airHits = (e.airHits ?? 0) + 1;
+    if (!opts.silent) { p.hitCount++; p.hitCountMs = HIT_CHAIN_MS; }
+  }
   e.hp -= dmg;
-  if (!e.frozenMs) { // замороженного не сдвинуть, он только получает урон
-    e.anim = opts.down ? 'down' : 'hurt';
-    e.animMs = opts.down ? 900 : (opts.stun ?? 250);
-    if (opts.launch) e.air = AIR_MS;
-    e.x = clamp(e.x + dir * (opts.kb ?? (allAround ? 30 : 8)), Math.max(-40, focusX(w) - 300), Math.min(LEVEL_W + 40, focusX(w) + 300));
+  if (e.hp <= 0 && !e.dummy && p.char === HERO_ID && p.form === 'ultimate') {
+    const extra = Math.min(KILL_EXTEND_MS, ULT_MS - p.ultimateExtraMs);
+    p.formMs += extra; p.ultimateExtraMs += extra;
+  }
+  if (!e.frozenMs) {
+    e.anim = opts.down || opts.slam || airborne ? 'down' : 'hurt';
+    e.animMs = opts.down || opts.slam ? AIR_MS : (opts.stun ?? 250);
+    if (opts.slam) setAir(e, BOUNCE_MS, BOUNCE_H, true);
+    else if (opts.launch || airborne) {
+      if (!airborne) { e.airTotal = 0; e.airHits = 0; }
+      setAir(e, airborne ? JUGGLE_REFRESH_MS : AIR_MS, LAUNCH_H, false);
+    }
+    const kb = airborne || opts.launch ? 0 : (opts.kb ?? (allAround ? 30 : 8));
+    if ((opts.pin || opts.down) && kb !== 0) {
+      e.pin = { ms: PIN_MS, speed: kb / PIN_MS, dir, by: p.id, hit: [] };
+    } else e.x = clampEnemyX(w, e.x + dir * kb);
   }
   if (opts.slowMs) { e.slowMs = opts.slowMs; e.slow = opts.slow ?? 0.5; }
   if (opts.stunMs) { e.stunMs = opts.stunMs; e.anim = 'hurt'; e.animMs = Math.max(e.animMs, opts.stunMs); }
   if (opts.silent) return;
   if (!opts.noCharge && p.form !== 'ultimate') { // в Ultimate шкала не копится
     const control = p.form === 'nadya' && (opts.slowMs || opts.stunMs) ? CONTROL_ULT : 0;
-    p.ult = Math.min(100, p.ult + dmg + control);
+    p.ult = Math.min(100, p.ult + dmg * (p.char === HERO_ID && airborne ? AIR_CHARGE_MULT : 1) + control);
   }
   if (opts.flash) p.charge2 = Math.min(100, p.charge2 + BALL_PER_HIT);
   ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, word: opts.word, by: p.id });
+}
+
+const clampEnemyX = (w: World, x: number) => clamp(x, Math.max(-40, focusX(w) - 300), Math.min(LEVEL_W + 40, focusX(w) + 300));
+function setAir(e: Enemy, ms: number, peak: number, bounce: boolean) {
+  e.air = ms; e.airSpan = ms; e.airPeak = peak; e.airStartH = bounce ? 0 : (e.height ?? 0); e.bouncing = bounce;
+  e.height = e.airStartH; e.pin = undefined;
 }
 
 function hitEnemies(w: World, p: Player, range: number, dmg: number, ev: SimEvent[], allAround = false, opts: HitOpts = {}): number {
   let list = Object.values(w.enemies).filter(e => {
     const dx = e.x - p.x;
     const inFront = allAround || Math.sign(dx) === p.facing || Math.abs(dx) < 6;
-    return opts.everyone || (inFront && Math.abs(dx) < range && Math.abs(e.y - p.y) < (allAround ? 60 : LANE_TOLERANCE));
+    const inLane = p.char === HERO_ID ? Math.abs(e.y - p.y) <= ATTACK_BAND : Math.abs(e.y - p.y) < (allAround ? 60 : LANE_TOLERANCE);
+    return e.hp > 0 && (opts.everyone || (inFront && Math.abs(dx) < range && inLane));
   });
   if (opts.single && list.length > 1) list = [list.reduce((a, b) => (Math.abs(a.x - p.x) < Math.abs(b.x - p.x) ? a : b))];
   for (const e of list) applyHit(w, p, e, dmg, Math.sign(e.x - p.x || p.facing), ev, opts, allAround);
   return list.length;
 }
 
-const strikeOpts = (p: Player, s: Strike): HitOpts => ({ ...s, kb: s.kb * KNOCK_MULT[p.form], stun: s.stun });
+const strikeOpts = (p: Player, s: Strike): HitOpts => ({ ...s, pin: s.kb >= PIN_KB_MIN, kb: s.kb * KNOCK_MULT[p.form], stun: s.stun });
 
 
 const isHero = (p: Player) => isSpriteHero(p.char);
 
 function startMove(p: Player, move: string) {
+  p.approach = undefined;
   p.move = move;
   p.moveT = -1; // -1: первый тик попадёт в кадр 0
+}
+
+// Смещение за замах; врыв заканчивается в кадре попадания.
+function approach(w: World, p: Player) {
+  const s = STRIKES[p.form][p.move];
+  if (p.char !== HERO_ID || !s) return;
+  const front = Object.values(w.enemies).filter(e => e.hp > 0 && (e.x - p.x) * p.facing > 0 && Math.abs(e.y - p.y) <= ATTACK_BAND);
+  const e = front.sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x))[0];
+  if (!e) return;
+  const dist = Math.abs(e.x - p.x), range = s.range * RANGE_MULT;
+  if (!s.rush && (dist <= range || dist > range + MAGNET_DIST)) return;
+  const ms = Math.max(1, hitTimesMs(p.form, p.move, p.facing)[0] ?? 1);
+  p.approach = { x: p.x, y: p.y, tx: clamp(p.x + p.facing * (s.rush ? RUSH_DIST : dist - range + MAGNET_GAP), 10, LEVEL_W - 10), ty: e.y, ms, rush: !!s.rush, target: e.id };
+  if (s.rush) p.invulnMs = Math.max(p.invulnMs, ms + TICK_MS);
 }
 
 // Идёт ли ещё анимация без цикла (удар, превращение, падение)
@@ -278,7 +332,7 @@ function heroDown(p: Player) {
 }
 
 function heroReset(p: Player) {
-  p.form = HERO_FORM[p.char] ?? 'prime'; p.formMs = 0; p.combo = 0; p.comboMs = 0; p.bCombo = 0; p.bComboMs = 0; p.queued = null; p.invulnMs = 0; p.stormMs = 0; p.wantBall = false;
+  p.form = HERO_FORM[p.char] ?? 'prime'; p.formMs = 0; p.combo = 0; p.comboMs = 0; p.bCombo = 0; p.bComboMs = 0; p.queued = null; p.invulnMs = 0; p.stormMs = 0; p.wantBall = false; p.hitCount = 0; p.hitCountMs = 0;
   startMove(p, 'idle');
 }
 
@@ -432,9 +486,8 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       p.stormTickMs += STORM_TICK_MS;
       for (const e of Object.values(w.enemies)) {
         if (Math.hypot(e.x - p.x, e.y - p.y) > STORM_RADIUS) continue;
-        e.hp -= STORM_DMG;
         e.frozenMs = FREEZE_MS;
-        ev.push({ t: 'hit', target: e.id, dmg: STORM_DMG, x: e.x, y: e.y });
+        applyHit(w, p, e, STORM_DMG, p.facing, ev, { noCharge: true });
       }
     }
     p.stormTickMs -= dtMs;
@@ -450,18 +503,42 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
   const prevT = p.moveT;
   p.moveT += dtMs;
 
+  const ap = p.approach;
+  if (ap) {
+    const k = clamp(Math.max(0, p.moveT) / ap.ms, 0, 1);
+    let tx = ap.tx;
+    const target = w.enemies[ap.target];
+    if (!ap.rush && target) tx = p.facing > 0 ? Math.min(tx, target.x - MAGNET_GAP) : Math.max(tx, target.x + MAGNET_GAP);
+    p.x = ap.x + (tx - ap.x) * k; p.y = clamp(ap.y + (ap.ty - ap.y) * k, LANE_TOP, LANE_BOTTOM);
+    if (ap.rush && k < 1) p.invulnMs = Math.max(p.invulnMs, dtMs * 2);
+    if (k === 1) p.approach = undefined;
+  }
+
   // Попадания в кадрах удара (особые приёмы делают своё: вспышка, шар, сердце)
   const strike: Strike | undefined = STRIKES[p.form][p.move];
   if (strike) {
     for (const tm of hitTimesMs(p.form, p.move, p.facing)) {
       if (!(prevT < tm && p.moveT >= tm)) continue;
       if (strike.kind) { special(w, p, strike, ev); continue; }
-      const n = hitEnemies(w, p, strike.range * RANGE_MULT, strike.dmg, ev, !!strike.around, strikeOpts(p, strike));
+      const opts = strikeOpts(p, strike);
+      if (p.char === HERO_ID && p.move === 'hurricane' && tm === hitTimesMs(p.form, p.move, p.facing).at(-1)) { opts.slam = true; opts.down = true; }
+      const eventStart = ev.length;
+      let n = 0;
+      if (strike.rush && ap?.rush) {
+        for (const e of Object.values(w.enemies)) {
+          const along = (e.x - ap.x) * p.facing;
+          const end = (p.x - ap.x) * p.facing;
+          const lineY = ap.y + (p.y - ap.y) * clamp(along / Math.max(1, end), 0, 1);
+          if (e.hp <= 0 || along < 0 || along > end + strike.range * RANGE_MULT || Math.abs(e.y - lineY) > ATTACK_BAND) continue;
+          applyHit(w, p, e, strike.dmg, p.facing, ev, opts); n++;
+        }
+      } else n = hitEnemies(w, p, strike.range * RANGE_MULT, strike.dmg, ev, !!strike.around, opts);
       if (n > 0) {
         p.hitstopMs = strike.down ? HITSTOP_HEAVY_MS : HITSTOP_MS;
         // Ultimate: сколько нанесла, столько и вылечила
         if (p.form === 'ultimate') {
-          const heal = Math.min(PLAYER_HP - p.hp, n * strike.dmg);
+          const damage = ev.slice(eventStart).reduce((sum, e) => sum + (e.t === 'hit' ? e.dmg : 0), 0);
+          const heal = Math.min(PLAYER_HP - p.hp, damage);
           if (heal > 0) { p.hp += heal; ev.push({ t: 'heal', id: p.id, amount: heal }); }
         }
       }
@@ -476,7 +553,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
 
   // Смена формы по окончании превращений
   let busy = moveBusy(p);
-  if (!busy && p.move === 'transform-up') { p.form = 'ultimate'; p.formMs = ULT_MS; startMove(p, 'idle'); }
+  if (!busy && p.move === 'transform-up') { p.form = 'ultimate'; p.formMs = ULT_MS; p.ultimateExtraMs = 0; startMove(p, 'idle'); }
   else if (!busy && p.move === 'transform-down') { p.form = 'prime'; p.formMs = 0; startMove(p, 'idle'); }
   else if (p.form === 'ultimate' && p.move !== 'transform-down') {
     p.formMs -= dtMs;
@@ -518,7 +595,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
     const turn = () => { if (mx !== 0) p.facing = mx > 0 ? 1 : -1; };
     const ultReady = inp.ult && p.ult >= 100 && p.form !== 'ultimate';
     if (ultReady && p.char === HERO_ID) {
-      p.ult = 0; p.queued = null; p.combo = 0;
+      p.ult = 0; p.queued = null; p.combo = 0; p.bCombo = 0;
       hitEnemies(w, p, 0, 0, ev, true, { everyone: true, silent: true, kb: 90, stun: 700, down: true }); // в момент нажатия всех врагов отбрасывает
       startMove(p, 'transform-up');
       p.invulnMs = moveDurMs('prime', 'transform-up', p.facing);
@@ -548,6 +625,11 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
     } else if (want === 'heavy' && p.char === KRIS_ID) {
       p.queued = null;
       if (p.cdMs === 0) { turn(); startMove(p, 'b'); p.cdMs = FLASH_CD_MS; }
+    } else if (want === 'heavy' && p.char === HERO_ID) {
+      p.queued = null; turn();
+      const step = p.bCombo % 3;
+      startMove(p, HEAVY[p.form][step]); approach(w, p);
+      p.bCombo = step === 2 ? 0 : step + 1; p.bComboMs = comboWindow;
     } else if (want === 'heavy') {
       p.queued = null; turn();
       startMove(p, HEAVY[p.form][Math.min(p.combo, 2)]);
@@ -556,7 +638,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       p.queued = null; turn();
       const len = CHAIN[p.form].length; // у Kris серия из двух
       const step = p.combo % len;
-      startMove(p, CHAIN[p.form][step]);
+      startMove(p, CHAIN[p.form][step]); approach(w, p);
       p.combo = step === len - 1 ? 0 : step + 1;
       p.comboMs = comboWindow;
     } else if (!busy && inp.taunt && p.tauntCdMs === 0) {
@@ -585,6 +667,22 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
   else p.anim = p.animMs > 0 ? 'taunt' : 'idle';
 }
 
+// Кегля движется 300 мс; проверяем весь отрезок, чтобы не проскочить цель.
+function stepPin(w: World, e: Enemy, dtMs: number, ev: SimEvent[]) {
+  const pin = e.pin;
+  if (!pin || e.frozenMs) return;
+  const x0 = e.x;
+  e.x = clampEnemyX(w, e.x + pin.dir * pin.speed * Math.min(pin.ms, dtMs));
+  pin.ms -= dtMs;
+  const p = w.players[pin.by];
+  if (p) for (const o of Object.values(w.enemies)) {
+    if (o === e || o.hp <= 0 || pin.hit.includes(o.id) || Math.abs(o.y - e.y) >= PIN_SIZE || o.x <= Math.min(x0, e.x) - PIN_SIZE || o.x >= Math.max(x0, e.x) + PIN_SIZE) continue;
+    pin.hit.push(o.id);
+    applyHit(w, p, o, PIN_DMG, pin.dir, ev, { kb: PIN_KB, stun: PIN_MS, stunMs: PIN_MS, fixedDmg: true });
+  }
+  if (pin.ms <= 0) e.pin = undefined;
+}
+
 export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimEvent[] {
   const ev: SimEvent[] = [];
   const dt = dtMs / 1000;
@@ -600,6 +698,8 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
 
   for (const p of active) {
     const inp = inputs[p.id] ?? emptyInput();
+    p.hitCountMs = Math.max(0, p.hitCountMs - dtMs);
+    if (!p.hitCountMs) p.hitCount = 0;
     p.cdMs = Math.max(0, p.cdMs - dtMs);
     p.tauntCdMs = Math.max(0, p.tauntCdMs - dtMs);
     p.animMs = Math.max(0, p.animMs - dtMs);
@@ -652,7 +752,15 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   for (const e of Object.values(w.enemies)) {
     e.animMs = Math.max(0, e.animMs - dtMs);
     e.cdMs = Math.max(0, e.cdMs - dtMs);
-    if (e.air) e.air = Math.max(0, e.air - dtMs);
+    if (e.air) {
+      e.airTotal = (e.airTotal ?? 0) + dtMs;
+      e.air = Math.max(0, e.air - dtMs);
+      if (!e.bouncing && e.airTotal >= JUGGLE_MAX_MS) e.air = 0;
+      const u = 1 - e.air / (e.airSpan ?? AIR_MS);
+      e.height = e.air ? (e.airStartH ?? 0) * (1 - u) + 4 * (e.airPeak ?? LAUNCH_H) * u * (1 - u) : 0;
+      if (!e.air) { e.airTotal = 0; e.airHits = 0; e.anim = 'down'; e.animMs = AIR_MS; }
+    }
+    stepPin(w, e, dtMs, ev);
     if (e.slowMs) e.slowMs = Math.max(0, e.slowMs - dtMs);
     if (e.stunMs) e.stunMs = Math.max(0, e.stunMs - dtMs);
     if (e.charmMs) e.charmMs = Math.max(0, e.charmMs - dtMs);
@@ -662,6 +770,7 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
       e.anim = 'idle'; e.animMs = 0;
       continue; // замёрзший стоит и не бьёт
     }
+    if (e.air && e.hp > 0) { e.anim = 'down'; continue; }
     if (e.dummy) {
       if (e.hp <= 0) e.hp = e.maxHp;
       if ((e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0) continue;

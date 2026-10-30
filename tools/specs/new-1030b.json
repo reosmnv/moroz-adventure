@@ -1,0 +1,34 @@
+[
+ {
+  "name": "axe2-out-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "she brings her raised leg straight down, heel chopping hard to the ground in front of her (axe kick), then steps back into her Muay Thai fighting stance. Clean pixel art frames, no motion blur, no white smear, no effects",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "axe2-out-east",
+   "custom_start_frame_base64": "@assets/pixellab/new-1030/prime-axe-east-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png"
+  }
+ },
+ {
+  "name": "axe2-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "she brings her raised leg straight down, heel chopping hard to the ground in front of her (axe kick), then steps back into her Muay Thai fighting stance. Clean pixel art frames, no motion blur, no white smear, no effects",
+   "frame_count": 6,
+   "directions": [
+    "west"
+   ],
+   "animation_name": "axe2-out-west",
+   "custom_start_frame_base64": "@assets/pixellab/new-1030/prime-axe-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png"
+  }
+ }
+]

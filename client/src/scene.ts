@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { AIM_MS, AIR_MS, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LANE_BOTTOM, LANE_TOP, LEVEL_W, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LANE_BOTTOM, LANE_TOP, LEVEL_W, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
@@ -12,7 +12,6 @@ const CELL = 128; // кадр спрайта героини
 const FEET_Y = 112; // ступни в кадре
 const SCALE = 1.5; // героиня крупнее исходных 128 px по просьбе mr.R
 const HEAD = 62 * SCALE; // высота над ступнями для полоски жизни и имени
-const LAUNCH_H = 90; // высота подброса апперкотом, px
 const FLAKES = 90; // снежинок в буре
 const ICE = 0x66b8ff; // цвет замороженного врага
 
@@ -143,7 +142,7 @@ export class GameScene extends Phaser.Scene {
         if (by === NADYA_ID) e.word === 'ШЛЁП!' ? this.fx('nadya-slap', e.x, e.y - 50, { frames: 10 }) : this.fx('nadya-hit', e.x, e.y - 45);
         if (by === KRIS_ID) this.fx('kris-hit', e.x, e.y - 45);
         if (e.word === 'БУМ!') this.fx('kris-ring', e.x, e.y, { depth: e.y - 0.3 });
-        if (e.word) this.word(e.x, e.y - 95, e.word, by === KRIS_ID ? '#c8ff6a' : '#ff8fc4');
+        if (e.word) this.word(e.x, e.y - 95, e.word, by === KRIS_ID ? '#c8ff6a' : by === NADYA_ID ? '#ff8fc4' : '#9d74d4');
         if (e.target.startsWith('e') && e.dmg >= 18) this.cameras.main.shake(90, 0.004); // сильный удар встряхивает кадр
         beep(e.target.startsWith('e') ? 520 : 180, 0.05);
       } else if (e.t === 'heal') {
@@ -300,12 +299,13 @@ export class GameScene extends Phaser.Scene {
   private drawHero(v: View, sb: EntitySnap, x: number, y: number, f: number, away: boolean, lead = 0) {
     const form = sb.form ?? HERO_FORM[sb.char ?? ''] ?? 'prime';
     const dir = dirOf(sb.facing);
-    let move = sb.move ?? 'idle';
+    const action = sb.move ?? 'idle';
+    let move = moveAnim(form, action);
     if (!HERO_ANIMS[form][move]) move = 'idle';
     const def = HERO_ANIMS[form][move];
     const n = def[dir];
     const t = Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS + lead);
-    const raw = Math.floor((t * def.fps * moveSpeed(form, move)) / 1000);
+    const raw = Math.floor((t * def.fps * moveSpeed(form, action)) / 1000);
     const frame = def.loop ? raw % n : Math.min(n - 1, raw);
     const sprite = v.sprite!;
     sprite.setTexture(`${form}/${move}-${dir}`, frame).setPosition(x, y).setDepth(y);
@@ -327,8 +327,7 @@ export class GameScene extends Phaser.Scene {
       const v = this.viewFor(key, isPlayer, sb);
       const down = sb.anim === 'down' && !v.sprite;
       // Подброшенный враг летит по дуге; тень остаётся на земле
-      const u = sb.air ? 1 - sb.air / AIR_MS : 1;
-      const lift = sb.air ? 4 * LAUNCH_H * u * (1 - u) : 0;
+      const lift = sa && !live ? (sa.height ?? 0) + ((sb.height ?? 0) - (sa.height ?? 0)) * f : (sb.height ?? 0);
       if (!isPlayer && v.shadow) v.shadow.setPosition(x, y).setDepth(y - 0.1).setScale(1 - lift / 200);
       v.body.setPosition(x, y - lift).setDepth(y).setAngle(down ? 90 * sb.facing : 0);
       const away = sb.connected === false || sb.away;

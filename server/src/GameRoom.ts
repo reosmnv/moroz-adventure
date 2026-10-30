@@ -20,6 +20,7 @@ export const PlayerState = schema({
   storm: t.number(),
   combo: t.number(),
   bCombo: t.number(),
+  hitCount: t.number(),
   charge2: t.number(),
   invuln: t.boolean(),
   connected: t.boolean(),
@@ -38,6 +39,7 @@ export const EnemyState = schema({
   stun: t.boolean(),
   charm: t.boolean(),
   air: t.number(),
+  height: t.number(),
   facing: t.number(),
   anim: t.string(),
 }, 'EnemyState');
@@ -131,14 +133,14 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (!ps) { ps = new PlayerState(); s.players.set(p.id, ps); }
       ps.char = p.char; ps.x = round(p.x); ps.y = round(p.y); ps.hp = p.hp; ps.facing = p.facing;
       ps.anim = p.anim; ps.ult = Math.floor(p.ult);
-      ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.bCombo = p.bCombo; ps.charge2 = Math.floor(p.charge2); ps.storm = Math.round(p.stormMs); ps.invuln = p.invulnMs > 0;
+      ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.bCombo = p.bCombo; ps.hitCount = p.hitCount; ps.charge2 = Math.floor(p.charge2); ps.storm = Math.round(p.stormMs); ps.invuln = p.invulnMs > 0;
       ps.connected = p.connected; ps.away = p.away;
     }
     for (const id of [...s.enemies.keys()]) if (!w.enemies[id]) s.enemies.delete(id);
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
-      es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.air = Math.round(e.air ?? 0); es.frozen = (e.frozenMs ?? 0) > 0; es.slow = (e.slowMs ?? 0) > 0; es.stun = (e.stunMs ?? 0) > 0; es.charm = (e.charmMs ?? 0) > 0; es.facing = e.facing; es.anim = e.anim;
+      es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.air = Math.round(e.air ?? 0); es.height = round(e.height ?? 0); es.frozen = (e.frozenMs ?? 0) > 0; es.slow = (e.slowMs ?? 0) > 0; es.stun = (e.stunMs ?? 0) > 0; es.charm = (e.charmMs ?? 0) > 0; es.facing = e.facing; es.anim = e.anim;
     }
   }
 

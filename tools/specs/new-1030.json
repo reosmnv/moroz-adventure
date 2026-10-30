@@ -1,0 +1,130 @@
+[
+ {
+  "name": "kris-a1back-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "from a relaxed stance holding her camera at her chest she grabs her folded tripod, winds it back behind her and sweeps it horizontally across her front in a wide backhand swing",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "kris-a1back-in",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png",
+   "end_frame_base64": "@assets/pixellab/new-1030/kris-a1back-east-96.png"
+  }
+ },
+ {
+  "name": "kris-a1back-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "the backhand sweep follows through, she lowers the tripod and returns to a relaxed stance holding her camera ready at her chest with both hands",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "kris-a1back-out",
+   "custom_start_frame_base64": "@assets/pixellab/new-1030/kris-a1back-east-96.png",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png"
+  }
+ },
+ {
+  "name": "kris-hop-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "she pushes off the ground and hops quickly backward, both feet leaving the ground, holding the camera at her chest",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "kris-hop-in",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png",
+   "end_frame_base64": "@assets/pixellab/new-1030/kris-hop-east-96.png"
+  }
+ },
+ {
+  "name": "kris-hop-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "she lands softly from a backward hop, knees absorbing the landing, back in a relaxed stance holding the camera at her chest",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "kris-hop-out",
+   "custom_start_frame_base64": "@assets/pixellab/new-1030/kris-hop-east-96.png",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png"
+  }
+ },
+ {
+  "name": "axe-in-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "from a Muay Thai fighting stance she swings her front leg straight up high above her head for an axe kick",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "axe-in-east",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "end_frame_base64": "@assets/pixellab/new-1030/prime-axe-east-64.png"
+  }
+ },
+ {
+  "name": "axe-out-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "she chops her raised heel straight down hard in front of her, a powerful axe kick slamming down, then returns to her fighting stance",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "axe-out-east",
+   "custom_start_frame_base64": "@assets/pixellab/new-1030/prime-axe-east-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png"
+  }
+ },
+ {
+  "name": "axe-in-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "from a Muay Thai fighting stance she swings her front leg straight up high above her head for an axe kick",
+   "frame_count": 4,
+   "directions": [
+    "west"
+   ],
+   "animation_name": "axe-in-west",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/new-1030/prime-axe-west-64.png"
+  }
+ },
+ {
+  "name": "axe-out-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "she chops her raised heel straight down hard in front of her, a powerful axe kick slamming down, then returns to her fighting stance",
+   "frame_count": 6,
+   "directions": [
+    "west"
+   ],
+   "animation_name": "axe-out-west",
+   "custom_start_frame_base64": "@assets/pixellab/new-1030/prime-axe-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png"
+  }
+ }
+]
