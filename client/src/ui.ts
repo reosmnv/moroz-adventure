@@ -12,22 +12,35 @@ export const textStyle = (size = 8, color = '#d7d1c7') =>
 
 // Палитра героини: тёмный контур, сине-фиолетовый, лаванда, кремовый
 const INK = 0x120c19, NAVY = 0x2e3049, PLUM = 0x5a495d, LAV = 0x9d74d4, CREAM = 0xd7d1c7;
-const HP_COLOR = 0x7bd36b, ULT_COLOR = 0x9d74d4, ULTIMATE_COLOR = 0xff7a1a;
+const HP_COLOR = 0x7bd36b, ULTIMATE_COLOR = 0xff7a1a;
 
-const JOY_RADIUS = 36;
-const RUN_STICK = 0.9; // стик отклонён почти до упора: бег
-const BTN_HIT = 46; // зона касания больше видимой кнопки
-const JOY_REST = { x: 70, y: VIEW_H - 62 }; // где стик ждёт палец (подсказка)
+const BTN_SCALE = 1.5, BTN_HIT = 69;
+const RING_RADIUS = 40, RING_OUTLINE = 7, RING_LINE = 4;
+const JOY_SCALE = 1.3, JOY_RADIUS = 47;
+const RUN_STICK = 0.9;
+const JOY_REST = { x: 75, y: VIEW_H - 75 };
+const PORTRAIT_PAD = 8, PRESS_MS = 90;
+const HINT_GAP = 42, PIP_Y = 39;
+const PANEL_W = 138, BAR_W = 82, PANEL_X = 6, PANEL_Y = 6, PANEL_GAP = 6;
+const PORTRAIT_DROP = 1, ICON_Y = -1, ICON_DROP = 2;
+const JOY_CAPTURE = 0.45, JOY_IDLE_ALPHA = 0.35;
+const ULT_PULSE_SCALE = 1.1, ULT_PULSE_MS = 380;
+const PIP_STEP = 8, PIP_SIZE = 4;
 
-// dx, dy: отступ центра кнопки от правого нижнего угла экрана
-const BUTTONS: { id: Button; icon: string; dx: number; dy: number; color: number }[] = [
-  { id: 'attack', icon: 'ui-icon-attack', dx: 46, dy: 44, color: 0xe0457b },
-  { id: 'heavy', icon: 'ui-icon-heavy', dx: 104, dy: 30, color: 0x5a609a }, // тёмная: на ней читаются огненные иконки
-  { id: 'taunt', icon: 'ui-icon-taunt', dx: 38, dy: 104, color: 0x3f8efc },
-  { id: 'ult', icon: 'ui-icon-ult', dx: 98, dy: 92, color: 0x9b59ff },
-  { id: 'ult2', icon: 'ui-icon-snow', dx: 156, dy: 96, color: 0x2e4a7a }, // снежная буря, шкала общая с U
+type Placement = { id: Button; dx: number; dy: number };
+const LAYOUT: Record<number, Placement[]> = {
+  3: [{ id: 'attack', dx: 52, dy: 52 }, { id: 'heavy', dx: 132, dy: 52 }, { id: 'ult', dx: 52, dy: 132 }],
+  4: [{ id: 'attack', dx: 52, dy: 52 }, { id: 'heavy', dx: 132, dy: 52 }, { id: 'ult', dx: 52, dy: 132 }, { id: 'ult2', dx: 132, dy: 132 }],
+};
+const BUTTONS: { id: Button; icon: string; color: number }[] = [
+  { id: 'attack', icon: 'ui-icon-attack', color: 0xe0457b },
+  { id: 'heavy', icon: 'ui-icon-heavy', color: 0x5a609a },
+  { id: 'ult', icon: 'ui-icon-ult', color: LAV },
+  { id: 'ult2', icon: 'ui-icon-snow', color: LAV },
 ];
-const btnPos = (b: { dx: number; dy: number }, w: number) => ({ x: w - b.dx, y: VIEW_H - b.dy });
+const btnPos = (b: Placement, w: number) => ({ x: w - b.dx, y: VIEW_H - b.dy });
+const heroColor = (char?: string) => CHARACTERS.find(c => c.id === char)?.color ?? LAV;
+const colorHex = (color: number) => '#' + color.toString(16).padStart(6, '0');
 
 // Свои иконки и лица героев 2-4 (client/public/ui/<папка>/)
 const HERO_UI: Record<string, { dir: string; icons: string[] }> = {
@@ -38,10 +51,8 @@ const NADYA_HEAVY_ICON: Record<string, string> = { b1: 'heavy-slap', b2: 'heavy-
 const heroIcon = (char: string, name: string) => `ui-${HERO_UI[char].dir}-${name}`;
 
 interface BtnView { base: Phaser.GameObjects.Image; icon: Phaser.GameObjects.Image; color: number; held: number }
-interface Panel { root: Phaser.GameObjects.Container; portrait: Phaser.GameObjects.Image; badge: Phaser.GameObjects.Rectangle; name: Phaser.GameObjects.Text; bars: Phaser.GameObjects.Graphics }
+interface Panel { frame: Phaser.GameObjects.Image; root: Phaser.GameObjects.Container; portrait: Phaser.GameObjects.Image; badge: Phaser.GameObjects.Rectangle; name: Phaser.GameObjects.Text; bars: Phaser.GameObjects.Graphics }
 
-const PANEL_W = 138;
-const BAR_W = 82;
 
 export class UIScene extends Phaser.Scene {
   session!: GameSession;
@@ -60,6 +71,8 @@ export class UIScene extends Phaser.Scene {
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private runKey!: Phaser.Input.Keyboard.Key;
   private stickRun = false;
+  private activeLayout = LAYOUT[4];
+  private portraitUntil = 0;
 
   constructor() { super('ui'); }
 
@@ -76,22 +89,23 @@ export class UIScene extends Phaser.Scene {
 
   create() {
     this.waveText = this.add.text(0, 8, '', textStyle()).setOrigin(0.5, 0);
-    for (let i = 0; i < 2; i++) this.panels.push(this.makePanel(6 + i * (PANEL_W + 6), 6));
+    for (let i = 0; i < 2; i++) this.panels.push(this.makePanel(PANEL_X + i * (PANEL_W + PANEL_GAP), PANEL_Y));
 
-    this.joyBase = this.add.image(JOY_REST.x, JOY_REST.y, 'ui-stick').setAlpha(0.35);
-    this.joyKnob = this.add.image(JOY_REST.x, JOY_REST.y, 'ui-btn').setScale(0.5).setTint(LAV).setAlpha(0.35);
+    this.joyBase = this.add.image(JOY_REST.x, JOY_REST.y, 'ui-stick').setScale(JOY_SCALE).setAlpha(JOY_IDLE_ALPHA);
+    this.joyKnob = this.add.image(JOY_REST.x, JOY_REST.y, 'ui-btn').setScale(0.5 * JOY_SCALE).setTint(LAV).setAlpha(JOY_IDLE_ALPHA);
 
     this.ultRing = this.add.graphics();
     for (const b of BUTTONS) {
-      const base = this.add.image(0, 0, 'ui-btn').setTint(b.color);
-      const icon = this.add.image(0, 0, b.icon);
+      const base = this.add.image(0, 0, 'ui-btn').setScale(BTN_SCALE).setTint(b.color);
+      const icon = this.add.image(0, 0, b.icon).setScale(BTN_SCALE);
       this.btns.set(b.id, { base, icon, color: b.color, held: 0 });
     }
     const u = this.btns.get('ult')!;
-    this.ultPulse = this.tweens.add({ targets: [u.base, u.icon], scale: 1.1, duration: 380, yoyo: true, repeat: -1, paused: true });
+    this.ultPulse = this.tweens.add({ targets: [u.base, u.icon], scale: { from: BTN_SCALE, to: BTN_SCALE * ULT_PULSE_SCALE }, duration: ULT_PULSE_MS, yoyo: true, repeat: -1, paused: true });
     this.pips = this.add.graphics();
     this.bHint = this.add.text(0, 0, '', textStyle()).setOrigin(1, 0.5);
 
+    this.children.list.forEach(o => { if ('setScrollFactor' in o) (o as Phaser.GameObjects.Image).setScrollFactor(0); });
     this.layout();
     this.scale.on('resize', () => this.layout());
 
@@ -124,27 +138,28 @@ export class UIScene extends Phaser.Scene {
     const name = this.add.text(fw + 4, 4, '', textStyle());
     const bars = this.add.graphics();
     const root = this.add.container(x, y, [badge, portrait, frame, name, bars]).setVisible(false);
-    return { root, portrait, badge, name, bars };
+    return { root, frame, portrait, badge, name, bars };
   }
 
   private layout() {
     const w = this.scale.width;
     this.waveText.setX(w / 2);
-    for (const b of BUTTONS) {
+    for (const b of this.activeLayout) {
       const { x, y } = btnPos(b, w);
       const v = this.btns.get(b.id)!;
       v.base.setPosition(x, y);
-      v.icon.setPosition(x, y - 1 + v.held * 2);
+      v.icon.setPosition(x, y + ICON_Y + v.held * ICON_DROP);
     }
-    const h = btnPos(BUTTONS[1], w);
-    this.bHint.setPosition(h.x - 30, h.y);
+    const h = btnPos(this.activeLayout[1], w);
+    this.bHint.setPosition(h.x - HINT_GAP, h.y);
   }
 
   private tap(b: Button) {
     if (!this.session.hasMe()) return;
     this.session.press(b);
-    this.setHeld(b, true);
-    this.time.delayedCall(90, () => { if (![...this.heldBy.values()].includes(b)) this.setHeld(b, false); });
+    if (b === 'taunt') this.portraitUntil = this.time.now + PRESS_MS;
+    else this.setHeld(b, true);
+    this.time.delayedCall(PRESS_MS, () => { if (b !== 'taunt' && ![...this.heldBy.values()].includes(b)) this.setHeld(b, false); });
   }
 
   // Нажатая кнопка темнеет и проседает, пока палец на ней
@@ -152,12 +167,22 @@ export class UIScene extends Phaser.Scene {
     const v = this.btns.get(b)!;
     v.held = on ? 1 : 0;
     v.base.setTint(on ? Phaser.Display.Color.ValueToColor(v.color).darken(30).color : v.color);
-    v.icon.setY(v.base.y - 1 + v.held * 2);
+    v.icon.setY(v.base.y + ICON_Y + v.held * ICON_DROP);
   }
 
   // Плавающий стик в левой части экрана, кнопки справа; каждый палец сам по себе
   private onDown(p: Phaser.Input.Pointer) {
-    if (p.x < this.scale.width * 0.45) {
+    const panel = this.panels[0];
+    if (this.session.hasMe() && panel.root.visible &&
+        p.x >= panel.root.x - PORTRAIT_PAD && p.x <= panel.root.x + panel.frame.width + PORTRAIT_PAD &&
+        p.y >= PANEL_Y - PORTRAIT_PAD && p.y <= PANEL_Y + panel.frame.height + PORTRAIT_PAD) {
+      this.tap('taunt');
+      return;
+    }
+    // Панель напарника не захватывает стик.
+    const partner = this.panels[1];
+    if (partner.root.visible && partner.root.getBounds().contains(p.x, p.y)) return;
+    if (p.x < this.scale.width * JOY_CAPTURE) {
       if (this.joyId !== -1) return;
       this.joyId = p.id;
       this.joyOrigin.set(p.x, p.y);
@@ -166,7 +191,7 @@ export class UIScene extends Phaser.Scene {
       return;
     }
     let best: Button | null = null, bestD = BTN_HIT;
-    for (const b of BUTTONS) {
+    for (const b of this.activeLayout) {
       const { x, y } = btnPos(b, this.scale.width);
       const d = Phaser.Math.Distance.Between(p.x, p.y, x, y);
       if (d < bestD) { bestD = d; best = b.id; }
@@ -186,8 +211,8 @@ export class UIScene extends Phaser.Scene {
     if (b) { this.heldBy.delete(p.id); this.setHeld(b, false); }
     if (p.id !== this.joyId) return;
     this.joyId = -1;
-    this.joyBase.setPosition(JOY_REST.x, JOY_REST.y).setAlpha(0.35);
-    this.joyKnob.setPosition(JOY_REST.x, JOY_REST.y).setAlpha(0.35);
+    this.joyBase.setPosition(JOY_REST.x, JOY_REST.y).setAlpha(JOY_IDLE_ALPHA);
+    this.joyKnob.setPosition(JOY_REST.x, JOY_REST.y).setAlpha(JOY_IDLE_ALPHA);
   }
 
   // Иконки кнопок под своего героя (A, U, вторая кнопка); у Нади второй кнопки нет
@@ -201,15 +226,17 @@ export class UIScene extends Phaser.Scene {
     const u2 = this.btns.get('ult2')!;
     u2.icon.setTexture(char === KRIS_ID ? heroIcon(char, 'icon-ball') : 'ui-icon-snow');
     const has2 = char !== NADYA_ID;
+    this.activeLayout = LAYOUT[has2 ? 4 : 3];
+    this.layout();
     u2.base.setVisible(has2); u2.icon.setVisible(has2);
   }
 
-  // Иконка B показывает удар, который выйдет сейчас; смена с коротким «щелчком»
+  // Иконка B показывает следующий удар, размер остаётся общим для всех кнопок.
   private setHeavyIcon(key: string) {
     const icon = this.btns.get('heavy')!.icon;
     if (icon.texture.key === key || !this.textures.exists(key)) return;
     icon.setTexture(key);
-    this.tweens.add({ targets: icon, scale: { from: 1.35, to: 1 }, duration: 140, ease: 'Back.easeOut' });
+    icon.setScale(BTN_SCALE);
   }
 
   private releaseAll() {
@@ -255,13 +282,15 @@ export class UIScene extends Phaser.Scene {
     p.badge.setFillStyle(hero ? NAVY : ch?.color ?? PLUM);
     const face = sb.char === HERO_ID ? (ultimate ? 'ui-face-ultimate' : 'ui-face-prime') : HERO_UI[sb.char ?? ''] ? heroIcon(sb.char!, 'face') : '';
     if (face && p.portrait.texture.key !== face) p.portrait.setTexture(face);
-    p.name.setText((ch?.name ?? '?') + (me ? '' : ' 2P'));
+    p.name.setText((ch?.name ?? '?') + (me ? '' : ' 2P')).setColor(colorHex(heroColor(sb.char)));
+    const pressed = me && this.time.now < this.portraitUntil;
+    p.frame.setTint(pressed ? 0xaaaaaa : 0xffffff).setY(pressed ? PORTRAIT_DROP : 0);
     const g = p.bars.clear();
     const x = p.name.x;
     this.bar(g, x, 16, BAR_W, 6, Math.max(0, sb.hp) / (sb.maxHp ?? PLAYER_HP), HP_COLOR);
     const full = !ultimate && (sb.ult ?? 0) >= 100;
     const flash = full && Math.floor(this.time.now / 160) % 2 === 0;
-    this.bar(g, x, 26, BAR_W, 3, ultimate ? (sb.formMs ?? 0) / ULT_MS : (sb.ult ?? 0) / 100, ultimate ? ULTIMATE_COLOR : flash ? CREAM : ULT_COLOR);
+    this.bar(g, x, 26, BAR_W, 3, ultimate ? (sb.formMs ?? 0) / ULT_MS : (sb.ult ?? 0) / 100, ultimate ? ULTIMATE_COLOR : flash ? CREAM : heroColor(sb.char));
     p.root.setAlpha(sb.connected === false || sb.away ? 0.4 : 1);
   }
 
@@ -279,6 +308,14 @@ export class UIScene extends Phaser.Scene {
     this.panels.forEach((p, i) => list[i] ? this.drawPanel(p, list[i], list[i] === me) : p.root.setVisible(false));
 
     // U: копится кольцом вокруг кнопки, полная шкала пульсирует, в Ultimate кольцо показывает остаток
+    if (me?.char) this.setHeroIcons(me.char);
+    const color = heroColor(me?.char);
+    this.joyKnob.setTint(color);
+    for (const id of ['ult', 'ult2'] as Button[]) {
+      const v = this.btns.get(id)!;
+      v.color = color;
+      this.setHeld(id, !!v.held);
+    }
     const u = this.btns.get('ult')!;
     const ultimate = me?.form === 'ultimate';
     const charge = ultimate ? (me?.formMs ?? 0) / ULT_MS : (me?.ult ?? 0) / 100;
@@ -286,32 +323,31 @@ export class UIScene extends Phaser.Scene {
     u.base.setAlpha(ready || ultimate ? 1 : 0.5);
     u.icon.setAlpha(ready || ultimate ? 1 : 0.5);
     if (ready && this.ultPulse.isPaused()) this.ultPulse.restart(); // с начала, без рывка масштаба
-    if (!ready && !this.ultPulse.isPaused()) { this.ultPulse.pause(); u.base.setScale(1); u.icon.setScale(1); }
+    if (!ready && !this.ultPulse.isPaused()) { this.ultPulse.pause(); u.base.setScale(BTN_SCALE); u.icon.setScale(BTN_SCALE); }
     this.ultRing.clear();
     if (me && charge > 0) {
       const start = -Math.PI / 2;
-      this.ultRing.lineStyle(5, INK).beginPath().arc(u.base.x, u.base.y, 27, 0, Math.PI * 2).strokePath();
-      this.ultRing.lineStyle(3, ultimate ? ULTIMATE_COLOR : ready ? CREAM : ULT_COLOR)
-        .beginPath().arc(u.base.x, u.base.y, 27, start, start + Math.PI * 2 * Math.min(1, charge)).strokePath();
+      this.ultRing.lineStyle(RING_OUTLINE, INK).beginPath().arc(u.base.x, u.base.y, RING_RADIUS, 0, Math.PI * 2).strokePath();
+      this.ultRing.lineStyle(RING_LINE, ultimate ? ULTIMATE_COLOR : ready ? CREAM : color)
+        .beginPath().arc(u.base.x, u.base.y, RING_RADIUS, start, start + Math.PI * 2 * Math.min(1, charge)).strokePath();
     }
 
-    if (me?.char) this.setHeroIcons(me.char);
     // Буря: тусклая без полного заряда (шкала общая с U), во время бури кольцо показывает остаток.
     // У Kris на этой кнопке шар: своя шкала копится от попаданий вспышкой
     const s2 = this.btns.get('ult2')!;
     const storm = me?.storm ?? 0;
     const kris = me?.char === KRIS_ID;
     const ready2 = !!me && (kris ? (me.charge2 ?? 0) >= 100 : (me.ult ?? 0) >= 100 && storm <= 0);
-    s2.base.setAlpha(ready2 || storm > 0 ? 1 : 0.5);
-    s2.icon.setAlpha(ready2 || storm > 0 ? 1 : 0.5);
+    s2.base.setAlpha(ready2 ? 1 : 0.5);
+    s2.icon.setAlpha(ready2 ? 1 : 0.5);
     if (kris && (me?.charge2 ?? 0) > 0) {
       const start = -Math.PI / 2;
-      this.ultRing.lineStyle(5, INK).beginPath().arc(s2.base.x, s2.base.y, 27, 0, Math.PI * 2).strokePath();
-      this.ultRing.lineStyle(3, ready2 ? CREAM : 0x9be33b).beginPath().arc(s2.base.x, s2.base.y, 27, start, start + Math.PI * 2 * Math.min(1, (me!.charge2 ?? 0) / 100)).strokePath();
-    } else if (storm > 0) {
+      this.ultRing.lineStyle(RING_OUTLINE, INK).beginPath().arc(s2.base.x, s2.base.y, RING_RADIUS, 0, Math.PI * 2).strokePath();
+      this.ultRing.lineStyle(RING_LINE, ready2 ? CREAM : color).beginPath().arc(s2.base.x, s2.base.y, RING_RADIUS, start, start + Math.PI * 2 * Math.min(1, (me!.charge2 ?? 0) / 100)).strokePath();
+    } else if (me?.char === HERO_ID && (storm > 0 || (me.ult ?? 0) > 0)) {
       const start = -Math.PI / 2;
-      this.ultRing.lineStyle(5, INK).beginPath().arc(s2.base.x, s2.base.y, 27, 0, Math.PI * 2).strokePath();
-      this.ultRing.lineStyle(3, 0xbfe9ff).beginPath().arc(s2.base.x, s2.base.y, 27, start, start + Math.PI * 2 * (storm / STORM_MS)).strokePath();
+      this.ultRing.lineStyle(RING_OUTLINE, INK).beginPath().arc(s2.base.x, s2.base.y, RING_RADIUS, 0, Math.PI * 2).strokePath();
+      this.ultRing.lineStyle(RING_LINE, color).beginPath().arc(s2.base.x, s2.base.y, RING_RADIUS, start, start + Math.PI * 2 * (storm > 0 ? storm / STORM_MS : Math.min(1, (me?.ult ?? 0) / 100))).strokePath();
     }
 
     // Под A точки серии, слева от B удар, который выйдет сейчас
@@ -321,18 +357,18 @@ export class UIScene extends Phaser.Scene {
       const n = CHAIN[(me.form ?? 'prime') as keyof typeof CHAIN]?.length ?? 3; // у Kris серия A из двух
       const c = Math.min(me.combo ?? 0, n - 1);
       for (let i = 0; i < n; i++) {
-        const x = a.base.x - 4 * n + 2 + i * 8, y = a.base.y + 27;
+        const x = a.base.x - 4 * n + 2 + i * PIP_STEP, y = a.base.y + PIP_Y;
         this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
-        this.pips.fillStyle(i < c ? CREAM : NAVY).fillRect(x, y, 4, 4);
+        this.pips.fillStyle(color, i < c ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
       }
       if (me.char === NADYA_ID) {
         // Серия B своя: под B тоже точки, иконка и подпись следующего удара
         const hb = this.btns.get('heavy')!;
         const bc = Math.min(me.bCombo ?? 0, 2);
         for (let i = 0; i < 3; i++) {
-          const x = hb.base.x - 10 + i * 8, y = hb.base.y + 27;
+          const x = hb.base.x - 10 + i * PIP_STEP, y = hb.base.y + PIP_Y;
           this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
-          this.pips.fillStyle(i < bc ? CREAM : NAVY).fillRect(x, y, 4, 4);
+          this.pips.fillStyle(color, i < bc ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
         }
         const move = HEAVY.nadya[bc];
         this.bHint.setText(MOVE_NAMES[move] ?? '');
@@ -345,9 +381,9 @@ export class UIScene extends Phaser.Scene {
       const a = this.btns.get('attack')!;
       const c = Math.min(me.combo ?? 0, 2);
       for (let i = 0; i < 3; i++) {
-        const x = a.base.x - 10 + i * 8, y = a.base.y + 27;
+        const x = a.base.x - 10 + i * PIP_STEP, y = a.base.y + PIP_Y;
         this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
-        this.pips.fillStyle(i < c ? CREAM : NAVY).fillRect(x, y, 4, 4);
+        this.pips.fillStyle(color, i < c ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
       }
       const move = HEAVY[me.form ?? 'prime'][c];
       this.bHint.setText(MOVE_NAMES[move] ?? '');

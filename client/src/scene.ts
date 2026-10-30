@@ -6,6 +6,7 @@ import { beep } from './audio.ts';
 import { FONT, UIScene, textStyle } from './ui.ts';
 import { buildLevel, preloadLevel, showCard } from './level.ts';
 
+const CAM_LEAD = 0.33;
 const INTERP_MS = 60; // буфер интерполяции чужих и врагов: мир на 60 мс в прошлом. Свою героиню рисуем без отставания
 const CELL = 128; // кадр спрайта героини
 const FEET_Y = 112; // ступни в кадре
@@ -57,7 +58,8 @@ export class GameScene extends Phaser.Scene {
   private camX?: number;
   private follow(x: number) {
     const cam = this.cameras.main;
-    const target = Math.max(0, Math.min(LEVEL_W - this.scale.width, x - this.scale.width / 2));
+    const target = Math.max(0, Math.min(LEVEL_W - this.scale.width, x - this.scale.width * CAM_LEAD));
+    // T1: здесь можно ограничить target сверху границей незачищенной волны.
     // Мягкое следование без дрожи пикселей
     this.camX = this.camX === undefined ? target : this.camX + (target - this.camX) * 0.15;
     cam.setScroll(Math.round(this.camX), 0);
@@ -249,7 +251,7 @@ export class GameScene extends Phaser.Scene {
       if (isPlayer) {
         const me = key === 'p:' + this.session.me;
         // Имя и здоровье своей героини в панели HUD, над головой только метка игрока
-        v.label = this.add.text(0, 0, me ? '1P' : (ch?.name ?? '2P'), textStyle(8, me ? '#f2a541' : '#d7d1c7')).setOrigin(0.5, 1);
+        v.label = this.add.text(0, 0, me ? '1P' : (ch?.name ?? '2P'), textStyle(8, '#' + (ch?.color ?? 0xffffff).toString(16).padStart(6, '0'))).setOrigin(0.5, 1);
         if (me) v.hp.setVisible(false);
       }
       this.views.set(key, v);
