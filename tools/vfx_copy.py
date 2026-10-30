@@ -10,6 +10,7 @@ PICK = {
     "nadya-hit": ("nadya", "hits", "hit_star"),
     "nadya-slap": ("nadya", "glint", "flash_burst"),
     "nadya-boom": ("nadya", "ult", "crackle_burst"),
+    "nadya-twinkle": ("nadya", "ult", "twinkles"),
     "nadya-charm": ("nadya", "jealous", "charm_hearts"),
     "stun": ("nadya", "status", "stun_stars"),
     "slow": ("nadya", "status", "debuff_arrows"),

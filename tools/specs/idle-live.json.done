@@ -1,0 +1,32 @@
+{
+ "prime-idle-live-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing up and down, guard up, long hair swaying, then settles back to the exact starting pose)\ndirections: east (1 jobs)\njob_ids: east=12ccf70e-cf4a-455d-9cd6-edf8903a2c48\ngroup: 93725b66-5d1f-4743-950e-2b5ba2c56b06\nframes: 9 (1 reference + 8 animated)\ncanvas: east 64x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 "
+ },
+ "prime-idle-live16-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: pixminimax custom (lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing up and down, guard up, long hair swaying, then settles back to the exact starting pose)\ndirections: east (1 jobs)\njob_ids: east=4b67b623-d5c9-4b3c-9fbc-2028fcf149cc\ngroup: 141c4b68-e1a9-46e4-a032-b6763e9ec1c1\nframes: 17 (1 reference + 16 animated)\ncanvas: east 64x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\n"
+ },
+ "prime-idle-live-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing up and down, guard up, long hair swaying, then settles back to the exact starting pose)\ndirections: west (1 jobs)\njob_ids: west=d62441ce-9391-4b66-93b8-941a63dca949\ngroup: a2fa3627-e3e1-4853-9b89-799508955aff\nframes: 9 (1 reference + 8 animated)\ncanvas: west 68x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 "
+ },
+ "prime-idle-live16-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: pixminimax custom (lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing up and down, guard up, long hair swaying, then settles back to the exact starting pose)\ndirections: west (1 jobs)\njob_ids: west=196db5b5-7976-45c6-bf67-7c9ee82d263c\ngroup: 84b7b466-3cb4-4506-9cc7-fdd1f83b087a\nframes: 17 (1 reference + 16 animated)\ncanvas: west 68x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\n"
+ },
+ "ultimate-idle-live-east": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing, guard up, hair swaying, then settles back to the exact starting pose)\ndirections: east (1 jobs)\njob_ids: east=b667d071-e6d0-4587-acee-3dfa8b0832b1\ngroup: c17ed57b-1a85-40a5-af21-792e477a2d32\nframes: 9 (1 reference + 8 animated)\ncanvas: east 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhi"
+ },
+ "ultimate-idle-live16-east": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: pixminimax custom (lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing, guard up, hair swaying, then settles back to the exact starting pose)\ndirections: east (1 jobs)\njob_ids: east=e2679063-12cd-442a-aeab-06c849136b95\ngroup: f999d9b0-6492-4027-9b9f-52ef70c13cef\nframes: 17 (1 reference + 16 animated)\ncanvas: east 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2 min/direc"
+ },
+ "ultimate-idle-live-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: v3 custom (lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing, guard up, hair swaying, then settles back to the exact starting pose)\ndirections: west (1 jobs)\njob_ids: west=84ae2132-8d92-42e8-9116-c873aa8c3c96\ngroup: ab86a4ad-e367-4a7a-b11e-09e6af36ea4d\nframes: 9 (1 reference + 8 animated)\ncanvas: west 64x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhi"
+ },
+ "ultimate-idle-live16-west": {
+  "out": "character: fda7726a-5a4b-45df-b0e9-5e5adadc9540\nanimation: pixminimax custom (lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing, guard up, hair swaying, then settles back to the exact starting pose)\ndirections: west (1 jobs)\njob_ids: west=e1498763-62ea-49fb-8ae5-8d1fd81b7708\ngroup: ac7a2adf-6745-4015-a87f-ab5801f2ed9c\nframes: 17 (1 reference + 16 animated)\ncanvas: west 64x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2 min/direc"
+ },
+ "nadya-idle-live-east": {
+  "out": "character: e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945\nanimation: v3 custom (lively flirty idle loop: she sways her hips side to side, shifts her weight from foot to foot, tosses her hair with a small head tilt, the heart bag on its chain swinging gently at her hip, then settles back to the exact starting pose)\ndirections: east (1 jobs)\njob_ids: east=21dd63a4-1647-4682-bbf0-d3ec2d2f1a8f\ngroup: e5bea821-817b-4ce5-9618-a1bae0d5a638\nframes: 9 (1 reference + 8 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 2 generations ("
+ },
+ "nadya-idle-live16-east": {
+  "out": "character: e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945\nanimation: pixminimax custom (lively flirty idle loop: she sways her hips side to side, shifts her weight from foot to foot, tosses her hair with a small head tilt, the heart bag on its chain swinging gently at her hip, then settles back to the exact starting pose)\ndirections: east (1 jobs)\njob_ids: east=77f0295d-4b16-4d5e-b612-547425af315d\ngroup: 957b8512-dfd9-4c30-94d9-07d1a4ed2373\nframes: 17 (1 reference + 16 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 2 gen"
+ }
+}

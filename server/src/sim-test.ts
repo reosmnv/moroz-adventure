@@ -262,13 +262,40 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt')
   check('Надя: ревнивые бьют друг друга, героиня цела', p.hp === 150 && r.hits.filter(h => h === 4).length >= 1, `hp ${p.hp} ${r.hits.join()}`);
   check('Надя: «Мальчики, не ссорьтесь» один раз', r.events.filter(e => e.includes('не ссорьтесь')).length === 1);
 }
+{
+  // Поцелуй летит, а не взрывается: дальний враг ревнует позже ближнего, вне полосы и позади не задевает, урона нет
+  const { w, p } = setup(false, NADYA_ID); dummy(w, 'near', 60); dummy(w, 'far', 700); dummy(w, 'side', 300); dummy(w, 'back', -60);
+  w.enemies.side.y = p.y + 70;
+  p.ult = 100;
+  const r1 = run(w, 800, press([0], 'ult'));
+  check('Надя: поцелуй задел ближнего, до дальнего ещё летит', (w.enemies.near.charmMs ?? 0) > 0 && !w.enemies.far.charmMs && w.pending.some(d => d.kind === 'kiss'), `${w.enemies.near.charmMs} ${w.enemies.far.charmMs}`);
+  check('Надя: поцелуй без урона и без взрыва', !r1.hits.includes(10) && !r1.events.includes('boom') && r1.events.includes('kiss'), r1.events.join());
+  run(w, 3500);
+  check('Надя: поцелуй долетел до дальнего (скорость 200)', (w.enemies.far.charmMs ?? 0) > 0);
+  check('Надя: вне полосы и за спиной не ревнуют', !w.enemies.side.charmMs && !w.enemies.back.charmMs);
+  run(w, 8000);
+  check('Надя: поцелуй исчез у края уровня', !w.pending.some(d => d.kind === 'kiss'));
+}
 // ---------- Kris ----------
 {
-  const { w, p } = setup(false, KRIS_ID); dummy(w, 'e1', 200);
-  const r = run(w, 1500, press([0, 50, 100], 'heavy'));
+  const { w } = setup(false, KRIS_ID); dummy(w, 'e1', 30);
+  const { log } = run(w, 2500, press([0, 300, 600, 900], 'attack'));
+  check('Kris: серия A из двух, a1 > a2 > a1', log.slice(0, 3).join() === 'a1,a2,a1' && !log.includes('a3'), log.join('>'));
+}
+{
+  const { w } = setup(false, KRIS_ID); dummy(w, 'e1', 200);
+  const r = run(w, 1200, t => (Math.floor(t / TICK_MS) % 3 === 0 ? { heavy: true } : {}));
+  const shots = r.events.filter(e => e === 'shot').length;
+  check('Kris: темп вспышки вдвое выше (4 за 1,2 с)', shots === 4, `${shots}`);
+}
+{
+  const { w } = setup(false, KRIS_ID); dummy(w, 'e1', 200);
+  const r0 = run(w, 250, press([0, 50, 100], 'heavy'));
+  check('Kris: пауза между вспышками', r0.events.filter(e => e === 'shot').length === 1, r0.events.join());
+  const { w: w2, p: p2 } = setup(false, KRIS_ID); dummy(w2, 'e1', 200);
+  const r = run(w2, 1500, press([0], 'heavy'));
   check('Kris: вспышка долетает до врага (4 урона)', r.hits.join() === '4', r.hits.join());
-  check('Kris: пауза между вспышками', r.events.filter(e => e === 'shot').length === 1, r.events.join());
-  check('Kris: шкала шара +12.5', p.charge2 === 12.5, `${p.charge2}`);
+  check('Kris: шкала шара +12.5', p2.charge2 === 12.5, `${p2.charge2}`);
 }
 {
   const { w, p } = setup(true, KRIS_ID);
@@ -278,6 +305,37 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt')
   const r = run(w, 1500, press([0], 'ult2'));
   check('Kris: шар у Анастасии, взрыв 20 и реплика', r.hits.includes(20) && r.events.includes('boom') && r.events.some(e => e.startsWith('taunt:')), r.events.join());
   check('Kris: шкала шара потрачена', p.charge2 === 0);
+}
+const ballAt = (w: World) => {
+  let at: any;
+  for (let t = 0; t < 600 && !at; t += TICK_MS) at = step(w, { h: { ...emptyInput(), ult2: t === 0 } }).find(e => e.t === 'ball');
+  return at;
+};
+{
+  // Без Анастасии: в самое плотное скопление, а не просто перед собой
+  const { w, p } = setup(false, KRIS_ID);
+  dummy(w, 'e1', 60); dummy(w, 'c1', 220); dummy(w, 'c2', 240); dummy(w, 'c3', 250);
+  p.charge2 = 100;
+  const b = ballAt(w);
+  check('Kris: шар летит в скопление из трёх', b && Math.abs(b.tx - (p.x + 237)) < 15, b ? `${b.tx - p.x}` : 'нет броска');
+}
+{
+  // С Анастасией: враги у неё в приоритете, даже если скопление больше в другом месте
+  const { w, p } = setup(true, KRIS_ID);
+  w.players.b.char = HERO_ID; w.players.b.x = p.x - 150; w.players.b.facing = -1;
+  dummy(w, 'n1', -220); dummy(w, 'c1', 200); dummy(w, 'c2', 220); dummy(w, 'c3', 230);
+  p.charge2 = 100;
+  const b = ballAt(w);
+  check('Kris: шар в врагов рядом с Анастасией', b && Math.abs(b.tx - (p.x - 220)) < 15, b ? `${b.tx - p.x}` : 'нет броска');
+}
+{
+  // Анастасия далеко, рядом с ней врагов нет: шар всё равно к ней, а не в скопление у Kris
+  const { w, p } = setup(true, KRIS_ID);
+  w.players.b.char = HERO_ID; w.players.b.x = p.x + 900; w.players.b.facing = 1;
+  dummy(w, 'c1', 200); dummy(w, 'c2', 220);
+  p.charge2 = 100;
+  const b = ballAt(w);
+  check('Kris: шар к далёкой Анастасии', b && Math.abs(b.tx - (p.x + 940)) < 5, b ? `${b.tx - p.x}` : 'нет броска');
 }
 {
   const { w, p } = setup(false, KRIS_ID); dummy(w, 'e1', 300);

@@ -1,0 +1,14 @@
+{
+ "kris-walk-cam8": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: pixminimax custom (side view walk cycle in place facing right: she walks forward with relaxed steps, legs alternating, holding her camera with both hands at her chest the whole time, lens pointing forward, hair bouncing; body stays in side profile, never turns to the viewer)\ndirections: east (1 jobs)\njob_ids: east=145ead9d-ba4d-461a-b032-16c3eb04e35e\ngroup: ef979533-ba17-4978-85fd-c3a87ca3d8b5\nframes: 9 (1 reference + 8 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around the "
+ },
+ "kris-walk-cam16": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: pixminimax custom (side view walk cycle in place facing right: she walks forward with relaxed steps, legs alternating, holding her camera with both hands at her chest the whole time, lens pointing forward, hair bouncing; body stays in side profile, never turns to the viewer)\ndirections: east (1 jobs)\njob_ids: east=5be50051-9164-458f-a90d-4eedfac34b83\ngroup: d6e85ce7-d36e-401a-a6fd-c47c8b963c2f\nframes: 17 (1 reference + 16 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around th"
+ },
+ "kris-dash-cam8": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: pixminimax custom (side view run cycle in place facing right: she runs fast with long strides, legs alternating, leaning forward, holding her camera with both hands close to her chest the whole time, hair flying back; body stays in side profile, never turns to the viewer)\ndirections: east (1 jobs)\njob_ids: east=966b457d-ad54-4324-8420-b765dc50bc22\ngroup: d271c1ac-cbb8-4562-8d3f-449e041da80d\nframes: 9 (1 reference + 8 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around the mot"
+ },
+ "kris-dash-cam16": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: pixminimax custom (side view run cycle in place facing right: she runs fast with long strides, legs alternating, leaning forward, holding her camera with both hands close to her chest the whole time, hair flying back; body stays in side profile, never turns to the viewer)\ndirections: east (1 jobs)\njob_ids: east=03abfdb4-3112-48ad-97a5-09ece7bc7ffb\ngroup: 0104bda6-acec-40e6-a1a8-1302ac101db9\nframes: 17 (1 reference + 16 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around the m"
+ }
+}

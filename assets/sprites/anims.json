@@ -36,9 +36,9 @@
     "loop": false
    },
    "idle": {
-    "east": 8,
-    "west": 8,
-    "fps": 8,
+    "east": 16,
+    "west": 16,
+    "fps": 10,
     "loop": true
    },
    "dash": {
@@ -157,9 +157,9 @@
     "loop": false
    },
    "idle": {
-    "east": 8,
-    "west": 8,
-    "fps": 8,
+    "east": 16,
+    "west": 16,
+    "fps": 10,
     "loop": true
    },
    "roundhouse": {

@@ -5,7 +5,7 @@ import json, sys
 from pathlib import Path
 from PIL import Image, ImageOps
 sys.path.insert(0, str(Path(__file__).parent))
-from sprites import CELL, FEET_Y, anchor, load, place
+from sprites import CELL, FEET_Y, LOOP_TRIM, anchor, load, place
 
 ROOT = Path(__file__).resolve().parent.parent
 HEROES = {
@@ -19,17 +19,23 @@ HEROES = {
         "hit": {"a1": 4, "a2": 7, "a3": 8, "b1": 4, "b2": 4, "ult": 6},
         # мусорные кадры: a2 бурый смаз, b1 Т-поза и красная полоса на груди, b2 длинные волосы, b3 белая «коса» и хвост
         "drop": {"a2": [6], "b1": [2, 6, 7], "b2": [3, 6, 7]},
-        "fps": {"idle": (8, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False),
+        # PixelLab сдвигает фигуру внутри холста, и Надя «скакала» по карте в серии с сумкой (mr.R 30.10):
+        # эти полосы выравниваются покадрово по ногам
+        "stab": ["a1", "a2", "a3"],
+        "fps": {"idle": (10, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False),
                 "fall": (12, False), "getup": (10, False), "static": (1, True)},
         "strike_fps": 16,
     },
     "kris": {
-        "seq": {"a1": ["a1-in", "a1-out"], "a2": ["a2-in", "a2-out"], "a3": ["a3-in", "a3-out"],
-                "b": ["b-in", "b-out"], "ball": ["ball-in", "ball-out"]},
+        # cam-*: переходы от стойки с камерой наготове (mr.R 30.10); a3 убран из серии, старые a*-in/out не собираются
+        "seq": {"a1": ["cam-a1-in", "cam-a1-out"], "a2": ["cam-a2-in", "cam-a2-out"],
+                "b": ["cam-b-in", "cam-b-out"], "ball": ["cam-ball-in", "cam-ball-out"]},
         "hit": {},
-        # a2: штатив стал «колесом»; a3: кадр с ногой вверх (проверено глазами 30.10)
-        "drop": {"a2": [8, 9], "a3": [3]},
-        "fps": {"idle": (8, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False),
+        # a2: штатив стал «ромбом» на возврате; ball: синяя дуга на возврате (проверено глазами 30.10)
+        "drop": {"a2": [7, 8], "ball": [6]},
+        # ходьба и бег с камерой в руках (pixminimax от стойки с камерой, mr.R 30.10) вместо skeleton-v3 с кулаками
+        "alias": {"walk": None, "dash": None, "walk-cam8": "walk", "dash-cam8": "dash", "walk-cam16": None, "dash-cam16": None},
+        "fps": {"idle": (10, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False),
                 "fall": (12, False), "getup": (10, False), "static": (1, True)},
         "strike_fps": 16,
     },
@@ -44,16 +50,20 @@ def build(hero):
     cfg = HEROES[hero]
     raw, od = ROOT / "assets" / "pixellab" / hero, ROOT / "assets" / "sprites" / hero
     od.mkdir(parents=True, exist_ok=True); (od / "gif").mkdir(exist_ok=True)
-    parts = {p for seq in cfg["seq"].values() for p in seq} | {"b3-draw", "b3-slash", "b3-out", "ult-setup", "ult-rise", "ult-out"}
+    parts = {p for seq in cfg["seq"].values() for p in seq} | {"b3-draw", "b3-slash", "b3-out", "ult-setup", "ult-rise", "ult-out"} \
+        | {f"{a}-{k}" for a in ("a1", "a2", "a3", "b", "ball") for k in ("in", "out")}
     out = {}
     # опорная точка всех ударов: первый кадр стойки
     idle0 = load(raw / "idle" / "east")[0]
     ax, ay = anchor([idle0])
+    alias = {"idle": None, "idle-live": None, "idle-live16": "idle", **cfg.get("alias", {})}  # живая стойка вместо старой (mr.R 30.10)
     for adir in sorted(p for p in raw.iterdir() if p.is_dir()):
-        if adir.name in parts or adir.name == "keyposes" or not (adir / "east").exists():
+        name = alias.get(adir.name, adir.name)
+        if name is None or adir.name in parts or adir.name.startswith("cam-") or adir.name == "keyposes" or not (adir / "east").exists():
             continue
         cells = load(adir / "east")
-        out[adir.name] = (frames_of(place(cells, *anchor(cells))), None)
+        if adir.name in LOOP_TRIM: cells = cells[:-1]
+        out[name] = (frames_of(place(cells, *anchor(cells))), None)
     for name, seq in cfg["seq"].items():
         if not all((raw / p / "east").exists() for p in seq):
             print("нет частей:", name); continue
@@ -74,7 +84,13 @@ def build(hero):
         out[name] = ([f for i, f in enumerate(fr) if i not in drop], hit)
     if hero == "nadya":
         out.update(nadya_samurai(raw, ax, ay, out))
-    if hero == "kris" and all((raw / p / "east").exists() for p in ("ult-setup", "ult-rise", "ult-out")):
+    if cfg.get("stab") and "idle" in out:
+        target = feet(out["idle"][0][0])
+        for name in cfg["stab"]:
+            if name in out:
+                fr, hit = out[name]
+                out[name] = ([stabilize(f, target) for f in fr], hit)
+    if hero == "kris" and all((raw / p / "east").exists() for p in ("cam-ult-setup", "ult-rise", "cam-ult-out")):
         out.update(kris_ult(raw, ax, ay))
     manifest = {}
     for name, (fr, hit) in out.items():
@@ -93,6 +109,25 @@ def build(hero):
     print(json.dumps(manifest, ensure_ascii=False))
 
 
+def feet(cell, cx=CELL // 2, win=22):
+    """Ноги в ячейке: x = медиана пикселей в нижних 22 px силуэта около центра, y = низ.
+    Сумка и цепь сбоку в окно почти не попадают; второй проход центрируется на найденных ногах."""
+    a = cell.getchannel("A").load()
+    for _ in range(2):
+        cols = range(max(0, cx - win), min(CELL, cx + win))
+        fy = max(y for x in cols for y in range(CELL) if a[x, y] > 0)
+        xs = sorted(x for x in cols for y in range(fy - 22, fy + 1) if a[x, y] > 0)
+        cx = xs[len(xs) // 2]
+    return cx, fy
+
+
+def stabilize(cell, target):
+    x, y = feet(cell)
+    g = Image.new("RGBA", cell.size)
+    g.paste(cell, (target[0] - x, target[1] - y), cell)
+    return g
+
+
 def tint(im, rgb, alpha):
     """Полупрозрачная одноцветная копия силуэта (шлейф рывка)."""
     a = im.getchannel("A").point(lambda v: int(v * alpha))
@@ -105,7 +140,12 @@ def nadya_samurai(raw, ax, ay, out):
     b3-end (финальная поза, удар засчитывается с задержкой, затем убирает меч). b3 = всё подряд для просмотра."""
     K = raw / "keyposes"
     pose = lambda n: Image.open(K / f"{n}-pose-east-96.png").convert("RGBA")
-    cell = lambda im: frames_of(place([im], ax, ay))[0]
+    # v3 кладёт исходный кадр 96 px в середину холста пошире (104-136): возвращаем кадры в координаты исходника
+    def to96(im):
+        g = Image.new("RGBA", im.size)
+        g.paste(im, (-((im.width - 96) // 2), -(im.height - 96)), im)
+        return g
+    cell = lambda im: frames_of(place([to96(im)], ax, ay))[0]
     draw = load(raw / "b3-draw" / "east")
     draw = [d for i, d in enumerate(draw) if i not in (1, 2)]  # белая «коса» и хвост
     hold_src = pose("b3a")
@@ -140,11 +180,16 @@ def kris_ult(raw, ax, ay):
     """Ульта Kris для кода: ult-setup (ставит камеру, встаёт за неё; последний кадр = начало прицела),
     ult-hold (2 кадра стоит за камерой: прицел 1 с и луч 0,7 с рисует код от KRIS_LENS), ult-out.
     ult = всё подряд с прицелом и лучом, только для просмотра."""
-    cell = lambda im: frames_of(place([im], ax, ay))[0]
-    setup = load(raw / "ult-setup" / "east")
-    setup = [f for i, f in enumerate(setup) if i not in (1, 2)] + load(raw / "ult-rise" / "east")[1:]  # полоса-мусор, разворот
+    # v3 кладёт исходный кадр 96 px в середину холста пошире (104-136): возвращаем кадры в координаты исходника
+    def to96(im):
+        g = Image.new("RGBA", im.size)
+        g.paste(im, (-((im.width - 96) // 2), -(im.height - 96)), im)
+        return g
+    cell = lambda im: frames_of(place([to96(im)], ax, ay))[0]
+    # от стойки с камерой наготове (cam-*, 30.10); подъём за камеру прежний
+    setup = [f for i, f in enumerate(load(raw / "cam-ult-setup" / "east")) if i != 1] + load(raw / "ult-rise" / "east")[1:]  # 1: штатив висит в воздухе
     hold_im = Image.open(raw / "keyposes" / "ult2-pose-east-96.png").convert("RGBA")
-    outp = [f for i, f in enumerate(load(raw / "ult-out" / "east")[1:]) if i not in (2, 3, 4)]  # разворот к зрителю
+    outp = [f for i, f in enumerate(load(raw / "cam-ult-out" / "east")[1:]) if i not in (2, 3)]  # разворот к зрителю
     d_setup, d_hold, d_out = [cell(x) for x in setup], [cell(hold_im)] * 2, [cell(x) for x in outp]
     # просмотр: прицел (красная линия) и луч поверх позы; луч уходит за край ячейки
     lx, ly = CELL // 2 - ax + KRIS_LENS[0], FEET_Y - ay + KRIS_LENS[1]

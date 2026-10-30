@@ -18,12 +18,15 @@ CELL = 128          # итоговая ячейка, общая для всех 
 FEET_Y = 112        # линия ступней в ячейке
 DIRS = ("east", "west")
 # имя группы в PixelLab -> имя в игре; None = не собирать (отбракованный вариант)
-ALIAS = {"pilot-idle-skel": "idle", "running": "dash", "full-sprint": "dash",
+# idle-live16: живая стойка pixminimax 16 кадров (mr.R 30.10: старые стояли почти неподвижно), старые idle не собираются
+ALIAS = {"pilot-idle-skel": None, "idle": None, "idle-live": None, "idle-live16": "idle", "running": "dash", "full-sprint": "dash",
          "hurricane-pmm": "hurricane", "hurricane": None, "uppercut": None, "uppercut-pmm": None}
 # скорость (кадров/с) и зацикливание для игры; удары быстрые, стойка и ходьба петлёй
-FPS = {"hurricane": (16, False), "idle": (8, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False), "fall": (12, False),
+FPS = {"hurricane": (16, False), "idle": (10, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False), "fall": (12, False),
        "getup": (10, False), "transform-up": (12, False), "transform-down": (12, False), "static": (1, True)}
 STRIKE_FPS = 18
+# петли, сгенерированные от стойки к той же стойке: последний кадр повторяет первый, на стыке был бы стоп-кадр
+LOOP_TRIM = {"idle-live16", "walk-cam8", "dash-cam8"}
 # кадр попадания для цельных (не in/out) атак
 HIT = {("ultimate", "roundhouse"): 3, ("prime", "highkick"): 3, ("ultimate", "hurricane"): 4}
 # несколько попаданий за удар (вихрь бьёт трижды), пишется в anims.json как hits
@@ -219,6 +222,7 @@ def build():
                 continue
             for ddir in sorted(p for p in adir.iterdir() if p.is_dir()):
                 cells = load(ddir)
+                if adir.name in LOOP_TRIM: cells = cells[:-1]
                 place(cells, *anchor(cells)).save(od / f"{name}-{ddir.name}.png")
                 manifest[state].setdefault(name, {})[ddir.name] = len(cells)
         build_strikes(state, od, manifest)

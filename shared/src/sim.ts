@@ -2,9 +2,9 @@
 // Чистые данные и функции, без Phaser и Colyseus.
 import type { Form } from './anims-data.ts';
 import {
-  AIR_MS, AIM_MS, BALL_FLIGHT_MS, BALL_LINES, BALL_PER_HIT, BALL_RADIUS, BEAM_DMG, BEAM_LEN, CHAIN, CHARM_LINE, CHARM_MS, CHARM_RADIUS, COMBO_MS, COMBO_MS_BY,
+  AIR_MS, AIM_MS, BALL_FLIGHT_MS, BALL_LINES, BALL_PER_HIT, BALL_NEAR_NASTYA, BALL_RADIUS, BALL_THROW, BEAM_DMG, BEAM_LEN, CHAIN, CHARM_LINE, CHARM_MS, COMBO_MS, COMBO_MS_BY,
   CONTROL_ULT, DASH_DELAY_MS, DASH_DIST, FLASH_CD_MS, FLASH_SPEED, HEAVY, HERO_FORM, HERO_ID, HURT_INVULN_MS, FREEZE_MS, HITSTOP_HEAVY_MS, HITSTOP_MS,
-  IMMUNE_INVULN_MS, KNOCK_MULT, KRIS_ID, KRIS_LENS, NADYA_ID, NEXT_MOVE, RANGE_MULT, RUN_MULT, STORM_DMG, STORM_MS, STORM_RADIUS, STORM_TICK_MS, SPEED_MULT, STRIKES, ULT_MS,
+  IMMUNE_INVULN_MS, KISS_BAND, KISS_HALF_W, KISS_SPEED, KNOCK_MULT, KRIS_ID, KRIS_LENS, NADYA_ID, NEXT_MOVE, RANGE_MULT, RUN_MULT, STORM_DMG, STORM_MS, STORM_RADIUS, STORM_TICK_MS, SPEED_MULT, STRIKES, ULT_MS,
   hitTimesMs, isLoop, isSpriteHero, moveDurMs, moveTotalMs, type Strike,
 } from './hero-data.ts';
 
@@ -106,11 +106,12 @@ export interface World {
   players: Record<string, Player>;
   enemies: Record<string, Enemy>;
   testTools: boolean;
-  pending: Pending[]; // отложенные удары: долетевшая вспышка, взрыв шара, урон после рывка, луч
+  pending: Pending[]; // отложенные удары: долетевшая вспышка, взрыв шара, урон после рывка, луч, летящий поцелуй
 }
 
-// Удар, который случится позже: ids (по списку врагов), aoe (круг), beam (полоса луча)
-export interface Pending { ms: number; kind: 'hits' | 'aoe' | 'beam'; owner: string; strike: Strike; ids?: string[]; x?: number; y?: number; r?: number; dir?: 1 | -1; flash?: boolean }
+// Удар, который случится позже: ids (по списку врагов), aoe (круг), beam (полоса луча),
+// kiss (сердце летит от x к краю уровня по dir, ids = кого уже задело)
+export interface Pending { ms: number; kind: 'hits' | 'aoe' | 'beam' | 'kiss'; owner: string; strike: Strike; ids?: string[]; x?: number; y?: number; r?: number; dir?: 1 | -1; flash?: boolean }
 
 export interface Input {
   mx: number; // -1..1
@@ -129,7 +130,9 @@ export type SimEvent =
   | { t: 'hit'; target: string; dmg: number; x: number; y: number; word?: string; by?: string }
   | { t: 'shot'; id: string; x: number; y: number; tx: number; ty: number } // вспышка Kris летит
   | { t: 'ball'; id: string; x: number; y: number; tx: number; ty: number } // шар Kris летит
-  | { t: 'boom'; id: string; x: number; y: number; kind: 'ball' | 'heart' }
+  | { t: 'boom'; id: string; x: number; y: number; kind: 'ball' }
+  | { t: 'kiss'; id: string; x: number; y: number; tx: number } // воздушный поцелуй Нади летит до края уровня
+  | { t: 'charm'; target: string; x: number; y: number } // поцелуй задел врага
   | { t: 'aim'; id: string; x: number; y: number; dir: number }
   | { t: 'beam'; id: string; x: number; y: number; dir: number; len: number }
   | { t: 'dash'; id: string; x0: number; x1: number; y: number }
@@ -194,7 +197,7 @@ function ensureDummy(w: World) {
 
 export function chargeUlt(w: World, id: string) {
   const p = w.players[id];
-  if (p) p.ult = 100;
+  if (p) { p.ult = 100; p.charge2 = 100; } // тестовая кнопка: и ульта, и шар Kris
 }
 
 export function spawnEnemies(w: World, count: number) {
@@ -290,24 +293,45 @@ function special(w: World, p: Player, s: Strike, ev: SimEvent[]) {
     ev.push({ t: 'shot', id: p.id, x: sx, y: sy, tx, ty: t ? t.y - 60 : sy });
     if (t) w.pending.push({ ms: (Math.abs(tx - sx) / FLASH_SPEED) * 1000, kind: 'hits', owner: p.id, strike: s, ids: [t.id], flash: true });
   } else if (s.kind === 'ball') {
-    // Шар падает рядом с Анастасией (перед ней, где враги), иначе перед Kris
-    const nastya = Object.values(w.players).find(o => o.char === HERO_ID && o.hp > 0 && o.connected && Math.abs(o.x - p.x) < 300);
-    const tx = nastya ? nastya.x + nastya.facing * 40 : p.x + p.facing * 80;
-    const ty = nastya ? nastya.y : p.y;
+    // Шар летит в скопление врагов: сначала рядом с Анастасией, иначе в самое плотное в пределах броска
+    const { x: tx, y: ty } = ballTarget(w, p);
     ev.push({ t: 'ball', id: p.id, x: p.x + p.facing * 16, y: p.y - 80, tx, ty });
     ev.push({ t: 'taunt', id: p.id, line: BALL_LINES[Math.floor(rand(w) * BALL_LINES.length)] });
     w.pending.push({ ms: BALL_FLIGHT_MS, kind: 'aoe', owner: p.id, strike: s, x: tx, y: ty, r: BALL_RADIUS });
-  } else if (s.kind === 'charm') {
-    // Взрыв сердца перед Надей: урон и ревность всем обычным врагам в круге
-    const cx = p.x + p.facing * 60, cy = p.y;
-    ev.push({ t: 'boom', id: p.id, x: cx, y: cy, kind: 'heart' });
+  } else if (s.kind === 'kiss') {
+    // Воздушный поцелуй: сердце летит от Нади до края уровня, ревнуют все, кого задело по пути
+    const x = p.x + p.facing * 30;
     p.charmSaid = false;
-    for (const e of Object.values(w.enemies)) {
-      if (Math.abs(e.x - cx) > CHARM_RADIUS || Math.abs(e.y - cy) > CHARM_RADIUS * 0.6) continue;
-      applyHit(w, p, e, s.dmg, Math.sign(e.x - p.x || p.facing), ev, { stun: 300, noCharge: true });
-      e.charmMs = CHARM_MS; e.charmBy = p.id;
-    }
+    ev.push({ t: 'kiss', id: p.id, x, y: p.y, tx: p.facing > 0 ? LEVEL_W : 0 });
+    w.pending.push({ ms: 0, kind: 'kiss', owner: p.id, strike: s, x, y: p.y, dir: p.facing, ids: [] });
   }
+}
+
+// Куда упадёт шар Kris. Кандидаты: позиции врагов; вес = сколько врагов в круге взрыва вокруг
+const inBlast = (e: Enemy, x: number, y: number) => Math.abs(e.x - x) <= BALL_RADIUS && Math.abs(e.y - y) <= BALL_RADIUS * 0.6;
+function ballTarget(w: World, p: Player): { x: number; y: number } {
+  const foes = Object.values(w.enemies).filter(e => e.hp > 0);
+  const best = (cands: Enemy[], from: { x: number; y: number }) => {
+    let pick: { x: number; y: number; n: number; d: number } | undefined;
+    for (const c of cands) {
+      const near = foes.filter(e => inBlast(e, c.x, c.y));
+      // Центр скопления: среднее задетых, чтобы круг накрыл всех
+      const x = near.reduce((t, e) => t + e.x, 0) / near.length, y = near.reduce((t, e) => t + e.y, 0) / near.length;
+      const n = foes.filter(e => inBlast(e, x, y)).length;
+      const d = Math.abs(x - from.x) + Math.abs(y - from.y);
+      if (!pick || n > pick.n || (n === pick.n && d < pick.d)) pick = { x, y, n, d };
+    }
+    return pick;
+  };
+  // Анастасия в игре: шар летит к ней на любом расстоянии (mr.R 30.10): в скопление рядом с ней, без врагов перед ней
+  const nastya = Object.values(w.players).find(o => o.char === HERO_ID && o.hp > 0 && o.connected);
+  if (nastya) {
+    const t = best(foes.filter(e => Math.hypot(e.x - nastya.x, e.y - nastya.y) <= BALL_NEAR_NASTYA), nastya);
+    return t ? { x: t.x, y: clamp(t.y, LANE_TOP, LANE_BOTTOM) } : { x: nastya.x + nastya.facing * 40, y: nastya.y };
+  }
+  // Без Анастасии: самое плотное скопление в пределах броска, иначе перед собой
+  const t = best(foes.filter(e => Math.abs(e.x - p.x) <= BALL_THROW), p);
+  return t ? { x: t.x, y: clamp(t.y, LANE_TOP, LANE_BOTTOM) } : { x: p.x + p.facing * 80, y: p.y };
 }
 
 // Начало и конец звеньев цепочек: рывок Нади, прицел Kris
@@ -328,10 +352,27 @@ function leaveMove(w: World, p: Player, move: string, ev: SimEvent[]) {
   }
 }
 
+// Летящий поцелуй: сдвигается каждый тик, задетые обычные враги ревнуют. false, когда долетел до края
+function stepKiss(w: World, d: Pending, dtMs: number, ev: SimEvent[]): boolean {
+  const dir = d.dir ?? 1;
+  const x0 = d.x!, x1 = clamp(x0 + dir * KISS_SPEED * dtMs / 1000, 0, LEVEL_W);
+  d.x = x1;
+  const lo = Math.min(x0, x1) - KISS_HALF_W, hi = Math.max(x0, x1) + KISS_HALF_W;
+  const hit = d.ids!;
+  for (const e of Object.values(w.enemies)) {
+    if (hit.includes(e.id) || e.x < lo || e.x > hi || Math.abs(e.y - d.y!) > KISS_BAND) continue;
+    hit.push(e.id);
+    e.charmMs = CHARM_MS; e.charmBy = d.owner;
+    ev.push({ t: 'charm', target: e.id, x: e.x, y: e.y });
+  }
+  return x1 > 0 && x1 < LEVEL_W;
+}
+
 // Отложенные удары: считаются каждый тик, срабатывают, когда время вышло
 function stepPending(w: World, dtMs: number, ev: SimEvent[]) {
   const keep: Pending[] = [];
   for (const d of w.pending) {
+    if (d.kind === 'kiss') { if (stepKiss(w, d, dtMs, ev)) keep.push(d); continue; }
     d.ms -= dtMs;
     if (d.ms > 0) { keep.push(d); continue; }
     const p = w.players[d.owner];
@@ -513,9 +554,10 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       p.combo = 0; p.comboMs = 0;
     } else if (want === 'attack') {
       p.queued = null; turn();
-      const step = p.combo % 3;
+      const len = CHAIN[p.form].length; // у Kris серия из двух
+      const step = p.combo % len;
       startMove(p, CHAIN[p.form][step]);
-      p.combo = step === 2 ? 0 : step + 1;
+      p.combo = step === len - 1 ? 0 : step + 1;
       p.comboMs = comboWindow;
     } else if (!busy && inp.taunt && p.tauntCdMs === 0) {
       const ch = CHARACTERS.find(c => c.id === p.char);

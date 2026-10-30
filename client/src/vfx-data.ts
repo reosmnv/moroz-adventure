@@ -3,6 +3,7 @@ export const VFX: Record<string, { w: number; h: number; n: number; fps: number;
   'nadya-hit': { w: 42, h: 40, n: 7, fps: 16, loop: false },
   'nadya-slap': { w: 42, h: 44, n: 16, fps: 12, loop: true },
   'nadya-boom': { w: 76, h: 85, n: 4, fps: 12, loop: false },
+  'nadya-twinkle': { w: 34, h: 55, n: 6, fps: 12, loop: false },
   'nadya-charm': { w: 35, h: 21, n: 16, fps: 12, loop: true },
   'stun': { w: 33, h: 17, n: 12, fps: 12, loop: true },
   'slow': { w: 55, h: 52, n: 12, fps: 12, loop: true },

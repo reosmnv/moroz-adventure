@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { CHARACTERS, HEAVY, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, TEST_TOOLS, ULT_MS, VIEW_H } from '@bc/shared';
+import { CHAIN, CHARACTERS, HEAVY, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, TEST_TOOLS, ULT_MS, VIEW_H } from '@bc/shared';
 import type { Button, EntitySnap, GameSession } from './session.ts';
 
 // Интерфейс поверх боя: стик, кнопки, панели игроков. Отдельная сцена, поэтому встряска
@@ -318,9 +318,10 @@ export class UIScene extends Phaser.Scene {
     this.pips.clear();
     if (me && HERO_UI[me.char ?? '']) {
       const a = this.btns.get('attack')!;
-      const c = Math.min(me.combo ?? 0, 2);
-      for (let i = 0; i < 3; i++) {
-        const x = a.base.x - 10 + i * 8, y = a.base.y + 27;
+      const n = CHAIN[(me.form ?? 'prime') as keyof typeof CHAIN]?.length ?? 3; // у Kris серия A из двух
+      const c = Math.min(me.combo ?? 0, n - 1);
+      for (let i = 0; i < n; i++) {
+        const x = a.base.x - 4 * n + 2 + i * 8, y = a.base.y + 27;
         this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
         this.pips.fillStyle(i < c ? CREAM : NAVY).fillRect(x, y, 4, 4);
       }

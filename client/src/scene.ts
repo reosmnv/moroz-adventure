@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { AIM_MS, AIR_MS, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LANE_BOTTOM, LANE_TOP, LEVEL_W, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { AIM_MS, AIR_MS, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LANE_BOTTOM, LANE_TOP, LEVEL_W, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
@@ -109,6 +109,28 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // Воздушный поцелуй Нади: розовое сердце со свечением плывёт до края уровня, покачиваясь, за ним шлейф сердечек
+  private kiss(x: number, y: number, tx: number) {
+    const dir = Math.sign(tx - x) || 1, hy = y - 55;
+    const glow = this.add.ellipse(x, hy, 44, 40, 0xff6fb5, 0.35).setDepth(1449).setBlendMode(Phaser.BlendModes.ADD);
+    const heart = this.add.image(x, hy, 'fx-heart').setScale(SCALE * 0.6).setDepth(1450);
+    const ms = (Math.abs(tx - x) / KISS_SPEED) * 1000;
+    const t0 = this.time.now;
+    const trail = this.time.addEvent({ delay: 110, loop: true, callback: () => {
+      const s = this.fx('nadya-charm', heart.x - dir * 14, heart.y + 6, { depth: 1448, scale: 1, frames: 8 });
+      this.tweens.add({ targets: s, y: s.y - 10, alpha: 0, duration: 650 });
+    } });
+    this.tweens.addCounter({ from: 0, to: 1, duration: ms, onUpdate: c => {
+      const k = c.getValue() ?? 0, t = (this.time.now - t0) / 1000;
+      heart.setPosition(x + (tx - x) * k, hy + Math.sin(t * 6) * 4).setAngle(Math.sin(t * 4) * 10)
+        .setScale(SCALE * (0.6 + 0.6 * Math.min(1, t / 0.22)) * (1 + 0.07 * Math.sin(t * 10))); // вырастает из губ и пульсирует
+      glow.setPosition(heart.x, heart.y).setAlpha(0.25 + 0.12 * Math.sin(t * 10));
+      // Улетел далеко за экран: дальше рисовать незачем, механика летит в sim
+      const cam = this.cameras.main;
+      if (heart.x < cam.scrollX - 200 || heart.x > cam.scrollX + cam.width + 200) c.complete();
+    }, onComplete: () => { trail.remove(); heart.destroy(); glow.destroy(); } });
+  }
+
   private onEvents(evs: SimEvent[]) {
     for (const e of evs) {
       if (e.t === 'hit') {
@@ -170,16 +192,13 @@ export class GameScene extends Phaser.Scene {
           this.tweens.add({ targets: ball, y: e.ty - 10, duration: BALL_FLIGHT_MS / 2, ease: 'Quad.easeIn', onComplete: () => ball.destroy() });
         } });
       } else if (e.t === 'boom') {
-        if (e.kind === 'ball') { this.fx('kris-boom', e.x, e.y - 30); this.cameras.main.shake(150, 0.006); beep(140, 0.15); }
-        else {
-          // Большое сердце вылетает от Нади и взрывается малиновым фейерверком
-          const v = this.views.get('p:' + e.id);
-          const heart = this.add.image(v?.body.x ?? e.x, (v?.body.y ?? e.y) - 60, 'fx-heart').setScale(SCALE).setDepth(1450);
-          this.tweens.add({ targets: heart, x: e.x, y: e.y - 50, scale: SCALE * 1.6, duration: 260, onComplete: () => {
-            heart.destroy(); this.fx('nadya-boom', e.x, e.y - 50, { scale: SCALE * 1.4 });
-          } });
-          beep(660, 0.1); this.time.delayedCall(260, () => beep(330, 0.2));
-        }
+        this.fx('kris-boom', e.x, e.y - 30); this.cameras.main.shake(150, 0.006); beep(140, 0.15);
+      } else if (e.t === 'kiss') {
+        this.kiss(e.x, e.y, e.tx); beep(990, 0.08); this.time.delayedCall(90, () => beep(1320, 0.1));
+      } else if (e.t === 'charm') {
+        // Задело поцелуем: вспышка сердечек над врагом
+        this.fx('nadya-twinkle', e.x, e.y - 70, { depth: 1500 });
+        beep(1100, 0.04);
       } else if (e.t === 'aim') {
         this.aim(e.x, e.y, e.dir); beep(1500, 0.05);
       } else if (e.t === 'beam') {

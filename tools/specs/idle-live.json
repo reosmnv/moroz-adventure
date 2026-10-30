@@ -1,0 +1,162 @@
+[
+ {
+  "name": "prime-idle-live-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing up and down, guard up, long hair swaying, then settles back to the exact starting pose",
+   "frame_count": 8,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle-live",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png"
+  }
+ },
+ {
+  "name": "prime-idle-live16-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "pixminimax",
+   "action_description": "lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing up and down, guard up, long hair swaying, then settles back to the exact starting pose",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle-live16",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-east-64.png"
+  }
+ },
+ {
+  "name": "prime-idle-live-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "v3",
+   "action_description": "lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing up and down, guard up, long hair swaying, then settles back to the exact starting pose",
+   "frame_count": 8,
+   "directions": [
+    "west"
+   ],
+   "animation_name": "idle-live",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png"
+  }
+ },
+ {
+  "name": "prime-idle-live16-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "8f079407-9eb2-48f9-9b07-695c53169e9f",
+   "mode": "pixminimax",
+   "action_description": "lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing up and down, guard up, long hair swaying, then settles back to the exact starting pose",
+   "frame_count": 16,
+   "directions": [
+    "west"
+   ],
+   "animation_name": "idle-live16",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/prime-idle0-west-64.png"
+  }
+ },
+ {
+  "name": "ultimate-idle-live-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing, guard up, hair swaying, then settles back to the exact starting pose",
+   "frame_count": 8,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle-live",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png"
+  }
+ },
+ {
+  "name": "ultimate-idle-live16-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "pixminimax",
+   "action_description": "lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing, guard up, hair swaying, then settles back to the exact starting pose",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle-live16",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-east-64.png"
+  }
+ },
+ {
+  "name": "ultimate-idle-live-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "v3",
+   "action_description": "lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing, guard up, hair swaying, then settles back to the exact starting pose",
+   "frame_count": 8,
+   "directions": [
+    "west"
+   ],
+   "animation_name": "idle-live",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png"
+  }
+ },
+ {
+  "name": "ultimate-idle-live16-west",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "fda7726a-5a4b-45df-b0e9-5e5adadc9540",
+   "mode": "pixminimax",
+   "action_description": "lively fighting stance idle loop: she bounces on the balls of her feet like a boxer, knees flexing, shoulders and fists bobbing, guard up, hair swaying, then settles back to the exact starting pose",
+   "frame_count": 16,
+   "directions": [
+    "west"
+   ],
+   "animation_name": "idle-live16",
+   "custom_start_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png",
+   "end_frame_base64": "@assets/pixellab/keyposes/ultimate-idle0-west-64.png"
+  }
+ },
+ {
+  "name": "nadya-idle-live-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "lively flirty idle loop: she sways her hips side to side, shifts her weight from foot to foot, tosses her hair with a small head tilt, the heart bag on its chain swinging gently at her hip, then settles back to the exact starting pose",
+   "frame_count": 8,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle-live",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-idle-live16-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "pixminimax",
+   "action_description": "lively flirty idle loop: she sways her hips side to side, shifts her weight from foot to foot, tosses her hair with a small head tilt, the heart bag on its chain swinging gently at her hip, then settles back to the exact starting pose",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle-live16",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ }
+]

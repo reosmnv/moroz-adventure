@@ -30,17 +30,17 @@ export interface Strike {
   slowMs?: number; slow?: number; // замедление врага: длительность и доля скорости, которую он теряет
   stunMs?: number; // оглушение: враг стоит и не бьёт
   word?: string; // комиксное слово над попаданием
-  kind?: 'flash' | 'ball' | 'charm' | 'dash'; // особое действие в кадре удара вместо обычного попадания
+  kind?: 'flash' | 'ball' | 'kiss' | 'dash'; // особое действие в кадре удара вместо обычного попадания
 }
 export const AIR_MS = 900; // сколько враг летит после подброса
 
 // A: серия из трёх, B: завершающий, вариант зависит от числа ударов серии до него (0, 1, 2)
-// Надя: B своя серия из трёх (B, B B, B B B). Kris: B всегда вспышка
+// Надя: B своя серия из трёх (B, B B, B B B). Kris: серия A из двух (mr.R 30.10: третий удар убран), B всегда вспышка
 export const CHAIN: Record<Form, string[]> = {
   prime: ['jab', 'cross', 'teep'],
   ultimate: ['elbow', 'knee', 'roundhouse'],
   nadya: ['a1', 'a2', 'a3'],
-  kris: ['a1', 'a2', 'a3'],
+  kris: ['a1', 'a2'],
 };
 export const HEAVY: Record<Form, string[]> = {
   prime: ['superman', 'highkick', 'uppercut'],
@@ -74,13 +74,12 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
     b1: { range: 62, dmg: 5, kb: 4, stun: 300, slowMs: 1500, slow: 0.5, word: 'ШЛЁП!' },
     b2: { range: 50, dmg: 6, kb: 2, stun: 0, single: true, stunMs: 1800, word: 'ОЙ!' },
     'b3-end': { range: 0, dmg: 10, kb: 6, stun: 400, slowMs: 1250, slow: 0.2, kind: 'dash' },
-    ult: { range: 0, dmg: 10, kb: 0, stun: 0, kind: 'charm' },
+    ult: { range: 0, dmg: 0, kb: 0, stun: 0, kind: 'kiss' }, // воздушный поцелуй: без урона, только ревность
   },
   // Kris: штатив вблизи, вспышка и шар издалека (числа предварительные, kris.md)
   kris: {
     a1: { range: 78, dmg: 5, kb: 3, stun: 250 },
     a2: { range: 70, dmg: 6, kb: 4, stun: 250 },
-    a3: { range: 62, dmg: 9, kb: 16, stun: 400, word: 'БУМ!' },
     b: { range: 320, dmg: 4, kb: 2, stun: 500, kind: 'flash' },
     ball: { range: 0, dmg: 20, kb: 20, stun: 500, kind: 'ball' },
   },
@@ -91,14 +90,18 @@ export const DASH_DIST = 160; // ~5 ширин фигуры
 export const DASH_DELAY_MS = 200; // урон приходит с задержкой после рывка
 export const DRAW_HOLD_MS = 300; // замирает с мечом перед рывком
 export const CHARM_MS = 6000;
-export const CHARM_RADIUS = 80; // круг взрыва сердца перед Надей
+export const KISS_SPEED = 200; // воздушный поцелуй летит втрое медленнее вспышки Kris (FLASH_SPEED / 3)
+export const KISS_HALF_W = 16; // полуширина сердца: кого задело по x
+export const KISS_BAND = 36; // по глубине: кого задело по y
 export const CONTROL_ULT = 5; // шкала ульты Нади за каждого замедленного или оглушённого
 // Kris: вспышка, шар, луч
 export const FLASH_SPEED = 600; // ед/с, урон приходит, когда вспышка долетела
-export const FLASH_CD_MS = 600;
+export const FLASH_CD_MS = 300; // темп вдвое выше, чем был (mr.R 30.10)
 export const BALL_PER_HIT = 12.5; // 8 попаданий вспышкой = полный заряд шара
 export const BALL_FLIGHT_MS = 450;
 export const BALL_RADIUS = 80;
+export const BALL_THROW = 300; // дальше шар не бросает
+export const BALL_NEAR_NASTYA = 140; // враги в этом радиусе от Анастасии в приоритете
 export const AIM_MS = 1000;
 export const BEAM_MS = 700;
 export const BEAM_DMG = 40;

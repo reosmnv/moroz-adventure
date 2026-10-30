@@ -1,0 +1,66 @@
+[
+ {
+  "name": "kris-walk-cam8",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "pixminimax",
+   "action_description": "side view walk cycle in place facing right: she walks forward with relaxed steps, legs alternating, holding her camera with both hands at her chest the whole time, lens pointing forward, hair bouncing; body stays in side profile, never turns to the viewer",
+   "frame_count": 8,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk-cam8",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png"
+  }
+ },
+ {
+  "name": "kris-walk-cam16",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "pixminimax",
+   "action_description": "side view walk cycle in place facing right: she walks forward with relaxed steps, legs alternating, holding her camera with both hands at her chest the whole time, lens pointing forward, hair bouncing; body stays in side profile, never turns to the viewer",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk-cam16",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png"
+  }
+ },
+ {
+  "name": "kris-dash-cam8",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "pixminimax",
+   "action_description": "side view run cycle in place facing right: she runs fast with long strides, legs alternating, leaning forward, holding her camera with both hands close to her chest the whole time, hair flying back; body stays in side profile, never turns to the viewer",
+   "frame_count": 8,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "dash-cam8",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png"
+  }
+ },
+ {
+  "name": "kris-dash-cam16",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "pixminimax",
+   "action_description": "side view run cycle in place facing right: she runs fast with long strides, legs alternating, leaning forward, holding her camera with both hands close to her chest the whole time, hair flying back; body stays in side profile, never turns to the viewer",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "dash-cam16",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idlecam-east-96.png"
+  }
+ }
+]
