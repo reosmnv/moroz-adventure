@@ -1,0 +1,76 @@
+[
+ {
+  "name": "kris_icon_tripod",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a black camera tripod with three extended legs, diagonal like a weapon, with a white swoosh motion arc, bold dark outline, centered, readable at small size",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-kris-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "kris_icon_flash",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a small black photo camera with a bright white flash bursting from it with neon lime-green rays, bold dark outline, centered, readable at small size",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-kris-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "kris_icon_ball",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a round ball, top half red, bottom half white, a thick black line around the middle and a round white button in the center, small sparkle, bold dark outline, centered, readable at small size",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-kris-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "kris_icon_ult",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a black video camera on a tripod firing a wide horizontal beam of white and neon lime-green light, bold dark outline, centered, readable at small size",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-kris-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "kris_portrait",
+  "tool": "create_portrait_character",
+  "args": {
+   "image": "@assets/ui/raw/ref-kris-east.png",
+   "direction": "character_to_portrait",
+   "view": "side",
+   "result_size": 64
+  }
+ }
+]

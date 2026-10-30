@@ -1,0 +1,80 @@
+[
+ {
+  "name": "kris-idle-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "kris-walk-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "template_animation_id": "walk",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "kris-dash-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "template_animation_id": "running-8-frames",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "dash"
+  }
+ },
+ {
+  "name": "kris-hurt-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "template_animation_id": "taking-punch",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "kris-fall-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "template_animation_id": "falling-back-death",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "kris-getup-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "template_animation_id": "getting-up",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "getup"
+  }
+ }
+]

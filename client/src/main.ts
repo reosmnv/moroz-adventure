@@ -1,4 +1,4 @@
-import { CHARACTERS, HERO_ID, TEST_TOOLS } from '@bc/shared';
+import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, TEST_TOOLS } from '@bc/shared';
 import { LocalSession, OnlineSession, type GameSession } from './session.ts';
 import { startGame } from './scene.ts';
 import { audioState, unlockAudio } from './audio.ts';
@@ -130,10 +130,11 @@ function showPicker() {
       const b = document.createElement('button');
       b.textContent = c.name;
       b.style.background = '#' + c.color.toString(16).padStart(6, '0');
-      if (c.id === HERO_ID) {
-        // Портрет героини над именем, пиксели без сглаживания
+      const portrait = c.id === HERO_ID ? 'ui/portrait-prime.png' : c.id === NADYA_ID ? 'ui/nadya/portrait.png' : c.id === KRIS_ID ? 'ui/kris/portrait.png' : '';
+      if (portrait) {
+        // Портрет героя над именем, пиксели без сглаживания
         const img = document.createElement('img');
-        img.src = 'ui/portrait-prime.png';
+        img.src = portrait;
         img.style.cssText = 'display:block;width:128px;height:128px;margin:0 auto 8px;image-rendering:pixelated';
         b.prepend(img);
         b.style.background = 'var(--plum, #5a495d)';

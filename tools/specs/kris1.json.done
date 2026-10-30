@@ -1,0 +1,20 @@
+{
+ "kris-idle-east": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: fight-stance-idle-8-frames\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=404fd28b-839f-4a0a-b855-b0d66dfb27a5\ngroup: 0c3952d3-bf10-4f4e-90ff-e1127c607d1f\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\", mode=\"skeleton-v3\", template_animation_id=\"fight-stance-idle-8-frames\", animation_group_id=\"0c3952d3-bf10-4f4e-90ff-e1127c607d1f\", directions=[...])\n\nhint: get_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ec"
+ },
+ "kris-walk-east": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: walk\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=b34f5d28-b64b-4709-938d-72c63d1a26c0\ngroup: 9873e7b1-d544-4c98-9db1-40b6c9d429c0\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\", mode=\"skeleton-v3\", template_animation_id=\"walk\", animation_group_id=\"9873e7b1-d544-4c98-9db1-40b6c9d429c0\", directions=[...])\n\nhint: get_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\")"
+ },
+ "kris-dash-east": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: running-8-frames\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=16fba3a7-eb2d-4f52-a357-32adcef0c1bb\ngroup: c8fb89c6-5799-4660-a704-ce95647aebc1\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\", mode=\"skeleton-v3\", template_animation_id=\"running-8-frames\", animation_group_id=\"c8fb89c6-5799-4660-a704-ce95647aebc1\", directions=[...])\n\nhint: get_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\")"
+ },
+ "kris-hurt-east": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: taking-punch\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=e5d3859b-b0e4-45e9-989d-476289045dec\ngroup: 86d0005a-f532-4f39-b07f-1a2f4f76de3f\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\", mode=\"skeleton-v3\", template_animation_id=\"taking-punch\", animation_group_id=\"86d0005a-f532-4f39-b07f-1a2f4f76de3f\", directions=[...])\n\nhint: get_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\")"
+ },
+ "kris-fall-east": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: falling-back-death\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=e8267198-9144-492b-ae77-9dfc7beaca49\ngroup: c82d5d26-6207-4441-a2e8-a7b0f1e5a3bf\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\", mode=\"skeleton-v3\", template_animation_id=\"falling-back-death\", animation_group_id=\"c82d5d26-6207-4441-a2e8-a7b0f1e5a3bf\", directions=[...])\n\nhint: get_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\")"
+ },
+ "kris-getup-east": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: getting-up\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=519539a5-1787-4cbe-b83c-6aed4d3c8187\ngroup: 93c5b272-e5ab-498d-a677-639a9dddbea0\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\", mode=\"skeleton-v3\", template_animation_id=\"getting-up\", animation_group_id=\"93c5b272-e5ab-498d-a677-639a9dddbea0\", directions=[...])\n\nhint: get_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\")"
+ }
+}

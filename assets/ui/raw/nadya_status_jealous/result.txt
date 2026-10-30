@@ -1,0 +1,11 @@
+status: completed
+id: f6a522a8-6783-4b67-8323-b28d3399e635
+job_id: f6a522a8-6783-4b67-8323-b28d3399e635
+frames: 64
+transparent: yes
+asset_id: 861440c7-3fd4-52b5-9540-7ffec3f6c60a
+asset_type: image
+asset_status: saved
+gallery: saved to your PixelLab gallery (pixellab.ai/create)
+charged: 10 generations
+download: https://api.pixellab.ai/mcp/images/f6a522a8-6783-4b67-8323-b28d3399e635/download?index=0 ... ?index=63

@@ -1,0 +1,197 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Nadya hits and dash",
+ "fps": 16,
+ "frame_ms": 63,
+ "frames": 8,
+ "loop": false,
+ "canvas": {
+  "w": 102,
+  "h": 67
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 59,
+  "y": 64
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 96,
+    "h": 43
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -56,
+    "y": -57
+   }
+  },
+  {
+   "name": "whole-with-sprite",
+   "title": "the whole effect with the sprite in it",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 96,
+    "h": 61
+   },
+   "sheets": [
+    {
+     "file": "whole-with-sprite.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -56,
+    "y": -61
+   }
+  },
+  {
+   "name": "behind",
+   "title": "everything behind the sprite",
+   "depth": "behind",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 69,
+    "h": 32
+   },
+   "sheets": [
+    {
+     "file": "behind.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -54,
+    "y": -46
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 96,
+    "h": 40
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -56,
+    "y": -57
+   }
+  },
+  {
+   "name": "part-hit_star",
+   "title": "the hit star part",
+   "part": "hit_star",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 7,
+   "frame": {
+    "w": 42,
+    "h": 40
+   },
+   "sheets": [
+    {
+     "file": "part-hit_star.png",
+     "first_frame": 0,
+     "frames": 7,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -2,
+    "y": -57
+   }
+  },
+  {
+   "name": "part-thrust_streak",
+   "title": "the thrust streak part",
+   "part": "thrust_streak",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 40,
+    "h": 7
+   },
+   "sheets": [
+    {
+     "file": "part-thrust_streak.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -4,
+    "y": -34
+   }
+  },
+  {
+   "name": "part-speed_lines",
+   "title": "the speed lines part",
+   "part": "speed_lines",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 78,
+    "h": 33
+   },
+   "sheets": [
+    {
+     "file": "part-speed_lines.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -56,
+    "y": -47
+   }
+  }
+ ]
+}

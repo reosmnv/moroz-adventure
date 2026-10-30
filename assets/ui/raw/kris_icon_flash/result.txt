@@ -1,0 +1,11 @@
+status: completed
+id: 516ca66e-6204-4718-b399-93dc290fbcec
+job_id: 516ca66e-6204-4718-b399-93dc290fbcec
+frames: 64
+transparent: yes
+asset_id: 60b4c1a1-77e1-5a7a-808c-281da79c632b
+asset_type: image
+asset_status: saved
+gallery: saved to your PixelLab gallery (pixellab.ai/create)
+charged: 10 generations
+download: https://api.pixellab.ai/mcp/images/516ca66e-6204-4718-b399-93dc290fbcec/download?index=0 ... ?index=63

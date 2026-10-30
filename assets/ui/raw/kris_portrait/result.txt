@@ -1,0 +1,5 @@
+status: completed
+id: e125e15c-a75a-4f8c-9245-74ec4f1ef569
+size: 64×64px
+download: https://api.pixellab.ai/mcp/portrait-character/e125e15c-a75a-4f8c-9245-74ec4f1ef569/download
+seed: 27949538

@@ -1,0 +1,132 @@
+{
+ "cell": 128,
+ "feetY": 112,
+ "states": {
+  "kris": {
+   "dash": {
+    "east": 8,
+    "west": 8,
+    "fps": 14,
+    "loop": true
+   },
+   "fall": {
+    "east": 7,
+    "west": 7,
+    "fps": 12,
+    "loop": false
+   },
+   "getup": {
+    "east": 5,
+    "west": 5,
+    "fps": 10,
+    "loop": false
+   },
+   "hurt": {
+    "east": 6,
+    "west": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "idle": {
+    "east": 8,
+    "west": 8,
+    "fps": 8,
+    "loop": true
+   },
+   "static": {
+    "east": 1,
+    "west": 1,
+    "fps": 1,
+    "loop": true
+   },
+   "walk": {
+    "east": 6,
+    "west": 6,
+    "fps": 10,
+    "loop": true
+   },
+   "a1": {
+    "east": 9,
+    "west": 9,
+    "fps": 16,
+    "loop": false,
+    "hit": {
+     "east": 4,
+     "west": 4
+    }
+   },
+   "a2": {
+    "east": 9,
+    "west": 9,
+    "fps": 16,
+    "loop": false,
+    "hit": {
+     "east": 6,
+     "west": 6
+    }
+   },
+   "a3": {
+    "east": 10,
+    "west": 10,
+    "fps": 16,
+    "loop": false,
+    "hit": {
+     "east": 5,
+     "west": 5
+    }
+   },
+   "b": {
+    "east": 9,
+    "west": 9,
+    "fps": 16,
+    "loop": false,
+    "hit": {
+     "east": 4,
+     "west": 4
+    }
+   },
+   "ball": {
+    "east": 9,
+    "west": 9,
+    "fps": 16,
+    "loop": false,
+    "hit": {
+     "east": 4,
+     "west": 4
+    }
+   },
+   "ult-setup": {
+    "east": 9,
+    "west": 9,
+    "fps": 16,
+    "loop": false,
+    "hit": {
+     "east": 8,
+     "west": 8
+    }
+   },
+   "ult-hold": {
+    "east": 2,
+    "west": 2,
+    "fps": 16,
+    "loop": false
+   },
+   "ult-out": {
+    "east": 3,
+    "west": 3,
+    "fps": 16,
+    "loop": false
+   },
+   "ult": {
+    "east": 24,
+    "west": 24,
+    "fps": 16,
+    "loop": false,
+    "hit": {
+     "east": 15,
+     "west": 15
+    }
+   }
+  }
+ }
+}

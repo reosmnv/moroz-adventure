@@ -1,0 +1,11 @@
+status: completed
+id: 6173c473-4a55-4346-9d43-1d415dd53515
+job_id: 6173c473-4a55-4346-9d43-1d415dd53515
+frames: 64
+transparent: yes
+asset_id: 151f04f8-6097-5bdf-ad15-2821c3ddef1f
+asset_type: image
+asset_status: saved
+gallery: saved to your PixelLab gallery (pixellab.ai/create)
+charged: 10 generations
+download: https://api.pixellab.ai/mcp/images/6173c473-4a55-4346-9d43-1d415dd53515/download?index=0 ... ?index=63

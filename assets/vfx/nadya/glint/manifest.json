@@ -1,0 +1,172 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Nadya glint slap swing",
+ "fps": 12,
+ "frame_ms": 83,
+ "frames": 16,
+ "loop": true,
+ "canvas": {
+  "w": 55,
+  "h": 74
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 15,
+  "y": 71
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 16,
+   "frame": {
+    "w": 49,
+    "h": 62
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 16,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -12,
+    "y": -68
+   }
+  },
+  {
+   "name": "whole-with-sprite",
+   "title": "the whole effect with the sprite in it",
+   "depth": "both",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 16,
+   "frame": {
+    "w": 49,
+    "h": 68
+   },
+   "sheets": [
+    {
+     "file": "whole-with-sprite.png",
+     "first_frame": 0,
+     "frames": 16,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -12,
+    "y": -68
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 16,
+   "frame": {
+    "w": 49,
+    "h": 62
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 16,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -12,
+    "y": -68
+   }
+  },
+  {
+   "name": "part-item_glint",
+   "title": "the item glint part",
+   "part": "item_glint",
+   "depth": "front",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 16,
+   "frame": {
+    "w": 27,
+    "h": 28
+   },
+   "sheets": [
+    {
+     "file": "part-item_glint.png",
+     "first_frame": 0,
+     "frames": 16,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -12,
+    "y": -47
+   }
+  },
+  {
+   "name": "part-flash_burst",
+   "title": "the flash burst part",
+   "part": "flash_burst",
+   "depth": "front",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 16,
+   "frame": {
+    "w": 42,
+    "h": 44
+   },
+   "sheets": [
+    {
+     "file": "part-flash_burst.png",
+     "first_frame": 0,
+     "frames": 16,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -5,
+    "y": -68
+   }
+  },
+  {
+   "name": "part-slash_trail",
+   "title": "the slash trail part",
+   "part": "slash_trail",
+   "depth": "front",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 16,
+   "frame": {
+    "w": 29,
+    "h": 48
+   },
+   "sheets": [
+    {
+     "file": "part-slash_trail.png",
+     "first_frame": 0,
+     "frames": 16,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -1,
+    "y": -54
+   }
+  }
+ ]
+}

@@ -1,0 +1,210 @@
+[
+ {
+  "name": "kris-a1-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "from fighting stance she grabs her folded tripod and thrusts it straight forward like a spear",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a1-in",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/fba9ed39-4785-431f-9809-c0231036ebea/download"
+  }
+ },
+ {
+  "name": "kris-a1-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "she pulls the tripod back and returns to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a1-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/fba9ed39-4785-431f-9809-c0231036ebea/download",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "kris-a2-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "from fighting stance she winds up and swings the tripod horizontally in a wide sweep across her front",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a2-in",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/27d6f2ee-a0d9-4f14-ba5b-969afff57d37/download"
+  }
+ },
+ {
+  "name": "kris-a2-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "the sweep follows through, she pulls the tripod back and returns to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a2-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/27d6f2ee-a0d9-4f14-ba5b-969afff57d37/download",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "kris-a3-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "from fighting stance she raises the tripod high overhead, legs snapping open, and smashes it down onto the ground in front of her",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a3-in",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/dd67f046-085a-41bb-901d-00837d285736/download"
+  }
+ },
+ {
+  "name": "kris-a3-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "she lifts the tripod off the ground, folds it and returns to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a3-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/dd67f046-085a-41bb-901d-00837d285736/download",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "kris-b-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "from fighting stance she quickly raises her camera to her eye with both hands and snaps a photo with a bright flash",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "b-in",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/28099709-970e-4b31-8b22-a64d09c07c7a/download"
+  }
+ },
+ {
+  "name": "kris-b-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "she lowers the camera back onto its neck strap and returns to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "b-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/28099709-970e-4b31-8b22-a64d09c07c7a/download",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "kris-ball-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "from fighting stance she winds up and throws a small red-and-white ball overhand",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "ball-in",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/4c1bb495-9ac3-4006-a870-60b6e47449fa/download"
+  }
+ },
+ {
+  "name": "kris-ball-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "after the throw she recovers and returns to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "ball-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/4c1bb495-9ac3-4006-a870-60b6e47449fa/download",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "kris-ult-setup",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "from fighting stance she crouches and quickly plants a tripod with a big video camera on the ground in front of her",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "ult-setup",
+   "custom_start_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/0b9cc65f-dddb-4096-8f8a-266b0e913ee2/download"
+  }
+ },
+ {
+  "name": "kris-ult-rise",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "she rises from the crouch and stands behind the camera on the tripod, eye to the viewfinder",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "ult-rise",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/0b9cc65f-dddb-4096-8f8a-266b0e913ee2/download",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/6cf10977-197b-4bc3-a39b-51ed324c9fe6/download"
+  }
+ },
+ {
+  "name": "kris-ult-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a",
+   "mode": "v3",
+   "action_description": "she folds the tripod, lifts the camera off and returns to fighting stance",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "ult-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/6cf10977-197b-4bc3-a39b-51ed324c9fe6/download",
+   "end_frame_base64": "@assets/pixellab/kris/keyposes/idle0-east-96.png"
+  }
+ }
+]

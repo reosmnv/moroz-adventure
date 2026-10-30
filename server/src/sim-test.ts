@@ -1,5 +1,5 @@
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { HERO_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, type Input, type World } from '@bc/shared';
+import { HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -7,9 +7,9 @@ function check(name: string, ok: boolean, info = '') {
   if (!ok) failed++;
 }
 
-function setup(withBuddy = false) {
+function setup(withBuddy = false, char = HERO_ID) {
   const w = createWorld(7);
-  const p = addPlayer(w, 'h', HERO_ID);
+  const p = addPlayer(w, 'h', char);
   p.x = 200; p.y = 200;
   if (withBuddy) { const b = addPlayer(w, 'b', 'b'); b.x = 300; b.y = 200; }
   return { w, p };
@@ -22,14 +22,16 @@ function dummy(w: World, id: string, dx: number, hp = 1000) {
 function run(w: World, ms: number, input: (t: number) => Partial<Input> = () => ({})) {
   const log: string[] = [];
   const hits: number[] = [];
+  const events: string[] = [];
   for (let t = 0; t < ms; t += TICK_MS) {
     const inp = { ...emptyInput(), ...input(t) };
     const ev = step(w, { h: inp });
     hits.push(...ev.filter(e => e.t === 'hit').map(e => (e as any).dmg));
+    events.push(...ev.map(e => e.t === 'taunt' ? 'taunt:' + e.line : e.t));
     const m = w.players.h.move;
     if (log[log.length - 1] !== m) log.push(m);
   }
-  return { log, hits };
+  return { log, hits, events };
 }
 const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt') => (t: number) => (at.some(a => t >= a && t < a + TICK_MS) ? { [key]: true } : {});
 
@@ -221,6 +223,68 @@ const press = (at: number[], key: 'attack' | 'heavy' | 'ult' | 'ult2' | 'taunt')
   const { w, p } = setup(); p.ult = 50;
   run(w, 100, press([0], 'ult2'));
   check('без полной шкалы буря не запускается', p.stormMs === 0 && p.ult === 50);
+}
+
+// ---------- Надя ----------
+{
+  const { w } = setup(false, NADYA_ID); dummy(w, 'e1', 30);
+  const { log, hits } = run(w, 3000, press([0, 300, 700], 'attack'));
+  check('Надя: серия A a1 > a2 > a3', log.slice(0, 3).join() === 'a1,a2,a3', log.join('>'));
+  check('Надя: урон A 4, 5, 6', hits.slice(0, 3).join() === '4,5,6', hits.join());
+}
+{
+  const { w, p } = setup(false, NADYA_ID); dummy(w, 'e1', 30);
+  run(w, 400, press([0], 'heavy'));
+  const e = w.enemies.e1;
+  check('Надя: пощёчина замедляет на 50%', (e.slowMs ?? 0) > 1000 && e.slow === 0.5, `slow ${e.slowMs} ${e.slow}`);
+  check('Надя: контроль копит ульту быстрее (5 урона + 5)', p.ult === 10, `ult ${p.ult}`);
+}
+{
+  const { w } = setup(false, NADYA_ID); dummy(w, 'e1', 30); dummy(w, 'e2', 45);
+  run(w, 300, press([0], 'heavy')); run(w, 500, press([0], 'heavy'));
+  check('Надя: по яйцам оглушает одного ближайшего', (w.enemies.e1.stunMs ?? 0) > 1000 && !w.enemies.e2.stunMs, `${w.enemies.e1.stunMs} ${w.enemies.e2.stunMs}`);
+}
+{
+  const { w, p } = setup(false, NADYA_ID); dummy(w, 'e1', 100);
+  p.bCombo = 2; p.bComboMs = 1000;
+  const x0 = p.x;
+  const r = run(w, 1700, press([0], 'heavy'));
+  check('Надя: самурай = достаёт меч > рывок > финал', r.log.join('>').includes('b3-draw>b3-dash>b3-end'), r.log.join('>'));
+  check('Надя: рывок на ~160', Math.abs(p.x - x0 - 160) < 5, `${p.x - x0}`);
+  check('Надя: враг на пути получил 10 после рывка', r.hits.includes(10) && (w.enemies.e1.slowMs ?? 0) > 0, r.hits.join());
+}
+{
+  const { w, p } = setup(false, NADYA_ID); dummy(w, 'e1', 50); dummy(w, 'e2', 80);
+  w.enemies.e1.cdMs = 0; w.enemies.e2.cdMs = 0;
+  p.ult = 100;
+  const r = run(w, 3000, press([0], 'ult'));
+  check('Надя: ульта = ревность у задетых', (w.enemies.e1.charmMs ?? 0) > 0 && (w.enemies.e2.charmMs ?? 0) > 0);
+  check('Надя: ревнивые бьют друг друга, героиня цела', p.hp === 150 && r.hits.filter(h => h === 4).length >= 1, `hp ${p.hp} ${r.hits.join()}`);
+  check('Надя: «Мальчики, не ссорьтесь» один раз', r.events.filter(e => e.includes('не ссорьтесь')).length === 1);
+}
+// ---------- Kris ----------
+{
+  const { w, p } = setup(false, KRIS_ID); dummy(w, 'e1', 200);
+  const r = run(w, 1500, press([0, 50, 100], 'heavy'));
+  check('Kris: вспышка долетает до врага (4 урона)', r.hits.join() === '4', r.hits.join());
+  check('Kris: пауза между вспышками', r.events.filter(e => e === 'shot').length === 1, r.events.join());
+  check('Kris: шкала шара +12.5', p.charge2 === 12.5, `${p.charge2}`);
+}
+{
+  const { w, p } = setup(true, KRIS_ID);
+  w.players.b.char = HERO_ID; w.players.b.x = 260; w.players.b.facing = 1;
+  dummy(w, 'e1', 100);
+  p.charge2 = 100;
+  const r = run(w, 1500, press([0], 'ult2'));
+  check('Kris: шар у Анастасии, взрыв 20 и реплика', r.hits.includes(20) && r.events.includes('boom') && r.events.some(e => e.startsWith('taunt:')), r.events.join());
+  check('Kris: шкала шара потрачена', p.charge2 === 0);
+}
+{
+  const { w, p } = setup(false, KRIS_ID); dummy(w, 'e1', 300);
+  p.ult = 100;
+  const r = run(w, 4000, press([0], 'ult'));
+  check('Kris: ульта ставит камеру > стоит > убирает', r.log.join('>').includes('ult-setup>ult-hold>ult-out'), r.log.join('>'));
+  check('Kris: прицел, затем луч 40 по дальнему врагу', r.events.indexOf('aim') < r.events.indexOf('beam') && r.hits.includes(40), r.events.join());
 }
 check('длительности из данных (x1.4)', moveDurMs('prime', 'jab', 1) > 300 && moveDurMs('prime', 'jab', 1) < 400);
 

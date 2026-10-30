@@ -1,0 +1,226 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Nadya ult heart",
+ "fps": 12,
+ "frame_ms": 83,
+ "frames": 12,
+ "loop": false,
+ "canvas": {
+  "w": 165,
+  "h": 91
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 14,
+  "y": 64
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 10,
+   "frame": {
+    "w": 152,
+    "h": 85
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 10,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -4,
+    "y": -61
+   }
+  },
+  {
+   "name": "whole-with-sprite",
+   "title": "the whole effect with the sprite in it",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 12,
+   "frame": {
+    "w": 159,
+    "h": 85
+   },
+   "sheets": [
+    {
+     "file": "whole-with-sprite.png",
+     "first_frame": 0,
+     "frames": 12,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -11,
+    "y": -61
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 10,
+   "frame": {
+    "w": 152,
+    "h": 85
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 10,
+     "columns": 4,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -4,
+    "y": -61
+   }
+  },
+  {
+   "name": "part-projectile",
+   "title": "the projectile part, in place",
+   "role": "projectile",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 6,
+   "frame": {
+    "w": 25,
+    "h": 22
+   },
+   "sheets": [
+    {
+     "file": "part-projectile.png",
+     "first_frame": 0,
+     "frames": 6,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -13,
+    "y": -41
+   },
+   "moves": [
+    {
+     "x": 9,
+     "y": -0.33
+    },
+    {
+     "x": 29,
+     "y": -1.05
+    },
+    {
+     "x": 49,
+     "y": -1.78
+    },
+    {
+     "x": 69,
+     "y": -2.51
+    },
+    {
+     "x": 89,
+     "y": -3.24
+    },
+    {
+     "x": 109,
+     "y": -3.96
+    }
+   ]
+  },
+  {
+   "name": "part-twinkles",
+   "title": "the twinkles part, in place",
+   "role": "projectile",
+   "part": "twinkles",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 6,
+   "frame": {
+    "w": 34,
+    "h": 55
+   },
+   "sheets": [
+    {
+     "file": "part-twinkles.png",
+     "first_frame": 0,
+     "frames": 6,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -10,
+    "y": -58
+   },
+   "moves": [
+    {
+     "x": 9,
+     "y": -0.33
+    },
+    {
+     "x": 29,
+     "y": -1.05
+    },
+    {
+     "x": 49,
+     "y": -1.78
+    },
+    {
+     "x": 69,
+     "y": -2.51
+    },
+    {
+     "x": 89,
+     "y": -3.24
+    },
+    {
+     "x": 109,
+     "y": -3.96
+    }
+   ]
+  },
+  {
+   "name": "part-crackle_burst",
+   "title": "the crackle burst part",
+   "role": "impact",
+   "part": "crackle_burst",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 7,
+   "frames": 4,
+   "frame": {
+    "w": 76,
+    "h": 85
+   },
+   "sheets": [
+    {
+     "file": "part-crackle_burst.png",
+     "first_frame": 0,
+     "frames": 4,
+     "columns": 2,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": 72,
+    "y": -61
+   }
+  }
+ ]
+}

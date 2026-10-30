@@ -1,0 +1,242 @@
+[
+ {
+  "name": "nadya-a1-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "from fighting stance she whips her black heart bag forward on its gold chain, arm extending, the bag flying out in front",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a1-in",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/18eb9f73-b21e-429d-a1cd-be134073bffd/download"
+  }
+ },
+ {
+  "name": "nadya-a1-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "the heart bag snaps back on its chain into her hand and she returns to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a1-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/18eb9f73-b21e-429d-a1cd-be134073bffd/download",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-a2-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "from fighting stance she raises her arm high swinging the heart bag on its chain up into a big overhead arc",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a2-in",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/c2ec685d-250c-42f5-8a63-244b49b0f09b/download"
+  }
+ },
+ {
+  "name": "nadya-a2-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "she smashes the heart bag down in front of her in a heavy overhead arc, then pulls it back and returns to fighting stance",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a2-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/c2ec685d-250c-42f5-8a63-244b49b0f09b/download",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-a3-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "from fighting stance she starts a full spin, swinging the heart bag on its long chain around her body",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a3-in",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/e3d9f56c-5fa1-4ecc-a9d3-d42db30f4bae/download"
+  }
+ },
+ {
+  "name": "nadya-a3-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "she completes the spin, the heart bag whipping around in front of her on the taut chain, then she settles back into fighting stance",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a3-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/e3d9f56c-5fa1-4ecc-a9d3-d42db30f4bae/download",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-b1-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "from fighting stance she swings a sharp open-palm slap forward at face height",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "b1-in",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/9c9f4427-826d-4d56-b0bd-2a6e1c8f0fe0/download"
+  }
+ },
+ {
+  "name": "nadya-b1-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "after the slap her arm returns to guard and she settles into fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "b1-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/9c9f4427-826d-4d56-b0bd-2a6e1c8f0fe0/download",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-b2-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "from fighting stance she snaps a low straight front kick forward with her boot",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "b2-in",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/17da0093-cff4-43d2-9a84-c197bfc2aadf/download"
+  }
+ },
+ {
+  "name": "nadya-b2-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "the kicking leg pulls back down and she returns to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "b2-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/17da0093-cff4-43d2-9a84-c197bfc2aadf/download",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-b3-draw",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "from fighting stance she reaches into her heart bag and draws a pink sword, gripping it at her hip in a samurai drawing stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "b3-draw",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/340d71e2-2992-46b8-aa53-8a147ded36ee/download"
+  }
+ },
+ {
+  "name": "nadya-b3-slash",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "lightning-fast samurai dash slash: she bursts forward from the drawing stance and ends in a low finishing pose with the sword extended behind her",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "b3-slash",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/340d71e2-2992-46b8-aa53-8a147ded36ee/download",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/4eabd905-39d8-4be9-88d6-315de8f4b85b/download"
+  }
+ },
+ {
+  "name": "nadya-b3-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "she flicks the pink sword, slides it back into her heart bag and returns to fighting stance",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "b3-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/4eabd905-39d8-4be9-88d6-315de8f4b85b/download",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-ult-in",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "from fighting stance she brings her fingertips to her lips for an air kiss",
+   "frame_count": 4,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "ult-in",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_url": "https://api.pixellab.ai/mcp/images/a1b4e0a1-41cd-475e-8009-e7825dc82211/download"
+  }
+ },
+ {
+  "name": "nadya-ult-out",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "v3",
+   "action_description": "she blows the air kiss: her hand sweeps forward with an open palm, then she returns to fighting stance",
+   "frame_count": 6,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "ult-out",
+   "custom_start_frame_url": "https://api.pixellab.ai/mcp/images/a1b4e0a1-41cd-475e-8009-e7825dc82211/download",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ }
+]

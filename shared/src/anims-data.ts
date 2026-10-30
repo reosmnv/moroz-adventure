@@ -1,6 +1,7 @@
 // Сгенерировано tools/gen_anims_ts.py из assets/sprites/anims.json, руками не править.
 
-export type Form = 'prime' | 'ultimate';
+// Набор спрайтов: формы Анастасии и герои с одной формой
+export type Form = 'prime' | 'ultimate' | 'nadya' | 'kris';
 export interface AnimDef { east: number; west: number; fps: number; loop: boolean; hit?: { east: number; west: number }; hits?: number[] }
 
 export const HERO_ANIMS: Record<Form, Record<string, AnimDef>> = {
@@ -32,6 +33,41 @@ export const HERO_ANIMS: Record<Form, Record<string, AnimDef>> = {
     'roundhouse': { east: 7, west: 7, fps: 18, loop: false, hit: { east: 3, west: 3 } },
     'spin-elbow': { east: 11, west: 11, fps: 18, loop: false, hit: { east: 6, west: 6 } },
     'transform-down': { east: 13, west: 13, fps: 12, loop: false },
+    'walk': { east: 6, west: 6, fps: 10, loop: true },
+  },
+  nadya: {
+    'a1': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 4, west: 4 } },
+    'a2': { east: 10, west: 10, fps: 16, loop: false, hit: { east: 6, west: 6 } },
+    'a3': { east: 11, west: 11, fps: 16, loop: false, hit: { east: 8, west: 8 } },
+    'b1': { east: 6, west: 6, fps: 16, loop: false, hit: { east: 3, west: 3 } },
+    'b2': { east: 6, west: 6, fps: 16, loop: false, hit: { east: 3, west: 3 } },
+    'b3': { east: 19, west: 19, fps: 16, loop: false, hit: { east: 13, west: 13 } },
+    'b3-dash': { east: 3, west: 3, fps: 16, loop: false },
+    'b3-draw': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 8, west: 8 } },
+    'b3-end': { east: 7, west: 7, fps: 16, loop: false, hit: { east: 1, west: 1 } },
+    'dash': { east: 8, west: 8, fps: 14, loop: true },
+    'fall': { east: 7, west: 7, fps: 12, loop: false },
+    'getup': { east: 5, west: 5, fps: 10, loop: false },
+    'hurt': { east: 6, west: 6, fps: 14, loop: false },
+    'idle': { east: 8, west: 8, fps: 8, loop: true },
+    'ult': { east: 11, west: 11, fps: 16, loop: false, hit: { east: 6, west: 6 } },
+    'walk': { east: 6, west: 6, fps: 10, loop: true },
+  },
+  kris: {
+    'a1': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 4, west: 4 } },
+    'a2': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 6, west: 6 } },
+    'a3': { east: 10, west: 10, fps: 16, loop: false, hit: { east: 5, west: 5 } },
+    'b': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 4, west: 4 } },
+    'ball': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 4, west: 4 } },
+    'dash': { east: 8, west: 8, fps: 14, loop: true },
+    'fall': { east: 7, west: 7, fps: 12, loop: false },
+    'getup': { east: 5, west: 5, fps: 10, loop: false },
+    'hurt': { east: 6, west: 6, fps: 14, loop: false },
+    'idle': { east: 8, west: 8, fps: 8, loop: true },
+    'ult': { east: 24, west: 24, fps: 16, loop: false, hit: { east: 15, west: 15 } },
+    'ult-hold': { east: 2, west: 2, fps: 16, loop: false },
+    'ult-out': { east: 3, west: 3, fps: 16, loop: false },
+    'ult-setup': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 8, west: 8 } },
     'walk': { east: 6, west: 6, fps: 10, loop: true },
   },
 };

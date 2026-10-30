@@ -42,7 +42,7 @@ async function main() {
   b.send('pick', 'anastasia');
   await sleep(300);
   check('нельзя взять занятого персонажа', pickError !== '' && !players(b).has(b.sessionId), pickError);
-  b.send('pick', 'b');
+  b.send('pick', 'nadezhda');
   await sleep(400);
   const pa = players(a).get(a.sessionId), pb = players(a).get(b.sessionId);
   check('второй появился у хоста', !!pb);

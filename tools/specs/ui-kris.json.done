@@ -1,0 +1,17 @@
+{
+ "kris_icon_tripod": {
+  "out": "id: 1c6ffab4-b3a6-45df-b32d-0ec9e5d09dc1\njob_id: 1c6ffab4-b3a6-45df-b32d-0ec9e5d09dc1\nmodel: pro\ndescription: game UI icon: a black camera tripod with three extended legs, diagonal like a weapon, with a white swoosh motion arc, bold dark outline, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: b0dbfc22-e6e0-503f-b454-ff66a8fc37d0\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"1c6ffab4-b3a6-45df-b32d"
+ },
+ "kris_icon_flash": {
+  "out": "id: 516ca66e-6204-4718-b399-93dc290fbcec\njob_id: 516ca66e-6204-4718-b399-93dc290fbcec\nmodel: pro\ndescription: game UI icon: a small black photo camera with a bright white flash bursting from it with neon lime-green rays, bold dark outline, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 60b4c1a1-77e1-5a7a-808c-281da79c632b\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"516ca66e-6204-4718-b399-93dc29"
+ },
+ "kris_icon_ball": {
+  "out": "id: 6173c473-4a55-4346-9d43-1d415dd53515\njob_id: 6173c473-4a55-4346-9d43-1d415dd53515\nmodel: pro\ndescription: game UI icon: a round ball, top half red, bottom half white, a thick black line around the middle and a round white button in the center, small sparkle, bold dark outline, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 151f04f8-6097-5bdf-ad15-2821c3ddef1f\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_im"
+ },
+ "kris_icon_ult": {
+  "out": "id: f8c076c4-edf7-40ef-b7df-d0f8b90c1926\njob_id: f8c076c4-edf7-40ef-b7df-d0f8b90c1926\nmodel: pro\ndescription: game UI icon: a black video camera on a tripod firing a wide horizontal beam of white and neon lime-green light, bold dark outline, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 91534086-4182-5309-9074-5719cbfb6fb4\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"f8c076c4-edf7-40ef-b7df-d0f8"
+ },
+ "kris_portrait": {
+  "out": "id: e125e15c-a75a-4f8c-9245-74ec4f1ef569\ndirection: character_to_portrait\nview: side\nsize: 64×64px\ncost: ~15 generations\nstatus: processing (~30-80s)\n\nhint: get_portrait_character(job_id=\"e125e15c-a75a-4f8c-9245-74ec4f1ef569\")"
+ }
+}

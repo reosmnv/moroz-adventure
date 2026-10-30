@@ -1,0 +1,5 @@
+status: completed
+id: 2e8c8414-32a6-430f-bb51-92868b27ddb4
+size: 64×64px
+download: https://api.pixellab.ai/mcp/portrait-character/2e8c8414-32a6-430f-bb51-92868b27ddb4/download
+seed: 934935539

@@ -1,0 +1,45 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Nadya jealous hearts",
+ "fps": 12,
+ "frame_ms": 83,
+ "frames": 16,
+ "loop": true,
+ "canvas": {
+  "w": 41,
+  "h": 82
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 20,
+  "y": 79
+ },
+ "clips": [
+  {
+   "name": "part-charm_hearts",
+   "title": "the charm hearts part",
+   "part": "charm_hearts",
+   "depth": "both",
+   "loop": true,
+   "start_frame": 0,
+   "frames": 16,
+   "frame": {
+    "w": 35,
+    "h": 21
+   },
+   "sheets": [
+    {
+     "file": "part-charm_hearts.png",
+     "first_frame": 0,
+     "frames": 16,
+     "columns": 4,
+     "rows": 4
+    }
+   ],
+   "offset": {
+    "x": -17,
+    "y": -76
+   }
+  }
+ ]
+}

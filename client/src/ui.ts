@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { CHARACTERS, HEAVY, HERO_ID, MOVE_NAMES, PLAYER_HP, STORM_MS, TEST_TOOLS, ULT_MS, VIEW_H } from '@bc/shared';
+import { CHARACTERS, HEAVY, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, TEST_TOOLS, ULT_MS, VIEW_H } from '@bc/shared';
 import type { Button, EntitySnap, GameSession } from './session.ts';
 
 // Интерфейс поверх боя: стик, кнопки, панели игроков. Отдельная сцена, поэтому встряска
@@ -28,6 +28,14 @@ const BUTTONS: { id: Button; icon: string; dx: number; dy: number; color: number
   { id: 'ult2', icon: 'ui-icon-snow', dx: 156, dy: 96, color: 0x2e4a7a }, // снежная буря, шкала общая с U
 ];
 const btnPos = (b: { dx: number; dy: number }, w: number) => ({ x: w - b.dx, y: VIEW_H - b.dy });
+
+// Свои иконки и лица героев 2-4 (client/public/ui/<папка>/)
+const HERO_UI: Record<string, { dir: string; icons: string[] }> = {
+  [NADYA_ID]: { dir: 'nadya', icons: ['face', 'icon-attack', 'icon-ult', 'heavy-slap', 'heavy-kick', 'heavy-sword'] },
+  [KRIS_ID]: { dir: 'kris', icons: ['face', 'icon-attack', 'icon-ult', 'icon-flash', 'icon-ball'] },
+};
+const NADYA_HEAVY_ICON: Record<string, string> = { b1: 'heavy-slap', b2: 'heavy-kick', 'b3-draw': 'heavy-sword' };
+const heroIcon = (char: string, name: string) => `ui-${HERO_UI[char].dir}-${name}`;
 
 interface BtnView { base: Phaser.GameObjects.Image; icon: Phaser.GameObjects.Image; color: number; held: number }
 interface Panel { root: Phaser.GameObjects.Container; portrait: Phaser.GameObjects.Image; badge: Phaser.GameObjects.Rectangle; name: Phaser.GameObjects.Text; bars: Phaser.GameObjects.Graphics }
@@ -62,7 +70,8 @@ export class UIScene extends Phaser.Scene {
       this.load.image('ui-' + k, `ui/${k}.png`);
     }
     // Своя иконка B на каждый завершающий удар обеих форм
-    for (const m of new Set(Object.values(HEAVY).flat())) this.load.image('ui-heavy-' + m, `ui/heavy-${m}.png`);
+    for (const m of new Set([...HEAVY.prime, ...HEAVY.ultimate])) this.load.image('ui-heavy-' + m, `ui/heavy-${m}.png`);
+    for (const [char, h] of Object.entries(HERO_UI)) for (const n of h.icons) this.load.image(heroIcon(char, n), `ui/${h.dir}/${n}.png`);
   }
 
   create() {
@@ -181,6 +190,20 @@ export class UIScene extends Phaser.Scene {
     this.joyKnob.setPosition(JOY_REST.x, JOY_REST.y).setAlpha(0.35);
   }
 
+  // Иконки кнопок под своего героя (A, U, вторая кнопка); у Нади второй кнопки нет
+  private iconsFor = '';
+  private setHeroIcons(char: string) {
+    if (this.iconsFor === char) return;
+    this.iconsFor = char;
+    const h = HERO_UI[char];
+    this.btns.get('attack')!.icon.setTexture(h ? heroIcon(char, 'icon-attack') : 'ui-icon-attack');
+    this.btns.get('ult')!.icon.setTexture(h ? heroIcon(char, 'icon-ult') : 'ui-icon-ult');
+    const u2 = this.btns.get('ult2')!;
+    u2.icon.setTexture(char === KRIS_ID ? heroIcon(char, 'icon-ball') : 'ui-icon-snow');
+    const has2 = char !== NADYA_ID;
+    u2.base.setVisible(has2); u2.icon.setVisible(has2);
+  }
+
   // Иконка B показывает удар, который выйдет сейчас; смена с коротким «щелчком»
   private setHeavyIcon(key: string) {
     const icon = this.btns.get('heavy')!.icon;
@@ -226,12 +249,12 @@ export class UIScene extends Phaser.Scene {
   private drawPanel(p: Panel, sb: EntitySnap, me: boolean) {
     p.root.setVisible(true);
     const ch = CHARACTERS.find(c => c.id === sb.char);
-    const hero = sb.char === HERO_ID;
+    const hero = sb.char === HERO_ID || !!HERO_UI[sb.char ?? ''];
     const ultimate = sb.form === 'ultimate';
     p.portrait.setVisible(hero);
     p.badge.setFillStyle(hero ? NAVY : ch?.color ?? PLUM);
-    const face = ultimate ? 'ui-face-ultimate' : 'ui-face-prime';
-    if (hero && p.portrait.texture.key !== face) p.portrait.setTexture(face);
+    const face = sb.char === HERO_ID ? (ultimate ? 'ui-face-ultimate' : 'ui-face-prime') : HERO_UI[sb.char ?? ''] ? heroIcon(sb.char!, 'face') : '';
+    if (face && p.portrait.texture.key !== face) p.portrait.setTexture(face);
     p.name.setText((ch?.name ?? '?') + (me ? '' : ' 2P'));
     const g = p.bars.clear();
     const x = p.name.x;
@@ -272,13 +295,20 @@ export class UIScene extends Phaser.Scene {
         .beginPath().arc(u.base.x, u.base.y, 27, start, start + Math.PI * 2 * Math.min(1, charge)).strokePath();
     }
 
-    // Буря: тусклая без полного заряда (шкала общая с U), во время бури кольцо показывает остаток
+    if (me?.char) this.setHeroIcons(me.char);
+    // Буря: тусклая без полного заряда (шкала общая с U), во время бури кольцо показывает остаток.
+    // У Kris на этой кнопке шар: своя шкала копится от попаданий вспышкой
     const s2 = this.btns.get('ult2')!;
     const storm = me?.storm ?? 0;
-    const ready2 = !!me && (me.ult ?? 0) >= 100 && storm <= 0;
+    const kris = me?.char === KRIS_ID;
+    const ready2 = !!me && (kris ? (me.charge2 ?? 0) >= 100 : (me.ult ?? 0) >= 100 && storm <= 0);
     s2.base.setAlpha(ready2 || storm > 0 ? 1 : 0.5);
     s2.icon.setAlpha(ready2 || storm > 0 ? 1 : 0.5);
-    if (storm > 0) {
+    if (kris && (me?.charge2 ?? 0) > 0) {
+      const start = -Math.PI / 2;
+      this.ultRing.lineStyle(5, INK).beginPath().arc(s2.base.x, s2.base.y, 27, 0, Math.PI * 2).strokePath();
+      this.ultRing.lineStyle(3, ready2 ? CREAM : 0x9be33b).beginPath().arc(s2.base.x, s2.base.y, 27, start, start + Math.PI * 2 * Math.min(1, (me!.charge2 ?? 0) / 100)).strokePath();
+    } else if (storm > 0) {
       const start = -Math.PI / 2;
       this.ultRing.lineStyle(5, INK).beginPath().arc(s2.base.x, s2.base.y, 27, 0, Math.PI * 2).strokePath();
       this.ultRing.lineStyle(3, 0xbfe9ff).beginPath().arc(s2.base.x, s2.base.y, 27, start, start + Math.PI * 2 * (storm / STORM_MS)).strokePath();
@@ -286,7 +316,31 @@ export class UIScene extends Phaser.Scene {
 
     // Под A точки серии, слева от B удар, который выйдет сейчас
     this.pips.clear();
-    if (me?.char === HERO_ID) {
+    if (me && HERO_UI[me.char ?? '']) {
+      const a = this.btns.get('attack')!;
+      const c = Math.min(me.combo ?? 0, 2);
+      for (let i = 0; i < 3; i++) {
+        const x = a.base.x - 10 + i * 8, y = a.base.y + 27;
+        this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
+        this.pips.fillStyle(i < c ? CREAM : NAVY).fillRect(x, y, 4, 4);
+      }
+      if (me.char === NADYA_ID) {
+        // Серия B своя: под B тоже точки, иконка и подпись следующего удара
+        const hb = this.btns.get('heavy')!;
+        const bc = Math.min(me.bCombo ?? 0, 2);
+        for (let i = 0; i < 3; i++) {
+          const x = hb.base.x - 10 + i * 8, y = hb.base.y + 27;
+          this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
+          this.pips.fillStyle(i < bc ? CREAM : NAVY).fillRect(x, y, 4, 4);
+        }
+        const move = HEAVY.nadya[bc];
+        this.bHint.setText(MOVE_NAMES[move] ?? '');
+        this.setHeavyIcon(heroIcon(me.char, NADYA_HEAVY_ICON[move]));
+      } else {
+        this.bHint.setText(MOVE_NAMES.b);
+        this.setHeavyIcon(heroIcon(me.char!, 'icon-flash'));
+      }
+    } else if (me?.char === HERO_ID) {
       const a = this.btns.get('attack')!;
       const c = Math.min(me.combo ?? 0, 2);
       for (let i = 0; i < 3; i++) {

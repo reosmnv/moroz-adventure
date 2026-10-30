@@ -1,0 +1,80 @@
+[
+ {
+  "name": "nadya-idle-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "nadya-walk-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "template_animation_id": "walk",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "nadya-dash-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "template_animation_id": "running-8-frames",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "dash"
+  }
+ },
+ {
+  "name": "nadya-hurt-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "template_animation_id": "taking-punch",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "nadya-fall-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "template_animation_id": "falling-back-death",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "nadya-getup-east",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "template_animation_id": "getting-up",
+   "mode": "skeleton-v3",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "getup"
+  }
+ }
+]

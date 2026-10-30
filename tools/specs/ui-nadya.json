@@ -1,0 +1,140 @@
+[
+ {
+  "name": "nadya_icon_bag",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: glossy black heart-shaped handbag with a bright gold outline and small gold clasp, hanging on a short gold chain, bold dark outline, centered, readable at small size",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-nadya-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "nadya_heavy_slap",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon, simple bold symbol readable at 32px, no full body, no face, no background, thick dark outline, open-palm slap: a single open hand swinging sideways with white motion lines and a small pink impact burst",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-nadya-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "nadya_heavy_kick",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon, simple bold symbol readable at 32px, no full body, no face, no background, thick dark outline, low kick: a single tall black pointed high-heeled boot kicking forward and upward with a bright yellow impact star at the toe",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-nadya-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "nadya_heavy_sword",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon, simple bold symbol readable at 32px, no full body, no face, no background, thick dark outline, samurai slash: a straight pastel-pink sword with a rounded ribbed tip and a button on the hilt, diagonal, with a white slash streak",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-nadya-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "nadya_icon_ult",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: big glossy magenta-pink heart with a small lipstick kiss mark and tiny sparkles, bold dark outline, centered, readable at small size",
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "style_image_base64": "@assets/ui/raw/ref-nadya-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "nadya_status_slow",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "tiny status effect icon: a small pink snail, bold dark outline, readable at 16px",
+   "width": 16,
+   "height": 16,
+   "max_colors": 8,
+   "style_image_base64": "@assets/ui/raw/ref-nadya-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "nadya_status_stun",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "tiny status effect icon: three small yellow stars in a dizzy circle, bold dark outline, readable at 16px",
+   "width": 16,
+   "height": 16,
+   "max_colors": 8,
+   "style_image_base64": "@assets/ui/raw/ref-nadya-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "nadya_status_jealous",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "tiny status effect icon: a small magenta heart cracked by a yellow lightning bolt, bold dark outline, readable at 16px",
+   "width": 16,
+   "height": 16,
+   "max_colors": 8,
+   "style_image_base64": "@assets/ui/raw/ref-nadya-idle-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "nadya_portrait",
+  "tool": "create_portrait_character",
+  "args": {
+   "image": "@assets/ui/raw/ref-nadya-idle-east.png",
+   "direction": "character_to_portrait",
+   "view": "side",
+   "result_size": 64
+  }
+ }
+]

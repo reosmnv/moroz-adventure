@@ -1,0 +1,294 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Kris flash hits charge",
+ "fps": 15,
+ "frame_ms": 67,
+ "frames": 7,
+ "loop": false,
+ "canvas": {
+  "w": 161,
+  "h": 104
+ },
+ "anchor": {
+  "kind": "feet",
+  "x": 14,
+  "y": 79
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 7,
+   "frame": {
+    "w": 148,
+    "h": 88
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 7,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -4,
+    "y": -76
+   }
+  },
+  {
+   "name": "whole-with-sprite",
+   "title": "the whole effect with the sprite in it",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 7,
+   "frame": {
+    "w": 155,
+    "h": 88
+   },
+   "sheets": [
+    {
+     "file": "whole-with-sprite.png",
+     "first_frame": 0,
+     "frames": 7,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -11,
+    "y": -76
+   }
+  },
+  {
+   "name": "behind",
+   "title": "everything behind the sprite",
+   "depth": "behind",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 6,
+   "frame": {
+    "w": 69,
+    "h": 64
+   },
+   "sheets": [
+    {
+     "file": "behind.png",
+     "first_frame": 0,
+     "frames": 6,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": 8,
+    "y": -52
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 7,
+   "frame": {
+    "w": 148,
+    "h": 84
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 7,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -4,
+    "y": -76
+   }
+  },
+  {
+   "name": "part-muzzle_flash",
+   "title": "the muzzle flash part",
+   "part": "muzzle_flash",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 2,
+   "frame": {
+    "w": 30,
+    "h": 13
+   },
+   "sheets": [
+    {
+     "file": "part-muzzle_flash.png",
+     "first_frame": 0,
+     "frames": 2,
+     "columns": 2,
+     "rows": 1
+    }
+   ],
+   "offset": {
+    "x": 8,
+    "y": -53
+   }
+  },
+  {
+   "name": "part-hit_star",
+   "title": "the hit star part",
+   "part": "hit_star",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 6,
+   "frame": {
+    "w": 42,
+    "h": 38
+   },
+   "sheets": [
+    {
+     "file": "part-hit_star.png",
+     "first_frame": 0,
+     "frames": 6,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": 20,
+    "y": -60
+   }
+  },
+  {
+   "name": "part-shockwave_ring",
+   "title": "the shockwave ring part",
+   "part": "shockwave_ring",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 6,
+   "frame": {
+    "w": 62,
+    "h": 24
+   },
+   "sheets": [
+    {
+     "file": "part-shockwave_ring.png",
+     "first_frame": 0,
+     "frames": 6,
+     "columns": 3,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": 15,
+    "y": -12
+   }
+  },
+  {
+   "name": "part-charge_up",
+   "title": "the charge up part",
+   "part": "charge_up",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 7,
+   "frame": {
+    "w": 61,
+    "h": 60
+   },
+   "sheets": [
+    {
+     "file": "part-charge_up.png",
+     "first_frame": 0,
+     "frames": 7,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": 60,
+    "y": -76
+   }
+  },
+  {
+   "name": "part-blaster_bolt",
+   "title": "the blaster bolt part, in place",
+   "role": "projectile",
+   "part": "blaster_bolt",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 1,
+   "frames": 4,
+   "frame": {
+    "w": 34,
+    "h": 9
+   },
+   "sheets": [
+    {
+     "file": "part-blaster_bolt.png",
+     "first_frame": 0,
+     "frames": 4,
+     "columns": 2,
+     "rows": 2
+    }
+   ],
+   "offset": {
+    "x": -14,
+    "y": -51
+   },
+   "moves": [
+    {
+     "x": 12.22,
+     "y": 0
+    },
+    {
+     "x": 42.78,
+     "y": 0
+    },
+    {
+     "x": 73.33,
+     "y": 0
+    },
+    {
+     "x": 103.89,
+     "y": 0
+    }
+   ]
+  },
+  {
+   "name": "part-flash_burst",
+   "title": "the flash burst part",
+   "part": "flash_burst",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 5,
+   "frames": 1,
+   "frame": {
+    "w": 40,
+    "h": 43
+   },
+   "sheets": [
+    {
+     "file": "part-flash_burst.png",
+     "first_frame": 0,
+     "frames": 1,
+     "columns": 1,
+     "rows": 1
+    }
+   ],
+   "offset": {
+    "x": 104,
+    "y": -70
+   }
+  }
+ ]
+}

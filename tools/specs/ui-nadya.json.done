@@ -1,0 +1,29 @@
+{
+ "nadya_icon_bag": {
+  "out": "id: 0ac80722-520a-4277-9c3f-4977d2e24552\njob_id: 0ac80722-520a-4277-9c3f-4977d2e24552\nmodel: pro\ndescription: game UI icon: glossy black heart-shaped handbag with a bright gold outline and small gold clasp, hanging on a short gold chain, bold dark outline, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 4da6276a-2935-58ec-935b-370b0fa5b06e\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"0ac80722-520a"
+ },
+ "nadya_heavy_slap": {
+  "out": "id: c6df1d01-0425-47a6-8ab4-3d3459923eda\njob_id: c6df1d01-0425-47a6-8ab4-3d3459923eda\nmodel: pro\ndescription: game UI icon, simple bold symbol readable at 32px, no full body, no face, no background, thick dark outline, open-palm slap: a single open hand swinging sideways with white motion lines and a small pink impact burst\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: cb1111fc-f507-5a61-820e-4f6e0bda976a\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nh"
+ },
+ "nadya_heavy_kick": {
+  "out": "id: 670c049f-c7e2-4b6a-9343-b79c13caf909\njob_id: 670c049f-c7e2-4b6a-9343-b79c13caf909\nmodel: pro\ndescription: game UI icon, simple bold symbol readable at 32px, no full body, no face, no background, thick dark outline, low kick: a single tall black pointed high-heeled boot kicking forward and upward with a bright yellow impact star at the toe\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: 20e02964-b1c8-5b87-a106-f28b360cce65\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: proces"
+ },
+ "nadya_heavy_sword": {
+  "out": "id: 3fd29995-dadb-4d59-9db2-9cf5989cbd4a\njob_id: 3fd29995-dadb-4d59-9db2-9cf5989cbd4a\nmodel: pro\ndescription: game UI icon, simple bold symbol readable at 32px, no full body, no face, no background, thick dark outline, samurai slash: a straight pastel-pink sword with a rounded ribbed tip and a button on the hilt, diagonal, with a white slash streak\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: ee24d64d-f1d9-56a6-99dd-5142604c1383\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: "
+ },
+ "nadya_icon_ult": {
+  "out": "id: 0cd60de8-970c-4870-8a4f-2f52b90c96c3\njob_id: 0cd60de8-970c-4870-8a4f-2f52b90c96c3\nmodel: pro\ndescription: game UI icon: big glossy magenta-pink heart with a small lipstick kiss mark and tiny sparkles, bold dark outline, centered, readable at small size\nsize: 32x32px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 10 per image\nasset_id: dd5f033a-e56a-5c3f-bf58-ac4958e898dc\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"0cd60de8-970c-4870-8a4f-2f52b90c96c3\")"
+ },
+ "nadya_status_slow": {
+  "out": "id: d92b4168-9e6e-47b5-bfab-c1326d9df6e5\njob_id: d92b4168-9e6e-47b5-bfab-c1326d9df6e5\nmodel: pro\ndescription: tiny status effect icon: a small pink snail, bold dark outline, readable at 16px\nsize: 16x16px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 8 per image\nasset_id: aa660899-5d33-5880-a45e-89c0dfdadb06\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"d92b4168-9e6e-47b5-bfab-c1326d9df6e5\")"
+ },
+ "nadya_status_stun": {
+  "out": "id: fd39258b-2cdd-4532-8a1d-14d71577b092\njob_id: fd39258b-2cdd-4532-8a1d-14d71577b092\nmodel: pro\ndescription: tiny status effect icon: three small yellow stars in a dizzy circle, bold dark outline, readable at 16px\nsize: 16x16px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 8 per image\nasset_id: 262454cf-7f13-5835-8cf4-1af7fcc6eba9\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"fd39258b-2cdd-4532-8a1d-14d71577b092\")"
+ },
+ "nadya_status_jealous": {
+  "out": "id: f6a522a8-6783-4b67-8323-b28d3399e635\njob_id: f6a522a8-6783-4b67-8323-b28d3399e635\nmodel: pro\ndescription: tiny status effect icon: a small magenta heart cracked by a yellow lightning bolt, bold dark outline, readable at 16px\nsize: 16x16px\ntransparent: True\ncandidates: 64\nstyle_image: yes (outline, detail, shading)\nmax colours: 8 per image\nasset_id: 861440c7-3fd4-52b5-9540-7ffec3f6c60a\nasset_status: pending (saved when generation completes)\ncost: 10 generations\nstatus: processing (~1-10 min)\n\nhint: get_image(job_id=\"f6a522a8-6783-4b67-8323-b28d3399e635\")"
+ },
+ "nadya_portrait": {
+  "out": "id: 2e8c8414-32a6-430f-bb51-92868b27ddb4\ndirection: character_to_portrait\nview: side\nsize: 64×64px\ncost: ~15 generations\nstatus: processing (~30-80s)\n\nhint: get_portrait_character(job_id=\"2e8c8414-32a6-430f-bb51-92868b27ddb4\")"
+ }
+}
