@@ -19,7 +19,7 @@ export const HITSTOP_HEAVY_MS = 100; // при сбивании с ног
 export const RUN_MULT = 1.7; // бег: стик на максимум (или Shift)
 
 // Анастасия: врыв, магнит и воздушные серии.
-export const SLAM_ANIM = 'highkick'; // замена до генерации axe
+export const SLAM_ANIM = 'axe';
 export const MAGNET_DIST = 60; // добавочная дистанция подведения
 export const RUSH_DIST = 110; // длина врыва
 export const ATTACK_BAND = 40; // глубина сектора
@@ -61,12 +61,12 @@ export interface Strike {
 export const AIR_MS = 900; // сколько враг летит после подброса
 
 // Анастасия: независимые серии A и B по три удара.
-// Надя: B своя серия из трёх (B, B B, B B B). Kris: серия A из двух (mr.R 30.10: третий удар убран), B всегда вспышка
+// Надя: B своя серия из трёх. Kris: два взмаха и отскок, B всегда вспышка
 export const CHAIN: Record<Form, string[]> = {
   prime: ['superman', 'highkick', 'teep'],
   ultimate: ['flying-knee', 'elbow', 'roundhouse'],
   nadya: ['a1', 'a2', 'a3'],
-  kris: ['a1', 'a2'],
+  kris: ['a1-back', 'a2', 'hop'],
 };
 export const HEAVY: Record<Form, string[]> = {
   prime: ['uppercut', 'cross', 'slam'],
@@ -105,8 +105,8 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
   },
   // Kris: штатив вблизи, вспышка и шар издалека (числа предварительные, kris.md)
   kris: {
-    a1: { range: 78, dmg: 5, kb: 3, stun: 250 },
-    a2: { range: 70, dmg: 6, kb: 4, stun: 250 },
+    'a1-back': { range: 78, dmg: 4, kb: 0, stun: 0, stunMs: 800, word: 'СТОП!' },
+    a2: { range: 78, dmg: 5, kb: 30, stun: 0, stunMs: 800, word: 'ВЖУХ!' },
     b: { range: 320, dmg: 4, kb: 2, stun: 500, kind: 'flash' },
     ball: { range: 0, dmg: 20, kb: 20, stun: 500, kind: 'ball' },
   },
@@ -121,7 +121,10 @@ export const KISS_SPEED = 200; // воздушный поцелуй летит �
 export const KISS_HALF_W = 16; // полуширина сердца: кого задело по x
 export const KISS_BAND = 36; // по глубине: кого задело по y
 export const CONTROL_ULT = 5; // шкала ульты Нади за каждого замедленного или оглушённого
-// Kris: вспышка, шар, луч
+// Kris: отскок, вспышка, шар, луч
+export const HOP_MS = 350;
+export const HOP_DIST = 120;
+export const HOP_HEIGHT = 30;
 export const FLASH_SPEED = 600; // ед/с, урон приходит, когда вспышка долетела
 export const FLASH_CD_MS = 300; // темп вдвое выше, чем был (mr.R 30.10)
 export const BALL_PER_HIT = 12.5; // 8 попаданий вспышкой = полный заряд шара
@@ -170,7 +173,7 @@ export const isLoop = (form: Form, move: string) => !!animDef(form, move)?.loop;
 
 // Удары проигрываются быстрее исходных fps: меньше задержка от нажатия до попадания (mr.R 24.10)
 export const ATTACK_SPEED = 1.4;
-export const moveSpeed = (form: Form, move: string): number => (STRIKES[form][move] ? ATTACK_SPEED : 1);
+export const moveSpeed = (form: Form, move: string): number => form === 'kris' && move === 'hop' ? 9000 / (16 * HOP_MS) : (STRIKES[form][move] ? ATTACK_SPEED : 1);
 
 export function moveDurMs(form: Form, move: string, facing: number): number {
   const a = animDef(form, move);

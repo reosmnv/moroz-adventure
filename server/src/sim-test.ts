@@ -386,7 +386,7 @@ for (const char of [HERO_ID, NADYA_ID, KRIS_ID]) {
 {
   const { w } = setup(false, KRIS_ID); dummy(w, 'e1', 30);
   const { log } = run(w, 2500, press([0, 300, 600, 900], 'attack'));
-  check('Kris: серия A из двух, a1 > a2 > a1', log.slice(0, 3).join() === 'a1,a2,a1' && !log.includes('a3'), log.join('>'));
+  check('Kris: серия A a1-back > a2 > hop', log.slice(0, 3).join() === 'a1-back,a2,hop', log.join('>'));
 }
 {
   const { w } = setup(false, KRIS_ID); dummy(w, 'e1', 200);
@@ -449,6 +449,35 @@ const ballAt = (w: World) => {
   const r = run(w, 4000, press([0], 'ult'));
   check('Kris: ульта ставит камеру > стоит > убирает', r.log.join('>').includes('ult-setup>ult-hold>ult-out'), r.log.join('>'));
   check('Kris: прицел, затем луч 40 по дальнему врагу', r.events.indexOf('aim') < r.events.indexOf('beam') && r.hits.includes(40), r.events.join());
+}
+// ТЗ-03: сектор штатива, точный отброс и безопасный отскок.
+for (const combo of [0, 1]) {
+  const { w, p } = setup(false, KRIS_ID); p.combo = combo; p.comboMs = 1000;
+  for (const [id, dx, dy] of [['near', 40, 0], ['edge', 78, 40], ['back', -20, 0], ['far', 79, 0], ['outside', 40, 41]] as const) {
+    dummy(w, id, dx); w.enemies[id].y += dy;
+    w.enemies[id].slowMs = 10000; w.enemies[id].slow = 1;
+  }
+  run(w, TICK_MS, press([0], 'attack'));
+  run(w, hitTimesMs('kris', CHAIN.kris[combo], 1)[0] + TICK_MS);
+  check(`Kris A${combo + 1}: все в секторе оглушены`, ['near', 'edge'].every(id => (w.enemies[id].stunMs ?? 0) > 740));
+  check(`Kris A${combo + 1}: вне сектора не задеты`, ['back', 'far', 'outside'].every(id => w.enemies[id].hp === 1000));
+  check(`Kris A${combo + 1}: урон и отброс`, w.enemies.near.hp === 1000 - (combo ? 5 : 4) && Math.abs(w.enemies.near.x - (240 + (combo ? 30 : 0))) < 0.01);
+}
+for (const [x, facing] of [[200, 1], [15, 1], [1905, -1]] as const) {
+  const { w, p } = setup(false, KRIS_ID); p.x = x; p.facing = facing; p.combo = 2; p.comboMs = 1000;
+  dummy(w, 'attacker', facing * 34); w.enemies.attacker.cdMs = 0;
+  const hp = p.hp;
+  run(w, TICK_MS, press([0], 'attack'));
+  run(w, 170, () => ({ mx: -facing, heavy: true, ult: true }));
+  check(`Kris hop x=${x}: неуязвимость и взгляд`, p.hp === hp && p.invulnMs > 0 && p.move === 'hop' && p.facing === facing);
+  run(w, 187);
+  const expected = Math.max(10, Math.min(1910, x - facing * 120));
+  check(`Kris hop x=${x}: приземление и край`, Math.abs(p.x - expected) < 0.01 && p.x >= 10 && p.x <= 1910, `${p.x}`);
+}
+{
+  const { w, p } = setup(false, KRIS_ID); p.x = 800; p.combo = 2; p.comboMs = 1000;
+  run(w, 400, press([0], 'attack'));
+  check('Kris hop: не за левую границу стандартной камеры', p.x >= 800 - 480 * 0.33 && Math.abs(p.x - 680) < 0.01);
 }
 check('длительности из данных (x1.4)', moveDurMs('prime', 'jab', 1) > 300 && moveDurMs('prime', 'jab', 1) < 400);
 

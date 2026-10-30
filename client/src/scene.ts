@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LANE_BOTTOM, LANE_TOP, LEVEL_W, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LANE_BOTTOM, LANE_TOP, LEVEL_W, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
@@ -308,9 +308,10 @@ export class GameScene extends Phaser.Scene {
     const raw = Math.floor((t * def.fps * moveSpeed(form, action)) / 1000);
     const frame = def.loop ? raw % n : Math.min(n - 1, raw);
     const sprite = v.sprite!;
-    sprite.setTexture(`${form}/${move}-${dir}`, frame).setPosition(x, y).setDepth(y);
+    const lift = form === 'kris' && action === 'hop' ? Math.sin(Math.PI * Math.min(1, t / HOP_MS)) * HOP_HEIGHT : 0;
+    sprite.setTexture(`${form}/${move}-${dir}`, frame).setPosition(x, y - lift).setDepth(y);
     // Неуязвимость после удара мигает; во время превращения не мигает, там своя анимация
-    const blink = sb.invuln && form !== 'ultimate' && !/^(transform|ult|b3)/.test(move) && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
+    const blink = sb.invuln && form !== 'ultimate' && !/^(transform|ult|b3)/.test(move) && move !== 'hop' && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
     sprite.setAlpha(away ? 0.35 : blink ? 0.45 : 1);
     v.shadow!.setPosition(x, y).setDepth(y - 0.1).setAlpha(away ? 0.1 : 0.3);
   }

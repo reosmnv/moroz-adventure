@@ -2,7 +2,7 @@
 // Чистые данные и функции, без Phaser и Colyseus.
 import type { Form } from './anims-data.ts';
 import {
-  ATTACK_BAND, MAGNET_GAP, MAGNET_DIST, RUSH_DIST, LAUNCH_H, JUGGLE_REFRESH_MS, JUGGLE_MULT, JUGGLE_STEP, JUGGLE_MULT_MAX, JUGGLE_MAX_MS, SLAM_MULT, BOUNCE_MS, BOUNCE_H, HIT_CHAIN_MS, PIN_MS, PIN_KB_MIN, PIN_SIZE, PIN_DMG, PIN_KB, KILL_EXTEND_MS, AIR_CHARGE_MULT,
+  HOP_MS, HOP_DIST, ATTACK_BAND, MAGNET_GAP, MAGNET_DIST, RUSH_DIST, LAUNCH_H, JUGGLE_REFRESH_MS, JUGGLE_MULT, JUGGLE_STEP, JUGGLE_MULT_MAX, JUGGLE_MAX_MS, SLAM_MULT, BOUNCE_MS, BOUNCE_H, HIT_CHAIN_MS, PIN_MS, PIN_KB_MIN, PIN_SIZE, PIN_DMG, PIN_KB, KILL_EXTEND_MS, AIR_CHARGE_MULT,
   AIR_MS, AIM_MS, BALL_FLIGHT_MS, BALL_LINES, BALL_PER_HIT, BALL_NEAR_NASTYA, BALL_RADIUS, BALL_THROW, BEAM_DMG, BEAM_LEN, CHAIN, CHARM_LINE, CHARM_MS, COMBO_MS, COMBO_MS_BY,
   CONTROL_ULT, DASH_DELAY_MS, DASH_DIST, FLASH_CD_MS, FLASH_SPEED, HEAVY, HERO_FORM, HERO_ID, HURT_INVULN_MS, FREEZE_MS, HITSTOP_HEAVY_MS, HITSTOP_MS,
   IMMUNE_INVULN_MS, KISS_BAND, KISS_HALF_W, KISS_SPEED, KNOCK_MULT, KRIS_ID, KRIS_LENS, NADYA_ID, NEXT_MOVE, RANGE_MULT, RUN_MULT, STORM_DMG, STORM_MS, STORM_RADIUS, STORM_TICK_MS, SPEED_MULT, STRIKES, ULT_MS,
@@ -80,6 +80,7 @@ export interface Player {
   hitCountMs: number;
   ultimateExtraMs: number; // уже добавленное куражом время
   approach?: { x: number; y: number; tx: number; ty: number; ms: number; rush: boolean; target: string };
+  hop?: { from: number; to: number };
   wantBall: boolean; // Kris: шар нажат, пока была занята; полетит, как только сможет
 }
 
@@ -287,22 +288,24 @@ function setAir(e: Enemy, ms: number, peak: number, bounce: boolean) {
 function hitEnemies(w: World, p: Player, range: number, dmg: number, ev: SimEvent[], allAround = false, opts: HitOpts = {}): number {
   let list = Object.values(w.enemies).filter(e => {
     const dx = e.x - p.x;
-    const inFront = allAround || Math.sign(dx) === p.facing || Math.abs(dx) < 6;
-    const inLane = p.char === HERO_ID ? Math.abs(e.y - p.y) <= ATTACK_BAND : Math.abs(e.y - p.y) < (allAround ? 60 : LANE_TOLERANCE);
-    return e.hp > 0 && (opts.everyone || (inFront && Math.abs(dx) < range && inLane));
+    const krisSweep = p.form === 'kris' && ['a1-back', 'a2'].includes(p.move);
+    const inFront = krisSweep ? dx * p.facing >= 0 : allAround || Math.sign(dx) === p.facing || Math.abs(dx) < 6;
+    const inLane = (p.char === HERO_ID || krisSweep) ? Math.abs(e.y - p.y) <= ATTACK_BAND : Math.abs(e.y - p.y) < (allAround ? 60 : LANE_TOLERANCE);
+    return e.hp > 0 && (opts.everyone || (inFront && (krisSweep ? Math.abs(dx) <= range : Math.abs(dx) < range) && inLane));
   });
   if (opts.single && list.length > 1) list = [list.reduce((a, b) => (Math.abs(a.x - p.x) < Math.abs(b.x - p.x) ? a : b))];
   for (const e of list) applyHit(w, p, e, dmg, Math.sign(e.x - p.x || p.facing), ev, opts, allAround);
   return list.length;
 }
 
-const strikeOpts = (p: Player, s: Strike): HitOpts => ({ ...s, pin: s.kb >= PIN_KB_MIN, kb: s.kb * KNOCK_MULT[p.form], stun: s.stun });
+const strikeOpts = (p: Player, s: Strike): HitOpts => ({ ...s, pin: !(p.form === 'kris' && s.stunMs) && s.kb >= PIN_KB_MIN, kb: s.kb * (p.form === 'kris' && s.stunMs ? 1 : KNOCK_MULT[p.form]), stun: s.stun });
 
 
 const isHero = (p: Player) => isSpriteHero(p.char);
 
 function startMove(p: Player, move: string) {
   p.approach = undefined;
+  p.hop = undefined;
   p.move = move;
   p.moveT = -1; // -1: первый тик попадёт в кадр 0
 }
@@ -503,6 +506,12 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
   const prevT = p.moveT;
   p.moveT += dtMs;
 
+  if (p.move === 'hop' && p.hop) {
+    const k = clamp(p.moveT / HOP_MS, 0, 1);
+    p.x = p.hop.from + (p.hop.to - p.hop.from) * k;
+    if (k < 1) p.invulnMs = Math.max(p.invulnMs, dtMs * 2);
+  }
+
   const ap = p.approach;
   if (ap) {
     const k = clamp(Math.max(0, p.moveT) / ap.ms, 0, 1);
@@ -532,7 +541,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
           if (e.hp <= 0 || along < 0 || along > end + strike.range * RANGE_MULT || Math.abs(e.y - lineY) > ATTACK_BAND) continue;
           applyHit(w, p, e, strike.dmg, p.facing, ev, opts); n++;
         }
-      } else n = hitEnemies(w, p, strike.range * RANGE_MULT, strike.dmg, ev, !!strike.around, opts);
+      } else n = hitEnemies(w, p, strike.range * (p.form === 'kris' && strike.stunMs ? 1 : RANGE_MULT), strike.dmg, ev, !!strike.around, opts);
       if (n > 0) {
         p.hitstopMs = strike.down ? HITSTOP_HEAVY_MS : HITSTOP_MS;
         // Ultimate: сколько нанесла, столько и вылечила
@@ -635,10 +644,18 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       startMove(p, HEAVY[p.form][Math.min(p.combo, 2)]);
       p.combo = 0; p.comboMs = 0;
     } else if (want === 'attack') {
-      p.queued = null; turn();
-      const len = CHAIN[p.form].length; // у Kris серия из двух
+      p.queued = null;
+      const hopping = p.form === 'kris' && p.combo === 2;
+      if (!hopping) turn();
+      const len = CHAIN[p.form].length;
       const step = p.combo % len;
       startMove(p, CHAIN[p.form][step]); approach(w, p);
+      if (hopping) {
+        // Камера пока только на клиенте: граница по стандартной ширине обзора.
+        const left = Math.max(10, Math.min(LEVEL_W - VIEW_W, p.x - VIEW_W * 0.33));
+        p.hop = { from: p.x, to: clamp(p.x - p.facing * HOP_DIST, left, LEVEL_W - 10) };
+        p.invulnMs = HOP_MS + TICK_MS;
+      }
       p.combo = step === len - 1 ? 0 : step + 1;
       p.comboMs = comboWindow;
     } else if (!busy && inp.taunt && p.tauntCdMs === 0) {
