@@ -1,0 +1,26 @@
+{
+ "kris-a1back-in": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: v3 custom (from a relaxed stance holding her camera at her chest she grabs her folded tripod, winds it back behind her and sweeps it horizontally across her front in a wide backhand swing)\ndirections: east (1 jobs)\njob_ids: east=ba1aeccc-3b81-4794-b223-82d83a2aeb8c\ngroup: 1110ffba-1e74-4d2a-ad7f-5f8bc0479ea7\nframes: 7 (1 reference + 6 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(cha"
+ },
+ "kris-a1back-out": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: v3 custom (the backhand sweep follows through, she lowers the tripod and returns to a relaxed stance holding her camera ready at her chest with both hands)\ndirections: east (1 jobs)\njob_ids: east=7fda3ed3-b6ab-43b2-8077-f810a755d9ea\ngroup: 6cef363f-a871-405b-ab56-4d23a831957e\nframes: 5 (1 reference + 4 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"ba00a3c3-ec73-4ca3-acf"
+ },
+ "kris-hop-in": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: v3 custom (she pushes off the ground and hops quickly backward, both feet leaving the ground, holding the camera at her chest)\ndirections: east (1 jobs)\njob_ids: east=5866d0ed-223f-4c1d-a3f9-c2dc8057c859\ngroup: e115425f-b79c-4a33-94f3-c14891b523c9\nframes: 5 (1 reference + 4 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\")\nadd more dir"
+ },
+ "kris-hop-out": {
+  "out": "character: ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\nanimation: v3 custom (she lands softly from a backward hop, knees absorbing the landing, back in a relaxed stance holding the camera at her chest)\ndirections: east (1 jobs)\njob_ids: east=d0e3b669-2887-41ae-9b3f-bfef6a525a8a\ngroup: 30d1d3e3-2305-444d-b176-105758c29d22\nframes: 5 (1 reference + 4 animated)\ncanvas: east 96x96 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"ba00a3c3-ec73-4ca3-acf7-be7ecc58b90a\")\nadd"
+ },
+ "axe-in-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (from a Muay Thai fighting stance she swings her front leg straight up high above her head for an axe kick)\ndirections: east (1 jobs)\njob_ids: east=9d9623ff-d845-49b2-8de6-13648a2a6d93\ngroup: f840764a-909f-44e5-93ef-f069827446b0\nframes: 5 (1 reference + 4 animated)\ncanvas: east 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\")\nadd more directions t"
+ },
+ "axe-out-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (she chops her raised heel straight down hard in front of her, a powerful axe kick slamming down, then returns to her fighting stance)\ndirections: east (1 jobs)\njob_ids: east=b3dcdc5e-9b3c-4664-880d-a76a6652ab98\ngroup: 3b1b9b91-3778-45ba-8750-5e930f81fee9\nframes: 7 (1 reference + 6 animated)\ncanvas: east 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169"
+ },
+ "axe-in-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (from a Muay Thai fighting stance she swings her front leg straight up high above her head for an axe kick)\ndirections: west (1 jobs)\njob_ids: west=f5f4f6c4-54ce-4d9c-a0ed-cd1c6c0b066c\ngroup: 8b15453b-3c16-4468-a6ce-b26bc73f9bae\nframes: 5 (1 reference + 4 animated)\ncanvas: west 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169e9f\")\nadd more directions t"
+ },
+ "axe-out-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (she chops her raised heel straight down hard in front of her, a powerful axe kick slamming down, then returns to her fighting stance)\ndirections: west (1 jobs)\njob_ids: west=299f3a59-4c66-458c-8ae7-ff6c31c9abdb\ngroup: b4b336e0-5be4-4fae-bc23-de119cfcb12e\nframes: 7 (1 reference + 6 animated)\ncanvas: west 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"8f079407-9eb2-48f9-9b07-695c53169"
+ }
+}

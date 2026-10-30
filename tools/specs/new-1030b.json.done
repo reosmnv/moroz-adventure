@@ -1,0 +1,8 @@
+{
+ "axe2-out-east": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (she brings her raised leg straight down, heel chopping hard to the ground in front of her (axe kick), then steps back into her Muay Thai fighting stance. Clean pixel art frames, no motion blur, no white smear, no effects)\ndirections: east (1 jobs)\njob_ids: east=f1b14deb-5345-4020-87a8-7815898ec0f4\ngroup: efafcbf2-7122-4c5c-9e61-c7f484912d04\nframes: 7 (1 reference + 6 animated)\ncanvas: east 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta:"
+ },
+ "axe2-out-west": {
+  "out": "character: 8f079407-9eb2-48f9-9b07-695c53169e9f\nanimation: v3 custom (she brings her raised leg straight down, heel chopping hard to the ground in front of her (axe kick), then steps back into her Muay Thai fighting stance. Clean pixel art frames, no motion blur, no white smear, no effects)\ndirections: west (1 jobs)\njob_ids: west=1c65ec77-9448-4811-aea0-746aa1d87bd4\ngroup: d54b7b61-66c5-41d8-8d2c-42ee45e99d3f\nframes: 7 (1 reference + 6 animated)\ncanvas: west 76x88 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 1 generation (1/dir x 1)\neta:"
+ }
+}

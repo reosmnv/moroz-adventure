@@ -65,6 +65,16 @@
     "fps": 10,
     "loop": true
    },
+   "axe": {
+    "east": 11,
+    "hit": {
+     "east": 6,
+     "west": 6
+    },
+    "west": 9,
+    "fps": 18,
+    "loop": false
+   },
    "cross": {
     "east": 8,
     "hit": {

@@ -6,6 +6,7 @@ export interface AnimDef { east: number; west: number; fps: number; loop: boolea
 
 export const HERO_ANIMS: Record<Form, Record<string, AnimDef>> = {
   prime: {
+    'axe': { east: 11, west: 9, fps: 18, loop: false, hit: { east: 6, west: 6 } },
     'cross': { east: 8, west: 7, fps: 18, loop: false, hit: { east: 3, west: 2 } },
     'dash': { east: 8, west: 8, fps: 14, loop: true },
     'fall': { east: 7, west: 7, fps: 12, loop: false },
@@ -55,12 +56,14 @@ export const HERO_ANIMS: Record<Form, Record<string, AnimDef>> = {
   },
   kris: {
     'a1': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 4, west: 4 } },
+    'a1-back': { east: 8, west: 8, fps: 16, loop: false, hit: { east: 3, west: 3 } },
     'a2': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 6, west: 6 } },
     'b': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 4, west: 4 } },
     'ball': { east: 8, west: 8, fps: 16, loop: false, hit: { east: 4, west: 4 } },
     'dash': { east: 8, west: 8, fps: 14, loop: true },
     'fall': { east: 7, west: 7, fps: 12, loop: false },
     'getup': { east: 5, west: 5, fps: 10, loop: false },
+    'hop': { east: 9, west: 9, fps: 16, loop: false, hit: { east: 4, west: 4 } },
     'hurt': { east: 6, west: 6, fps: 14, loop: false },
     'idle': { east: 16, west: 16, fps: 10, loop: true },
     'ult': { east: 26, west: 26, fps: 16, loop: false, hit: { east: 16, west: 16 } },

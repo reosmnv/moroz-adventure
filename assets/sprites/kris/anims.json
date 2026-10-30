@@ -85,6 +85,26 @@
      "west": 4
     }
    },
+   "a1-back": {
+    "east": 8,
+    "west": 8,
+    "fps": 16,
+    "loop": false,
+    "hit": {
+     "east": 3,
+     "west": 3
+    }
+   },
+   "hop": {
+    "east": 9,
+    "west": 9,
+    "fps": 16,
+    "loop": false,
+    "hit": {
+     "east": 4,
+     "west": 4
+    }
+   },
    "ult-setup": {
     "east": 10,
     "west": 10,

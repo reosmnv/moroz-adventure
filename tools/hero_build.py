@@ -29,10 +29,12 @@ HEROES = {
     "kris": {
         # cam-*: переходы от стойки с камерой наготове (mr.R 30.10); a3 убран из серии, старые a*-in/out не собираются
         "seq": {"a1": ["cam-a1-in", "cam-a1-out"], "a2": ["cam-a2-in", "cam-a2-out"],
-                "b": ["cam-b-in", "cam-b-out"], "ball": ["cam-ball-in", "cam-ball-out"]},
+                "b": ["cam-b-in", "cam-b-out"], "ball": ["cam-ball-in", "cam-ball-out"],
+                # новая серия A (mr.R 30.10): обратный взмах и отскок назад
+                "a1-back": ["kris-a1back-in", "kris-a1back-out"], "hop": ["kris-hop-in", "kris-hop-out"]},
         "hit": {},
         # a2: штатив стал «ромбом» на возврате; ball: синяя дуга на возврате (проверено глазами 30.10)
-        "drop": {"a2": [7, 8], "ball": [6]},
+        "drop": {"a2": [7, 8], "ball": [6], "a1-back": [2, 3, 4]},  # a1-back: разворот к зрителю (30.10)
         # ходьба и бег с камерой в руках (pixminimax от стойки с камерой, mr.R 30.10) вместо skeleton-v3 с кулаками
         "alias": {"walk": None, "dash": None, "walk-cam8": "walk", "dash-cam8": "dash", "walk-cam16": None, "dash-cam16": None},
         "fps": {"idle": (10, True), "walk": (10, True), "dash": (14, True), "hurt": (14, False),
