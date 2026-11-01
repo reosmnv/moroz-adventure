@@ -1,5 +1,5 @@
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
+import { BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -788,7 +788,7 @@ for (const dodge of [false, true]) {
     w.players.p0.x = 300; step(w, {});
     const enemies = Object.values(w.enemies);
     hp.push(enemies[0].maxHp);
-    check(`TZ07: ${n} игрока, вход справа x1+260`, enemies.length === 3 && enemies.every(e => e.x === 720 + ENTER_OFF));
+    check(`TZ07: ${n} игрока, вход справа x1+ENTER_OFF`, enemies.length === 3 && enemies.every(e => e.x === 720 + ENTER_OFF));
     check(`TZ07: ${n} игрока, ни одного слева`, enemies.every(e => e.x >= 240));
     check(`TZ07: мир содержит ${n} игроков`, Object.keys(w.players).length === n);
   }
@@ -834,7 +834,7 @@ for (const dodge of [false, true]) {
   w.enc.queue = [{ kind: 'vatnik', door: 630 }, { kind: 'omon', door: 20 }];
   step(w, {});
   const [door, right] = Object.values(w.enemies);
-  check('TZ07: дверь внутри арены и fallback справа', door.x === 630 && door.anim === 'enter' && door.enterMs === 500 && right.x === 980);
+  check('TZ07: дверь внутри арены и fallback справа', door.x === 630 && door.anim === 'enter' && door.enterMs === 500 && right.x === 720 + ENTER_OFF);
   run(w, 400);
   check('TZ07: во время enter вставки нет', !w.cine && !door.token);
   run(w, 120);
@@ -917,6 +917,75 @@ for (const atk of ['mic','vstayu','pyro','chorus','salute','slap','banStrike','s
 {
   const {w,p,e}=bossSetup('pizdulina');forceBossAttack(e,'shots');p.y=180;
   run(w,1020);check('TZ08 R3: shots выпускает 4 печати',e.shotCount===4);
+}
+// TZ-09: каждая уличная волна входит за 3 с при героине у правого края.
+for (const [index, encounter] of ENCOUNTERS.street.entries()) {
+  for (const [wave, spawns] of encounter.waves.entries()) {
+    const w = createWorld(91, false), p = addPlayer(w, 'h', HERO_ID);
+    w.introduced = Object.keys(ENEMY_INTRO);
+    w.enc.index = w.enc.cleared = index;
+    p.x = encounter.trigger; step(w, {});
+    w.enemies = {}; w.enc.wave = wave; w.enc.queue = [...spawns];
+    const x1 = encounter.arena[1]; p.x = x1 - 20; p.invulnMs = 10000;
+    step(w, {});
+    const ids = Object.keys(w.enemies);
+    run(w, 3000);
+    check(`TZ09 R5: улица ${index + 1}, волна ${wave + 1}, вход за 3 с`,
+      ids.length === spawns.length && ids.every(id => w.enemies[id]?.entered && w.enemies[id].x <= x1 + 40));
+    let tested = 0, vulnerable = true;
+    for (const e of Object.values(w.enemies)) {
+      if (e.hp <= 0 || e.x > x1 + 40 || Math.abs(e.x - p.x) >= STRIKES.prime.jab.range * RANGE_MULT) continue;
+      const copy = structuredClone(w), hero = copy.players.h, target = copy.enemies[e.id];
+      hero.y = target.y; hero.facing = target.x >= hero.x ? 1 : -1;
+      hero.move = 'jab'; hero.moveT = 0;
+      const hp = target.hp;
+      step(copy, {}, hitTimesMs('prime', 'jab', hero.facing)[0] + 1);
+      vulnerable &&= target.hp < hp; tested++;
+    }
+    check(`TZ09 R5: улица ${index + 1}, волна ${wave + 1}, видимые в радиусе получают джеб`, vulnerable && tested > 0, `целей=${tested}`);
+  }
+}
+for (const kind of ['vatnik', 'clerk', 'zek', 'omon', 'pizdulina'] as const) {
+  const w = createWorld(94, false), p = addPlayer(w, 'h', HERO_ID);
+  w.introduced = Object.keys(ENEMY_INTRO); p.x = 300; step(w, {});
+  const e = Object.values(w.enemies)[0];
+  if (kind === 'pizdulina') { e.boss = kind; w.enc.bossStarted = true; }
+  else { e.kind = kind; if (kind === 'omon') w.enc.bossStarted = true; }
+  const x = e.x; step(w, {});
+  check(`TZ09 R2: ${kind} бежит со скоростью 150`, Math.abs(x - e.x - ENTER_SPEED * TICK_MS / 1000) < 0.001 && e.anim === 'run');
+}
+// Уязвимость на пороге входа без скачка к внутренней границе.
+for (const offset of [40.1, 40, 20]) {
+  const w = createWorld(92, false), p = addPlayer(w, 'h', HERO_ID);
+  w.introduced = Object.keys(ENEMY_INTRO); p.x = 300; step(w, {});
+  const e = Object.values(w.enemies)[0]; w.enemies = { [e.id]: e };
+  p.x = 700; p.y = e.y; p.invulnMs = 10000;
+  e.x = 720 + offset; e.cdMs = 10000;
+  const hp = e.hp, x = e.x;
+  // Джеб применяется до движения врага; здесь проверяем сам порог уязвимости.
+  p.move = 'jab'; p.moveT = 0;
+  const dt = hitTimesMs('prime', 'jab', 1)[0] + 1;
+  step(w, {}, dt);
+  check(`TZ09 R3: порог x1+${offset}`, offset <= 40 ? e.entered === true && e.hp < hp : e.hp === hp);
+  check(`TZ09 R3: плавный вход x1+${offset}`, e.x >= x - ENTER_SPEED * dt / 1000 - 0.001 && e.x > 708);
+  run(w, 600);
+  check(`TZ09 R3: дошёл до внутренней границы x1+${offset}`, !!e.entered && !e.entering && e.x <= 708);
+}
+// Fast не выходит из арены ни в замахе, ни в активной части рывка.
+for (const dir of [-1, 1] as const) {
+  const w = createWorld(93, false), p = addPlayer(w, 'h', HERO_ID);
+  w.introduced = Object.keys(ENEMY_INTRO); p.x = 300; step(w, {});
+  const e = Object.values(w.enemies)[0];
+  Object.assign(e, { kind: 'zek', entered: true, x: dir > 0 ? 700 : 260, y: 220,
+    phase: 'windup', phaseMs: ROLE.fast.windupMs, token: p.id, atkDir: dir, atkY: 220 });
+  // Остальные ещё входят; героиня стоит справа, как в отзыве.
+  p.x = 700; p.y = 220; p.invulnMs = 10000;
+  let bounded = true, active = false;
+  for (let t = 0; t < 1000; t += TICK_MS) {
+    step(w, {}); active ||= e.phase === 'active';
+    bounded &&= e.x >= 252 && e.x <= 708;
+  }
+  check(`TZ09 R4: fast windup/active dir=${dir} в границах арены`, bounded && active);
 }
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');
 process.exit(failed ? 1 : 0);

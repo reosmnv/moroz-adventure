@@ -30,11 +30,13 @@ const REVIVE_MS = 5000;
 const TAUNT_CD_MS = 3000;
 const LANE_TOLERANCE = 24;
 
-export const ENTER_OFF = 260;
+export const ENTER_OFF = 340;
+export const ENTER_SPEED = 150;
+const ENTER_MARGIN = 40;
 export const HALT_MS = 2500;
 export const CINE_MS = 2800;
 
-export type Anim = 'enter' | 'idle' | 'walk' | 'attack' | 'heavy' | 'hurt' | 'down' | 'taunt' | 'ult' | 'windup' | 'strike' | 'dash' | 'recover';
+export type Anim = 'enter' | 'idle' | 'walk' | 'run' | 'attack' | 'heavy' | 'hurt' | 'down' | 'taunt' | 'ult' | 'windup' | 'strike' | 'dash' | 'recover';
 
 export interface Character {
   id: string;
@@ -92,7 +94,7 @@ export interface Player {
 }
 
 export interface Enemy {
-  entered?: boolean; enterMs?: number; bornTick?: number;
+  entered?: boolean; entering?: boolean; enterMs?: number; bornTick?: number;
   boss?: BossId; bossPhase?: 1 | 2; atk?: string;
   atkIndex?: number; cooldowns?: Record<string, number>; invulnMs?: number;
   deathMs?: number; shotCount?: number; shotMs?: number; wideToken?: boolean;
@@ -342,9 +344,10 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
   ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, word: opts.word, by: p.id });
 }
 
-const combatReady = (w: World, e: Enemy) => !w.enc.lock || !e.enterMs && (e.entered || e.x >= w.enc.lock[0] && e.x <= w.enc.lock[1]);
+const combatReady = (w: World, e: Enemy) => !w.enc.lock || !e.enterMs && (e.entered || e.x >= w.enc.lock[0] && e.x <= w.enc.lock[1] + ENTER_MARGIN);
+// В полосе входа враг уже уязвим, но доходит до границы без скачка.
 const clampEnemyX = (w: World, x: number, e: Enemy) => w.enc.lock
-  ? e.entered ? clamp(x, w.enc.lock[0] + 12, w.enc.lock[1] - 12) : x
+  ? e.entered ? clamp(x, w.enc.lock[0] + 12, e.entering ? Math.max(e.x, w.enc.lock[1] - 12) : w.enc.lock[1] - 12) : x
   : clamp(x, Math.max(-40, focusX(w) - 300), Math.min(levelW(w) + 40, focusX(w) + 300));
 
 function introduce(w: World, ev: SimEvent[]): boolean {
@@ -814,7 +817,7 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
     w.enemies[id] = { id, bornTick: w.tick, kind: spawn.kind, phase: 'none', phaseMs: 0, x,
       y: door !== undefined ? laneTop(w, x) + 2 : laneTop(w, x) + rand(w) * (laneBottom(w) - laneTop(w, x)),
       enterMs: door !== undefined ? 500 : undefined,
-      hp, maxHp: hp, facing: -1, anim: door !== undefined ? 'enter' : 'walk', animMs: 0, cdMs: 0 };
+      hp, maxHp: hp, facing: -1, anim: door !== undefined ? 'enter' : 'run', animMs: 0, cdMs: 0 };
   }
   if (!enc.queue.length && enc.wave >= next.waves.length - 1) {
     if (next.bosses) {
@@ -827,12 +830,12 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
         w.enemies[id] = { id, bornTick: w.tick, kind: 'vatnik', boss, bossPhase: 1, hp, maxHp: hp,
           x: boss === 'shaman' ? 1240 : enc.lock[1] + ENTER_OFF, y: boss === 'shaman' ? 205 : laneBottom(w) - 20, facing: -1,
           enterMs: boss === 'shaman' ? 900 : undefined,
-          phase: 'none', phaseMs: 0, anim: 'walk', animMs: 0, cdMs: 0 };
+          phase: 'none', phaseMs: 0, anim: 'run', animMs: 0, cdMs: 0 };
         if (boss === 'shaman') { w.enemies[id].phase = 'enter'; w.enemies[id].anim = 'enter'; }
         else for (let n = 0; n < 2; n++) {
           const oid = 'e' + w.nextEnemyId++, hp = ROLE[KIND.omon.role].hp;
           w.enemies[oid] = { id: oid, kind: 'omon', hp, maxHp: hp, x: enc.lock[1] + ENTER_OFF + 30 + n * 22,
-            y: laneBottom(w) - 30 + n * 12, facing: -1, phase: 'none', phaseMs: 0, anim: 'walk', animMs: 0, cdMs: 0 };
+            y: laneBottom(w) - 30 + n * 12, facing: -1, phase: 'none', phaseMs: 0, anim: 'run', animMs: 0, cdMs: 0 };
         }
         enc.bossStarted = true; ev.push({ t: 'boss', id }); return;
       }
@@ -901,7 +904,8 @@ function stepEnemyAttack(w: World, e: Enemy, targets: Player[], speed: number, d
     }
     if (e.phase === 'active' && stats.dash) {
       const from = e.x, distance = Math.min(e.dashLeft ?? 0, stats.dash.speed * dt);
-      e.x = clamp(e.x + e.atkDir! * distance, 0, levelW(w)); e.y = e.atkY!;
+      const nextX = e.x + e.atkDir! * distance;
+      e.x = w.enc.lock ? clampEnemyX(w, nextX, e) : clamp(nextX, 0, levelW(w)); e.y = e.atkY!;
       e.dashLeft = Math.max(0, (e.dashLeft ?? 0) - distance);
       if (!e.struck) {
         const hit = targets.filter(p => p.hp > 0 && p.x >= Math.min(from, e.x) - 16 && p.x <= Math.max(from, e.x) + 16 && Math.abs(p.y - e.atkY!) <= stats.depth)
@@ -1025,7 +1029,8 @@ function stepBoss(w: World, e: Enemy, targets: Player[], dtMs: number, ev: SimEv
     const a = BOSS_ATTACK[selected];
     const wide = !['melee', 'shots', 'summon'].includes(a.kind);
     const gap = a.kind === 'melee' ? a.reach! - 6 : 85;
-    const gx = t.x + (e.x < t.x ? -gap : gap), dx = gx - e.x, dy = t.y - e.y;
+    const gx = w.enc.lock ? clamp(t.x + (e.x < t.x ? -gap : gap), w.enc.lock[0] + 12, w.enc.lock[1] - 12) : t.x + (e.x < t.x ? -gap : gap);
+    const dx = gx - e.x, dy = t.y - e.y;
     e.facing = t.x > e.x ? 1 : -1;
     if (!e.token || Math.abs(dx) > 3 || Math.abs(dy) > 3) {
       const len = Math.hypot(dx, dy), dist = Math.min(len, info.speed * (e.slowMs ? 1 - (e.slow ?? 0) : 1) * dtMs / 1000);
@@ -1055,7 +1060,7 @@ function stepBoss(w: World, e: Enemy, targets: Player[], dtMs: number, ev: SimEv
       if (Object.values(w.enemies).filter(o => o.hp > 0).length >= MAX_ALIVE) break;
       const kind = group.kind as EnemyKind, stats = ROLE[KIND[kind].role], bounds = w.enc.lock ?? [0, levelW(w)];
       const id = 'e' + w.nextEnemyId++, hp = Math.round(stats.hp * (KIND[kind].hpMult ?? 1));
-      w.enemies[id] = { id, kind, hp, maxHp: hp, x: bounds[1] + ENTER_OFF, y: e.y, facing: -1, phase: 'none', phaseMs: 0, anim: 'walk', animMs: 0, cdMs: 0 };
+      w.enemies[id] = { id, kind, hp, maxHp: hp, x: bounds[1] + ENTER_OFF, y: e.y, facing: -1, phase: 'none', phaseMs: 0, anim: 'run', animMs: 0, cdMs: 0 };
     }
   } else if (e.phase === 'active' && e.phaseMs <= 0) {
     releaseToken(w, e); e.phase = 'recover'; e.phaseMs = a.recoverMs;
@@ -1121,7 +1126,10 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     if (!w.cine.ms) w.cine = undefined;
     return ev;
   }
-  for (const e of Object.values(w.enemies)) if (combatReady(w, e) && w.enc.lock) e.entered = true;
+  for (const e of Object.values(w.enemies)) if (combatReady(w, e) && w.enc.lock && !e.entered) {
+    e.entering = e.x > w.enc.lock[1] - 12;
+    e.entered = true;
+  }
   if (introduce(w, ev)) return ev;
   w.tick++; w.timeMs += dtMs;
 
@@ -1192,10 +1200,15 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   // Враги: к ближайшему живому игроку на его дорожку, удар, пауза
   const targets = active.filter(p => p.hp > 0);
   for (const e of Object.values(w.enemies)) {
-    if (e.hp > 0 && w.enc.lock && !e.entered) {
+    if (e.hp > 0 && w.enc.lock && (!e.entered || e.entering)) {
       if (e.bornTick === w.tick) continue;
       if (e.enterMs) { e.enterMs = Math.max(0, e.enterMs - dtMs); e.anim = 'enter'; if (!e.enterMs && e.phase === 'enter') e.phase = 'none'; }
-      else { e.x = Math.max(w.enc.lock[1], e.x - (e.boss === 'pizdulina' || e.kind === 'omon' && w.enc.bossStarted ? 130 : e.boss ? BOSS[e.boss].speed : ROLE[KIND[e.kind].role].speed) * dt); e.anim = 'walk'; }
+      else {
+        const speed = Math.max(ENTER_SPEED, e.boss ? BOSS[e.boss].speed : ROLE[KIND[e.kind].role].speed);
+        e.x = Math.max(w.enc.lock[1] - 12, e.x - speed * dt);
+        e.entering = e.x > w.enc.lock[1] - 12;
+        e.anim = 'run';
+      }
       if (combatReady(w, e)) e.entered = true;
       continue;
     }

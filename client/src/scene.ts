@@ -9,6 +9,7 @@ import { FONT, UIScene, textStyle } from './ui.ts';
 import { StageView, preloadStages, debugLane } from './stage.ts';
 import { buildLevel, preloadLevel, showCard } from './level.ts';
 
+const ENTER_ANIM_RATE = 1.5;
 const CAM_TAU = 0.18;
 const CAM_LEAD = 0.33;
 const UI_RIGHT = (width: number) => Math.round(width * 0.40);
@@ -584,7 +585,7 @@ export class GameScene extends Phaser.Scene {
         const kind = sb.boss || sb.kind || 'omon';
         const clips = ENEMY_ANIMS[kind]!;
         const casting = !!sb.boss && !!sb.atk && BOSS_ATTACK[sb.atk]?.kind !== 'melee' && (sb.phase === 'windup' || sb.phase === 'active' || sb.phase === 'recover');
-        let clip = sb.anim === 'enter' ? 'walk' : sb.anim === 'down' ? 'fall' : sb.anim === 'hurt' ? 'hurt' : casting ? (sb.phase !== 'windup' && clips.release ? 'release' : 'cast') : sb.anim;
+        let clip = sb.anim === 'enter' || sb.anim === 'run' ? 'walk' : sb.anim === 'down' ? 'fall' : sb.anim === 'hurt' ? 'hurt' : casting ? (sb.phase !== 'windup' && clips.release ? 'release' : 'cast') : sb.anim;
         if (casting && sb.phase === 'active' && !v.castActive) { v.enemySince = this.time.now; v.castActive = true; }
         if (sb.phase === 'windup' || !casting) v.castActive = false;
         if (clip === 'dash' && !clips.dash) clip = 'strike';
@@ -592,7 +593,7 @@ export class GameScene extends Phaser.Scene {
         const def = clips[clip];
         if (def) {
           if (v.enemyClip !== clip) { v.enemyClip = clip; v.enemySince = this.time.now; }
-          if (v.enemySince !== undefined) v.enemySince += delta * (1 - pace);
+          if (v.enemySince !== undefined) v.enemySince += delta * (1 - pace * (sb.anim === 'run' ? ENTER_ANIM_RATE : 1));
           const raw = Math.floor((this.time.now - (v.enemySince ?? this.time.now)) * def.fps / 1000);
           const frame = def.loop && clip !== 'windup' && clip !== 'cast' && clip !== 'release' ? raw % def.frames : Math.min(def.frames - 1, raw);
           v.sprite.setTexture(`enemy/${kind}/${clip}`, frame).setFlipX(sb.facing < 0).setPosition(x, y - lift).setDepth(y).setVisible(!(sb.boss === 'shaman' && (sb.enterMs ?? 0) > 200)).setAlpha(sb.anim === 'enter' ? Math.min(1, (this.time.now - (v.enemySince ?? this.time.now)) / 500) : sb.phase === 'recover' ? 0.7 : 1);
