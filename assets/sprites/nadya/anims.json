@@ -55,26 +55,6 @@
      "west": 4
     }
    },
-   "a2": {
-    "east": 10,
-    "west": 10,
-    "fps": 18,
-    "loop": false,
-    "hit": {
-     "east": 6,
-     "west": 6
-    }
-   },
-   "a3": {
-    "east": 11,
-    "west": 11,
-    "fps": 18,
-    "loop": false,
-    "hit": {
-     "east": 8,
-     "west": 8
-    }
-   },
    "b1": {
     "east": 6,
     "west": 6,
@@ -103,6 +83,26 @@
     "hit": {
      "east": 6,
      "west": 6
+    }
+   },
+   "a2": {
+    "east": 11,
+    "west": 11,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 5,
+     "west": 5
+    }
+   },
+   "a3": {
+    "east": 13,
+    "west": 13,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 5,
+     "west": 5
     }
    },
    "b3-draw": {

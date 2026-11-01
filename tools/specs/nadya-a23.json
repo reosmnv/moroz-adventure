@@ -1,0 +1,98 @@
+[
+ {
+  "name": "nadya-a2-pm16",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "pixminimax",
+   "action_description": "She stays in strict side profile facing right the whole time and never turns her face or chest toward the viewer. Overhead bag smash: she swings the black heart bag on its gold chain back past her head and up in a big vertical arc, steps forward and slams it down hard onto the ground in front of her to the right, chain stretched far ahead, then yanks the bag back into her hand and returns to the exact starting stance.",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a2-pm16",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-a2-pm12",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "pixminimax",
+   "action_description": "She stays in strict side profile facing right the whole time and never turns her face or chest toward the viewer. Overhead bag smash: she swings the black heart bag on its gold chain back past her head and up in a big vertical arc, steps forward and slams it down hard onto the ground in front of her to the right, chain stretched far ahead, then yanks the bag back into her hand and returns to the exact starting stance.",
+   "frame_count": 12,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a2-pm12",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-a3-pm16",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "pixminimax",
+   "action_description": "Full-circle bag spin: she pivots once on her heel through a complete 360 degree turn with her arm stretched out, swinging the black heart bag on its long fully extended gold chain in a wide flat horizontal circle around her at waist height, the bag sweeping far out in front of her, then far behind her, then back in front; she finishes in the exact starting stance facing right.",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a3-pm16",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-a3-pm16b",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "pixminimax",
+   "action_description": "Hammer-throw spin: with her arm straight out she whirls the black heart bag on its long taut gold chain in a big horizontal ring around her body, her torso twisting with it while her feet pivot in place; the bag flies wide on both sides of her, front and back, with a motion blur trail, then she catches it and returns to the exact starting stance facing right.",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a3-pm16b",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-a2-up-pm",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "pixminimax",
+   "action_description": "She stays in strict side profile facing right the whole time and never turns her face or chest toward the viewer. She swings the black heart bag on its gold chain back behind her and raises it high over her head, leaning back slightly, winding up for an overhead strike.",
+   "frame_count": 8,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a2-up-pm",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/a2-pose-east-96.png"
+  }
+ },
+ {
+  "name": "nadya-a2-down-pm",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945",
+   "mode": "pixminimax",
+   "action_description": "She stays in strict side profile facing right the whole time and never turns her face or chest toward the viewer. She whips the heart bag from high over her head down in a fast heavy arc and slams it onto the ground in front of her to the right, chain stretched far forward, then pulls it back and returns to the exact fighting stance.",
+   "frame_count": 12,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "a2-down-pm",
+   "custom_start_frame_base64": "@assets/pixellab/nadya/keyposes/a2-pose-east-96.png",
+   "end_frame_base64": "@assets/pixellab/nadya/keyposes/idle0-east-96.png"
+  }
+ }
+]

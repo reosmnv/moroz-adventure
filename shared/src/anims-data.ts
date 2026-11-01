@@ -38,8 +38,8 @@ export const HERO_ANIMS: Record<Form, Record<string, AnimDef>> = {
   },
   nadya: {
     'a1': { east: 9, west: 9, fps: 18, loop: false, hit: { east: 4, west: 4 } },
-    'a2': { east: 10, west: 10, fps: 18, loop: false, hit: { east: 6, west: 6 } },
-    'a3': { east: 11, west: 11, fps: 18, loop: false, hit: { east: 8, west: 8 } },
+    'a2': { east: 11, west: 11, fps: 18, loop: false, hit: { east: 5, west: 5 } },
+    'a3': { east: 13, west: 13, fps: 18, loop: false, hit: { east: 5, west: 5 } },
     'b1': { east: 6, west: 6, fps: 18, loop: false, hit: { east: 3, west: 3 } },
     'b2': { east: 6, west: 6, fps: 18, loop: false, hit: { east: 3, west: 3 } },
     'b3': { east: 19, west: 19, fps: 18, loop: false, hit: { east: 13, west: 13 } },

@@ -1,0 +1,20 @@
+{
+ "nadya-a2-pm16": {
+  "out": "character: e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945\nanimation: pixminimax custom (She stays in strict side profile facing right the whole time and never turns her face or chest toward the viewer. Overhead bag smash: she swings the black heart bag on its gold chain back past her head and up in a big vertical arc, steps forward and slams it down hard onto the ground in front of her to the right, chain stretched far ahead, then yanks the bag back into her hand and returns to the exact starting stance.)\ndirections: east (1 jobs)\njob_ids: east=077a82e5-716c-4cba-a2a3-df91a8959800\ngroup: dedaded5-4e6b-4"
+ },
+ "nadya-a2-pm12": {
+  "out": "character: e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945\nanimation: pixminimax custom (She stays in strict side profile facing right the whole time and never turns her face or chest toward the viewer. Overhead bag smash: she swings the black heart bag on its gold chain back past her head and up in a big vertical arc, steps forward and slams it down hard onto the ground in front of her to the right, chain stretched far ahead, then yanks the bag back into her hand and returns to the exact starting stance.)\ndirections: east (1 jobs)\njob_ids: east=b549a5ad-1c17-4feb-977d-063d37dbb02a\ngroup: af086542-e0ec-4"
+ },
+ "nadya-a3-pm16": {
+  "out": "character: e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945\nanimation: pixminimax custom (Full-circle bag spin: she pivots once on her heel through a complete 360 degree turn with her arm stretched out, swinging the black heart bag on its long fully extended gold chain in a wide flat horizontal circle around her at waist height, the bag sweeping far out in front of her, then far behind her, then back in front; she finishes in the exact starting stance facing right.)\ndirections: east (1 jobs)\njob_ids: east=2196b78a-3370-474f-a103-80448d1daa24\ngroup: b2b9e9f1-bffc-4fbc-923c-03c5ccea010a\nframes: 17 (1 refere"
+ },
+ "nadya-a3-pm16b": {
+  "out": "character: e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945\nanimation: pixminimax custom (Hammer-throw spin: with her arm straight out she whirls the black heart bag on its long taut gold chain in a big horizontal ring around her body, her torso twisting with it while her feet pivot in place; the bag flies wide on both sides of her, front and back, with a motion blur trail, then she catches it and returns to the exact starting stance facing right.)\ndirections: east (1 jobs)\njob_ids: east=731941ca-4b87-4a2e-9c2b-44719ce2379f\ngroup: 84d6403a-5f3f-42ad-8ac2-3e5cd87f34bc\nframes: 17 (1 reference + 16 animated)"
+ },
+ "nadya-a2-up-pm": {
+  "out": "character: e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945\nanimation: pixminimax custom (She stays in strict side profile facing right the whole time and never turns her face or chest toward the viewer. She swings the black heart bag on its gold chain back behind her and raises it high over her head, leaning back slightly, winding up for an overhead strike.)\ndirections: east (1 jobs)\njob_ids: east=0ba921a4-0167-4c07-9a3b-ccf4981485ed\ngroup: 55139a80-3aa3-4370-befd-307266358b55\nframes: 9 (1 reference + 8 animated)\ncanvas: east 96x136 (generated at this size; with custom frames the stored canvas is re-meas"
+ },
+ "nadya-a2-down-pm": {
+  "out": "character: e466a1d2-2faf-4e2d-a1ad-6bbf1b4da945\nanimation: pixminimax custom (She stays in strict side profile facing right the whole time and never turns her face or chest toward the viewer. She whips the heart bag from high over her head down in a fast heavy arc and slams it onto the ground in front of her to the right, chain stretched far forward, then pulls it back and returns to the exact fighting stance.)\ndirections: east (1 jobs)\njob_ids: east=01099afe-a95a-45b2-a918-347e5a2149d3\ngroup: d77a5806-744b-4938-bb6e-d59f76a390d0\nframes: 13 (1 reference + 12 animated)\ncanvas: east 96x136 (gene"
+ }
+}

@@ -11,12 +11,18 @@ ROOT = Path(__file__).resolve().parent.parent
 HEROES = {
     "nadya": {
         # анимация -> части по порядку (каждая следующая без первого кадра: он = последний кадр прошлой)
-        "seq": {"a1": ["a1-in", "a1-out"], "a2": ["a2-in", "a2-out"], "a3": ["a3-in", "a3-out"],
+        "seq": {"a1": ["a1-in", "a1-out"],
                 "b1": ["b1-in", "b1-out"], "b2": ["b2-in", "b2-out"],
                 "ult": ["ult-in", "ult-out"]},
         # кадр попадания в собранной полосе; по умолчанию последний кадр первой части (ключевая поза)
         # номера кадров до чистки DROP (проверено глазами 29.10)
-        "hit": {"a1": 4, "a2": 7, "a3": 8, "b1": 4, "b2": 4, "ult": 6},
+        "hit": {"a1": 4, "b1": 4, "b2": 4, "ult": 6},
+        # a2 и a3 переделаны 01.11 (mr.R: неестественные): pixminimax 16 кадров стойка -> стойка одним куском.
+        # анимация -> (папка, кадры, которые берём, кадр попадания в номерах папки); лишние кадры выкинуты ради темпа
+        "pick": {"a2": ("a2-pm16", [0, 1, 3, 4, 5, 6, 7, 12, 13, 14, 16], 6),   # замах за голову, удар об пол перед собой
+                 "a3": ("a3-pm16", [0, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16], 7)},  # полный оборот, сумка по кругу
+        # пилоты 01.11, в сборку не идут: a2-pm12, a2-up-pm/a2-down-pm (через старую позу), a3-pm16b (золотое кольцо)
+        "skip": ["a2-pm12", "a2-up-pm", "a2-down-pm", "a3-pm16b"],
         # мусорные кадры: a2 бурый смаз, b1 Т-поза и красная полоса на груди, b2 длинные волосы, b3 белая «коса» и хвост
         "drop": {"a2": [6], "b1": [2, 6, 7], "b2": [3, 6, 7]},
         # PixelLab сдвигает фигуру внутри холста, и Надя «скакала» по карте в серии с сумкой (mr.R 30.10):
@@ -54,7 +60,8 @@ def build(hero):
     raw, od = ROOT / "assets" / "pixellab" / hero, ROOT / "assets" / "sprites" / hero
     od.mkdir(parents=True, exist_ok=True); (od / "gif").mkdir(exist_ok=True)
     parts = {p for seq in cfg["seq"].values() for p in seq} | {"b3-draw", "b3-slash", "b3-out", "ult-setup", "ult-rise", "ult-out"} \
-        | {f"{a}-{k}" for a in ("a1", "a2", "a3", "b", "ball") for k in ("in", "out")}
+        | {f"{a}-{k}" for a in ("a1", "a2", "a3", "b", "ball") for k in ("in", "out")} \
+        | {v[0] for v in cfg.get("pick", {}).values()} | set(cfg.get("skip", []))
     out = {}
     # опорная точка всех ударов: первый кадр стойки
     idle0 = load(raw / "idle" / "east")[0]
@@ -85,6 +92,10 @@ def build(hero):
         drop = cfg["drop"].get(name, [])
         hit = (h if h is not None else hit) - sum(1 for i in drop if i < (h if h is not None else hit))
         out[name] = ([f for i, f in enumerate(fr) if i not in drop], hit)
+    for name, (folder, keep, h) in cfg.get("pick", {}).items():
+        cells = load(raw / folder / "east")
+        fr = frames_of(place(cells, *anchor([cells[0]])))
+        out[name] = ([fr[i] for i in keep], keep.index(h))
     if hero == "nadya":
         out.update(nadya_samurai(raw, ax, ay, out))
     if cfg.get("stab") and "idle" in out:
