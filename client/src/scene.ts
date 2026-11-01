@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { BossShow } from './boss-show.ts';
 import { ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
@@ -30,6 +31,8 @@ interface View { ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyC
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
+  private bossShow?: BossShow;
+  private attackBands: { x: number; y: number; h: number; until: number; grid: boolean }[] = [];
   private stageView?: StageView;
   private locationKey = '';
   private worldWidth = 1920;
@@ -75,7 +78,7 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     for (const [k, v] of Object.entries(VFX)) {
-      this.anims.create({ key: 'fx-' + k, frames: this.anims.generateFrameNumbers('fx-' + k, { start: 0, end: v.n - 1 }), frameRate: v.fps, repeat: v.loop ? -1 : 0 });
+      this.anims.create({ key: 'fx-' + k, frames: this.anims.generateFrameNumbers('fx-' + k, { start: 0, end: k === 'boss-firework' ? 4 : v.n - 1 }), frameRate: v.fps, repeat: v.loop ? -1 : 0 });
     }
     this.layout();
     this.scale.on('resize', () => this.layout());
@@ -170,13 +173,37 @@ export class GameScene extends Phaser.Scene {
     }, onComplete: () => { trail.remove(); heart.destroy(); glow.destroy(); } });
   }
 
+  private bossWord(x: number, y: number, text: string, size = 16, color = '#ffd34f') {
+    const t = this.add.text(x,y,text,textStyle(size,color)).setOrigin(0.5).setDepth(y+200);
+    this.tweens.add({targets:t,y:y-15,alpha:0,delay:700,duration:500,onComplete:()=>t.destroy()});
+  }
   private onEvents(evs: SimEvent[]) {
     for (const e of evs) {
+      if (e.t === 'bossFx') {
+        const floor = {depth: 0};
+        if (e.attack === 'vstayu') {
+          this.fx('boss-ring',e.x,e.y,{...floor,scale:3}); this.cameras.main.shake(200,0.008); this.bossWord(e.x,e.y-100,'ВСТАЮ!');
+        } else if (e.attack === 'pyro') this.fx('boss-pyro',e.x,e.y-63,{depth:e.y,scale:1.5,frames:12});
+        else if (e.attack === 'salute') this.fx('boss-firework',e.x,e.y-30,{depth:e.y,scale:1.5,frames:5}).setTint(e.tint ?? 0xffffff);
+        else if (e.attack === 'banStrike') {
+          this.fx('boss-ban',e.x,e.y-(110-64)*1.5,{depth:e.y,scale:1.5});
+          this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5}); this.bossWord(e.x,e.y-85,'ЗАБЛОКИРОВАНО',8,'#ff3030'); this.cameras.main.shake(120,0.006);
+        } else if (e.attack === 'zones') this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5});
+        else if (e.h) {
+          this.attackBands.push({x:e.x,y:e.y,h:e.h,until:this.time.now+e.ms,grid:e.attack==='grid'});
+          if(e.attack==='chorus') this.bossWord(e.x+160,e.y-80,'Я РУССКИЙ!');
+        }
+      }
+      if (e.t === 'phase' || e.t === 'bossDown') {
+        const boss = this.session.snapshots.at(-1)?.enemies.get(e.id);
+        if (boss) this.bossWord(boss.x,boss.y-105,e.t==='phase' ? (boss.boss==='shaman'?'ВСТАЮ ЕЩЁ РАЗ!':'ДОСТУП ЗАПРЕЩЁН') : (boss.boss==='shaman'?'ОТМЕНЁН!':'РАЗБЛОКИРОВАНО!'));
+        this.cameras.main.flash(120);
+      }
       if (e.t === 'victory') void showFinale(() => this.replay());
-      if (e.t === 'tele') this.telegraphs.push({ ev: e, until: this.time.now + e.ms });
+      if (e.t === 'tele') this.telegraphs.push({ ev: e, until: this.time.now + e.ms + (e.delayMs ?? 0) });
       if (e.t === 'phase') { this.phaseUntil = this.time.now + 1000; this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id); }
       if (e.t === 'bossDown') this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id);
-      if (e.t === 'restart' || e.t === 'stage') this.telegraphs = [];
+      if (e.t === 'restart' || e.t === 'stage') { this.telegraphs = []; this.attackBands = []; this.bossShow?.destroy(); this.bossShow = undefined; }
 
       if (e.t === 'lock') { this.lockNoticeUntil = this.time.now + 1200; this.forwardFrom = undefined; }
       if (e.t === 'clear') {
@@ -345,12 +372,27 @@ export class GameScene extends Phaser.Scene {
       return t.until > this.time.now && owner?.hp !== 0 && !(arrived && (!owner || owner.frozen || owner.phase === 'none' || owner.phase === 'recover'));
     });
     for (const t of this.telegraphs) {
+      if (this.time.now < t.until - t.ev.ms) continue;
       const e = t.ev, alpha = 0.2 + 0.6 * (1 - (t.until - this.time.now) / e.ms);
       g.lineStyle(2, 0xff3030, alpha); g.fillStyle(0xff2020, alpha * 0.4);
-      if (e.shape === 'line') {
-        const end = e.dir! > 0 ? s.lockX1 : s.lockX0;
-        g.fillRect(Math.min(end, e.x), e.y - e.h!, Math.abs(end - e.x), e.h! * 2);
-      } else g.strokeEllipse(e.x, e.y, e.r! * 2, e.r! * (e.shape === 'ring' ? 0.7 : 0.8));
+      if (e.shape === 'line' || e.shape === 'grid') {
+        g.fillRect(s.lockX0,e.y-e.h!,s.lockX1-s.lockX0,e.h!*2);
+        if(e.shape==='grid') {
+          for(let x=s.lockX0;x<s.lockX1;x+=8) g.lineBetween(x,e.y-e.h!,x,e.y+e.h!);
+          for(let y=e.y-e.h!;y<e.y+e.h!;y+=8) g.lineBetween(s.lockX0,y,s.lockX1,y);
+        }
+      } else {
+        const ratio=e.shape==='ring'?0.7:0.8;
+        g.strokeEllipse(e.x,e.y,e.r!*2,e.r!*ratio);
+        if(e.shape!=='ring') g.fillEllipse(e.x,e.y,e.r!*2*alpha,e.r!*ratio*alpha);
+        if(e.shape==='ban') { g.lineBetween(e.x-5,e.y-5,e.x+5,e.y+5); g.lineBetween(e.x-5,e.y+5,e.x+5,e.y-5); }
+      }
+    }
+    this.attackBands = this.attackBands.filter(b=>b.until>this.time.now);
+    for(const b of this.attackBands) {
+      g.fillStyle(b.grid?0xff2020:0xffd34f,0.65);
+      if(b.grid) g.fillRect(s.lockX0,b.y-b.h,s.lockX1-s.lockX0,b.h*2);
+      else for(let x=s.lockX0;x<s.lockX1;x+=4) g.fillRect(x,b.y+Math.sin((x-this.time.now/4)/15)*b.h*0.6,4,6);
     }
     for (const z of s.zones) { g.fillStyle(0xff2020, 0.55); g.fillEllipse(z.x, z.y, z.r * 2, z.r * 0.8); }
     for (const shot of s.shots) {
@@ -494,6 +536,7 @@ export class GameScene extends Phaser.Scene {
     const locationKey = b.level + ':' + b.stage;
     if (locationKey !== this.locationKey) {
       const first = !this.locationKey;
+      this.bossShow?.destroy(); this.bossShow = undefined;
       this.stageView?.destroy();
       this.tweens.killAll(); this.time.removeAllEvents();
       this.children.removeAll(true); this.views.clear(); this.prompt = undefined; this.forwardFrom = undefined;
@@ -510,7 +553,12 @@ export class GameScene extends Phaser.Scene {
       if (me) this.follow(me.x);
       if (!first) this.cameras.main.fadeIn(350);
     }
-    this.stageView?.update(latestStage.cineId ? 0 : delta, latestStage.halt, b.level === 'route' && b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
+    const pace = latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
+    if (b.level === 'route' && b.stage === 4) {
+      this.bossShow ??= new BossShow(this);
+      this.bossShow.update(latestStage, delta * pace);
+    } else { this.bossShow?.destroy(); this.bossShow = undefined; }
+    this.stageView?.update(delta * pace, latestStage.halt, b.level === 'route' && b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
     const seen = new Set<string>();
     const draw = (key: string, isPlayer: boolean, sa: EntitySnap | undefined, sb: EntitySnap, live = false) => {
       seen.add(key);
@@ -544,14 +592,14 @@ export class GameScene extends Phaser.Scene {
         const def = clips[clip];
         if (def) {
           if (v.enemyClip !== clip) { v.enemyClip = clip; v.enemySince = this.time.now; }
-          if (latestStage.cineId && v.enemySince !== undefined) v.enemySince += delta;
+          if (v.enemySince !== undefined) v.enemySince += delta * (1 - pace);
           const raw = Math.floor((this.time.now - (v.enemySince ?? this.time.now)) * def.fps / 1000);
           const frame = def.loop && clip !== 'windup' && clip !== 'cast' && clip !== 'release' ? raw % def.frames : Math.min(def.frames - 1, raw);
-          v.sprite.setTexture(`enemy/${kind}/${clip}`, frame).setFlipX(sb.facing < 0).setPosition(x, y - lift).setDepth(y).setAlpha(sb.anim === 'enter' ? Math.min(1, (this.time.now - (v.enemySince ?? this.time.now)) / 500) : sb.phase === 'recover' ? 0.7 : 1);
+          v.sprite.setTexture(`enemy/${kind}/${clip}`, frame).setFlipX(sb.facing < 0).setPosition(x, y - lift).setDepth(y).setVisible(!(sb.boss === 'shaman' && (sb.enterMs ?? 0) > 200)).setAlpha(sb.anim === 'enter' ? Math.min(1, (this.time.now - (v.enemySince ?? this.time.now)) / 500) : sb.phase === 'recover' ? 0.7 : 1);
         }
       }
       if (v.sprite && isPlayer) {
-        const lead = live && !latestStage.cineId ? Math.min(TICK_MS, performance.now() - this.session.snapshots[this.session.snapshots.length - 1].t) : 0;
+        const lead = live && pace > 0 ? Math.min(TICK_MS, (performance.now() - this.session.snapshots[this.session.snapshots.length - 1].t) * pace) : 0;
         this.drawHero(v, sb, x, y, live ? 1 : f, !!away, lead);
       }
       // Замороженный враг синий с ледяной окантовкой
@@ -565,6 +613,7 @@ export class GameScene extends Phaser.Scene {
       const head = v.sprite ? HEAD : isPlayer ? 86 : 80;
       v.hp.setPosition(x - 20, y - head - lift).setDepth(y + 0.6).setSize(40 * Math.max(0, sb.hp) / maxHp, 3);
       v.label?.setPosition(x, y - head - 3 - lift).setDepth(y + 0.7);
+      if (!isPlayer) { const hidden = sb.boss === 'shaman' && (sb.enterMs ?? 0) > 200; v.shadow?.setVisible(!hidden); v.hp.setVisible(!hidden); }
       v.bubble?.setPosition(x, y - HEAD - 18);
     };
     // Свою героиню рисуем по самому свежему снимку: отставание 60 мс остаётся только у остальных
@@ -577,7 +626,8 @@ export class GameScene extends Phaser.Scene {
     const focus = latest.cineId ? latest.enemies.get(latest.cineId) : latest.players.get(this.session.me);
     if (focus) this.follow(focus.x, delta / 1000, !!latest.cineId);
     this.drawGuides(latest);
-    if (latest.cineId) for (const t of this.telegraphs) t.until += delta;
+    for (const t of this.telegraphs) t.until += delta * (1 - pace);
+    for (const b of this.attackBands) b.until += delta * (1 - pace);
     this.drawBossFx(latest);
     if (LEVELS[latest.level].stages[latest.stage].tunnel && this.stopped && this.time.now - this.stoppedAt < 1000) { this.exitLabel?.setVisible(false); this.prompt?.setVisible(false); }
     if (latest.won) void showFinale(() => this.replay());

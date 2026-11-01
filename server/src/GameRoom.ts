@@ -29,7 +29,7 @@ export const PlayerState = schema({
 export type PlayerState = SchemaType<typeof PlayerState>;
 
 export const EnemyState = schema({
-  boss: t.string(), bossPhase: t.number(), atk: t.string(),
+  enterMs: t.number(), boss: t.string(), bossPhase: t.number(), atk: t.string(),
   kind: t.string(),
   phase: t.string(),
   x: t.number(),
@@ -51,6 +51,7 @@ export type EnemyState = SchemaType<typeof EnemyState>;
 export const ShotState = schema({ x: t.number(), y: t.number(), dir: t.number() }, 'ShotState');
 export const ZoneState = schema({ x: t.number(), y: t.number(), r: t.number(), ms: t.number() }, 'ZoneState');
 export const GameState = schema({
+  pauseMs: t.number(), slowmoMs: t.number(),
   halt: t.number(), cineId: t.string(), cineKind: t.string(), cineMs: t.number(),
   intro: t.boolean(), introHost: t.string(),
   shots: t.array(ShotState), zones: t.array(ZoneState),
@@ -158,6 +159,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     const s = this.state, w = this.world;
     s.shots.clear(); for (const shot of w.shots) s.shots.push(new ShotState({ x: shot.x, y: shot.y, dir: shot.dir }));
     s.zones.clear(); for (const zone of w.zones) s.zones.push(new ZoneState({ x: zone.x, y: zone.y, r: zone.r, ms: zone.ms }));
+    s.pauseMs = w.pauseMs ?? 0; s.slowmoMs = w.slowmoMs ?? 0;
     s.halt = w.halt; s.cineId = w.cine?.id ?? ''; s.cineKind = w.cine?.kind ?? ''; s.cineMs = w.cine?.ms ?? 0;
     s.level = w.level; s.stage = w.stage; s.trans = w.trans?.ms ?? 0;
     s.tick = w.tick;
@@ -177,6 +179,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
+      es.enterMs = e.enterMs ?? 0;
       es.boss = e.boss ?? ''; es.bossPhase = e.bossPhase ?? 0; es.atk = e.atk ?? '';
       es.kind = e.boss ?? e.kind; es.phase = e.phase;
       es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.air = Math.round(e.air ?? 0); es.height = round(e.height ?? 0); es.frozen = (e.frozenMs ?? 0) > 0; es.slow = (e.slowMs ?? 0) > 0; es.stun = (e.stunMs ?? 0) > 0; es.charm = (e.charmMs ?? 0) > 0; es.facing = e.facing; es.anim = e.anim;

@@ -98,10 +98,13 @@ export class StageView {
       if (text) {
         const small = this.scene.add.text(0, -22, text[0], { fontFamily: FONT, fontSize: '8px', color: '#ffffff', backgroundColor: '#120c19', padding: { x: 6, y: 5 } }).setOrigin(0.5);
         const big = this.scene.add.text(0, 4, text[1], { fontFamily: FONT, fontSize: '16px', color: '#120c19', backgroundColor: '#ffe45c', padding: { x: 8, y: 7 } }).setOrigin(0.5);
-        this.card = this.scene.add.container(-300, VIEW_H + 80, [small, big]).setScrollFactor(0).setDepth(5000).setAngle(-4);
+        this.card = this.scene.add.container(this.scene.scale.width / 2, VIEW_H + 80, [small, big]).setScrollFactor(0).setDepth(5000).setAngle(-4);
         const card = this.card;
-        this.scene.tweens.add({ targets: card, x: this.scene.scale.width / 2, y: VIEW_H / 2, duration: 180, ease: 'Back.easeOut' });
-        this.scene.tweens.add({ targets: card, x: this.scene.scale.width + 300, y: -80, delay: 1580, duration: 150 });
+        const available = this.scene.scale.width - 32;
+        const extent = Math.max(small.width, big.width) + 12;
+        card.setScale(Math.min(1, available / extent));
+        this.scene.tweens.add({ targets: card, x: this.scene.scale.width / 2, y: VIEW_H / 2, duration: 180, ease: 'Cubic.easeOut' });
+        this.scene.tweens.add({ targets: card, x: this.scene.scale.width / 2, y: -80, delay: 1580, duration: 150 });
       }
     }
 
