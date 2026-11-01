@@ -19,7 +19,7 @@ export const ENCOUNTERS: Record<string, Encounter[]> = {
   ],
   mayak: [
     { trigger: 260, arena: [200, 680], waves: [[{ kind: 'clerk' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'clerk' }, { kind: 'zek' }, { kind: 'zek' }, { kind: 'vatnik' }], [{ kind: 'clerk' }, { kind: 'clerk' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'zek' }]] },
-    { trigger: 1000, arena: [940, 1420], waves: [[{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }]], bosses: ['shaman', 'pizdulina'] },
+    { trigger: 1000, arena: [940, 1420], waves: [], bosses: ['shaman', 'pizdulina'] },
   ],
   city: [
     { trigger: 560, arena: [500, 980], waves: [[{ kind: 'info_m' }, { kind: 'info_m' }, { kind: 'info_f' }, { kind: 'info_f' }], [{ kind: 'info_m' }, { kind: 'info_f' }, { kind: 'omon' }, { kind: 'omon' }], [{ kind: 'info_m' }, { kind: 'info_m' }, { kind: 'info_f' }, { kind: 'info_f' }, { kind: 'omon' }]] },

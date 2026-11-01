@@ -14,5 +14,10 @@ export const VFX: Record<string, { w: number; h: number; n: number; fps: number;
   'kris-ring': { w: 62, h: 24, n: 6, fps: 15, loop: false },
   'kris-charge': { w: 61, h: 60, n: 7, fps: 15, loop: false },
   'kris-boom': { w: 53, h: 51, n: 6, fps: 12, loop: false },
+  'boss-ring': { w: 112, h: 64, n: 8, fps: 14, loop: false },
+  'boss-slam': { w: 94, h: 40, n: 8, fps: 14, loop: false },
+  'boss-pyro': { w: 48, h: 84, n: 8, fps: 10, loop: true },
+  'boss-firework': { w: 96, h: 96, n: 8, fps: 14, loop: false },
+  'boss-ban': { w: 96, h: 128, n: 10, fps: 14, loop: false },
 };
 export const VFX_IMAGES = ["heart", "ball", "aim", "beam-start-0", "beam-start-1", "beam-start-2", "beam-mid-0", "beam-mid-1", "beam-mid-2", "beam-end-0", "beam-end-1", "beam-end-2"];

@@ -33,6 +33,22 @@ for key, (hero, pack, part) in PICK.items():
     c = next(c for c in m["clips"] if c["name"] == f"part-{part}")
     shutil.copyfile(SRC / hero / pack / f"part-{part}.png", DST / f"{key}.png")
     rows.append(f"  '{key}': {{ w: {c['frame']['w']}, h: {c['frame']['h']}, n: {c['frames']}, fps: {m['fps']}, loop: {str(c['loop']).lower()} }},")
+# эффекты боссов (vfx_workbench, лист-сетка + json) -> полоса кадров в строку
+from PIL import Image
+BOSS = {"boss-ring": "boss-vstayu-ring", "boss-slam": "boss-stamp-slam", "boss-pyro": "boss-pyro-pillar",
+        "boss-firework": "boss-firework", "boss-ban": "boss-ban-strike"}
+for key, name in BOSS.items():
+    j = json.loads((SRC / "boss" / f"{name}.json").read_text())
+    sheet = Image.open(SRC / "boss" / f"{name}.png")
+    fr = [f["frame"] for f in j["frames"]]
+    w, h = fr[0]["w"], fr[0]["h"]
+    strip = Image.new("RGBA", (w * len(fr), h))
+    for i, f in enumerate(fr):
+        strip.paste(sheet.crop((f["x"], f["y"], f["x"] + w, f["y"] + h)), (i * w, 0))
+    strip.save(DST / f"{key}.png")
+    fps = round(1000 / j["frames"][0]["duration"])
+    loop = name == "boss-pyro-pillar"
+    rows.append(f"  '{key}': {{ w: {w}, h: {h}, n: {len(fr)}, fps: {fps}, loop: {str(loop).lower()} }},")
 for key, rel in SINGLE.items():
     shutil.copyfile(SRC / rel, DST / f"{key}.png")
 ts = ["// Сгенерировано tools/vfx_copy.py, руками не править.",
