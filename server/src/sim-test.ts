@@ -1,5 +1,5 @@
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { ROLE, ENCOUNTERS, LEVELS, stageOf, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
+import { BOSS, BOSS_ATTACK, type BossId, ROLE, ENCOUNTERS, LEVELS, stageOf, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -569,6 +569,7 @@ for (const front of [true, false]) {
 {
   const w = createWorld(11, true), p = addPlayer(w, 'h', HERO_ID);
   let ticks = 0, locks = 0, clears = 0, ordered = true, lastStage = 0;
+  const bosses: string[] = [];
   const done: number[] = [];
   while (!w.won && ticks++ < 20000) {
     for (const e of Object.values(w.enemies)) e.hp = 0;
@@ -580,6 +581,7 @@ for (const front of [true, false]) {
       inp.my = p.y > exit.y1 ? -1 : 0;
     }
     const ev = step(w, { h: inp });
+    for (const event of ev) if (event.t === 'boss') bosses.push(w.enemies[event.id].boss!);
     locks += ev.filter(e => e.t === 'lock').length; clears += ev.filter(e => e.t === 'clear').length;
     if (w.stage !== lastStage) {
       ordered &&= done[lastStage] === ENCOUNTERS[LEVELS.route.stages[lastStage].id].length;
@@ -589,6 +591,7 @@ for (const front of [true, false]) {
     done[w.stage] = w.enc.cleared;
   }
   check('R2: бот проходит весь маршрут по порядку', w.won && ordered && locks === 13 && clears === 13 && done.join() === '3,1,1,1,2,2,3', `ticks=${ticks} locks=${locks} clears=${clears} done=${done}`);
+  check('TZ06 R9.8: маршрут включает обоих боссов', bosses.join() === 'shaman,pizdulina');
   const n = w.nextEnemyId; spawnEnemies(w, 3); step(w, {});
   check('R2: после победы нет новых врагов', w.nextEnemyId === n && !w.enc.lock);
 }
@@ -628,12 +631,132 @@ for (const dodge of [false, true]) {
   check('R5: первым получает разрешение ожидающий дольше', others[1].token === 'h' && !others[0].token);
 }
 {
-  const w = createWorld(9, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
-  w.enc.index = 1; w.enc.cleared = 1; p.x = 1000; step(w, {});
+  const w = createWorld(9, true, 'route', 6), p = addPlayer(w, 'h', HERO_ID);
+  w.enc.index = 1; w.enc.cleared = 1; p.x = 2060; step(w, {});
   check('R2: solo очередь ограничена тремя врагами', Object.values(w.enemies).length === 3);
   const b = addPlayer(w, 'b', NADYA_ID); step(w, {});
   check('R2: duo очередь дополняется до четырёх', Object.values(w.enemies).length === 4);
-  check('R1: масштаб HP только при появлении', Object.values(w.enemies).at(-1)!.maxHp === 117);
+  check('R1: масштаб HP только при появлении', Object.values(w.enemies).at(-1)!.maxHp === 36);
+}
+
+
+// TZ-06: настоящая встреча, затем изолированные опасности боссов.
+function bossSetup(boss: BossId = 'shaman') {
+  const w = createWorld(71, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
+  w.enc.index = 1; w.enc.cleared = 1; p.x = 1100; p.y = 220;
+  step(w, {}); w.enc.queue = [];
+  for (const e of Object.values(w.enemies)) e.hp = 0;
+  step(w, {});
+  const e = Object.values(w.enemies).find(e => e.boss)!;
+  if (boss !== 'shaman') { e.boss = boss; e.hp = e.maxHp = BOSS[boss].hp; }
+  e.x = 1180; e.y = 220; e.cdMs = 0;
+  return { w, p, e };
+}
+function forceBossAttack(e: ReturnType<typeof bossSetup>['e'], atk: string) {
+  e.atk = atk; e.phase = 'windup'; e.phaseMs = BOSS_ATTACK[atk].windupMs;
+  e.atkY = e.y; e.atkDir = -1; e.token = 'h';
+}
+{
+  const { w, p, e } = bossSetup();
+  check('TZ06 R9.1: после волны Шаман, выход заперт', e.boss === 'shaman' && w.enc.cleared === 1 && !!w.enc.lock && !w.trans);
+  e.hp = 0; const death = step(w, {});
+  check('TZ06 R2: смерть, fall и bossDown', e.anim === 'down' && death.some(v => v.t === 'bossDown') && !!w.enemies[e.id]);
+  run(w, 1400); check('TZ06 R1: пауза между боссами', !Object.values(w.enemies).some(e => e.boss === 'pizdulina'));
+  run(w, 150);
+  const next = Object.values(w.enemies).find(e => e.boss === 'pizdulina')!;
+  check('TZ06 R9.1: второй босс после паузы', !!next && w.enc.cleared === 1);
+  p.hp = 0; const restart = step(w, {}); step(w, {});
+  check('TZ06 R9.7: чекпойнт Пиздулины без волн и Шамана', restart.some(v => v.t === 'restart') && Object.values(w.enemies).length === 1 && Object.values(w.enemies)[0].boss === 'pizdulina');
+  Object.values(w.enemies)[0].hp = 0; step(w, {}); run(w, 1600);
+  check('TZ06 R9.1: clear только после второго босса', w.enc.cleared === 2 && !w.enc.lock);
+  const exit = stageOf(w).exit!; p.x = exit.x0 + 2; p.y = exit.y1; const ev = step(w, {});
+  check('TZ06 R9.1: выход доступен после боссов', ev.some(e => e.t === 'exit'));
+}
+{
+  const { w, p, e } = bossSetup(); forceBossAttack(e, 'mic'); e.hp = e.maxHp / 2;
+  const ev = step(w, {});
+  check('TZ06 R9.2: вторая фаза, отмена и неуязвимость', e.bossPhase === 2 && ev.some(v => v.t === 'phase') && e.phase === 'none' && e.invulnMs! >= 980);
+  p.x = e.x - 20; p.y = e.y;
+  w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: STRIKES.prime.jab, ids: [e.id] });
+  const hp = e.hp; step(w, {});
+  check('TZ06 R9.2: урон заблокирован', e.hp === hp);
+  run(w, 1020); check('TZ06 R9.2: неуязвимость заканчивается', !e.invulnMs);
+}
+for (const outside of [false, true]) {
+  const { w, p, e } = bossSetup(); forceBossAttack(e, 'vstayu'); p.x = e.x - (outside ? 130 : 80);
+  run(w, 850); check('TZ06 R9.3: до конца замаха урона нет', p.hp === 150);
+  run(w, 100);
+  check(`TZ06 R9.3: ring ${outside ? 'вне' : 'внутри'}`, p.hp === (outside ? 150 : 140));
+}
+for (const dodge of [false, true]) {
+  const { w, p, e } = bossSetup(); forceBossAttack(e, 'chorus'); p.y = e.y - (dodge ? 25 : 0);
+  run(w, 1100); check(`TZ06 R9.4: line y=${dodge}`, p.hp === (dodge ? 150 : 136));
+}
+for (const dodge of [false, true]) {
+  const { w, p, e } = bossSetup('pizdulina'); forceBossAttack(e, 'ban');
+  run(w, 720); const shot = w.shots[0]; const x = shot.x;
+  if (dodge) p.y -= 30;
+  run(w, 100); check('TZ06 R9.5: снаряд движется по x', shot.x < x && shot.y === 220);
+  // Оставляем один снаряд, чтобы проверить его удаление отдельно от очереди.
+  e.shotCount = 3; w.shots = [shot]; run(w, 500);
+  check(`TZ06 R9.5: shots y=${dodge}`, dodge ? p.hp === 150 && w.shots.includes(shot) : p.hp === 141 && !w.shots.includes(shot));
+}
+{
+  const { w, p, e } = bossSetup(); p.char = NADYA_ID; p.form = 'nadya';
+  w.pending.push({ ms: 0, kind: 'kiss', owner: p.id, strike: STRIKES.nadya.a1, x: e.x - 3, y: e.y, dir: 1, ids: [] });
+  const hp = e.hp, ev = step(w, {});
+  check('TZ06 R9.6: поцелуй Шамана без урона и ревности, с репликой', e.hp === hp && !e.charmMs && ev.filter(v => v.t === 'taunt' && v.id === e.id && v.line === BOSS.shaman.kissLine).length === 1);
+  const more = step(w, {}); check('TZ06 R9.6: реплика одна на поцелуй', !more.some(v => v.t === 'taunt'));
+}
+{
+  const { w, p, e } = bossSetup('pizdulina');
+  forceBossAttack(e, 'zones'); e.zonePoints = [{ x: p.x, y: p.y }];
+  run(w, 850); check('TZ06 R2: зоны до active безопасны', p.hp === 150 && !w.zones.length);
+  run(w, 600); check('TZ06 R2: зона повреждает на 500 мс', p.hp === 144 && w.zones.length === 1);
+  p.y -= 40; run(w, 2100); check('TZ06 R2: зоны исчезают', !w.zones.length && p.hp === 144);
+}
+{
+  const { w, e } = bossSetup(); forceBossAttack(e, 'fans'); run(w, 850);
+  check('TZ06 R2: призыв ограничен MAX_ALIVE', Object.values(w.enemies).filter(e => e.hp > 0).length === 3);
+}
+
+
+{
+  const { w, p, e } = bossSetup(); e.atkIndex = 1; e.x = p.x + 85; w.tokenReleased = {};
+  const ev = step(w, {});
+  check('TZ06 R2: цикл выбирает ring и заранее шлёт tele', e.atk === 'vstayu' && e.phase === 'windup' && ev.some(v => v.t === 'tele' && v.shape === 'ring' && v.ms === 900), JSON.stringify({ atk: e.atk, phase: e.phase, p: [p.x, p.y], e: [e.x, e.y], token: e.token, ev }));
+  const b = addPlayer(w, 'b', NADYA_ID); b.x = 1200; b.y = 240;
+  spawnEnemies(w, 1); const minion = Object.values(w.enemies).find(o => o !== e)!;
+  minion.target = b.id; minion.targetMs = 1500; minion.waitMs = 1000;
+  step(w, {});
+  check('TZ06 R2: ring занимает оба разрешения', e.wideToken === true && !minion.token);
+}
+{
+  const { w, p, e } = bossSetup(); e.x = p.x + 46;
+  e.cooldowns = { mic: w.timeMs + 10000 }; e.atkIndex = 0;
+  // Во время подхода индекс не перескакивает каждый тик.
+  run(w, 1200);
+  check('TZ06 R2: пропуск атаки на cooldown', e.atk === 'vstayu' && e.atkIndex === 0);
+}
+{
+  const { w, p, e } = bossSetup(); forceBossAttack(e, 'mic');
+  w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: { range: 100, dmg: 10, kb: 80, launch: true, stunMs: 1000, stun: 100 }, ids: [e.id] });
+  const x = e.x; step(w, {});
+  check('TZ06 R2: броня, launch и stun игнорируются, отброс 25%', !e.air && !e.pin && !e.stunMs && e.phase === 'windup' && e.x === x + 40 && e.anim === 'hurt', JSON.stringify({ x, ex: e.x, phase: e.phase, anim: e.anim, air: e.air, stun: e.stunMs }));
+  w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: { range: 100, dmg: 10, kb: 0, down: true, stun: 100 }, ids: [e.id] });
+  step(w, {}); check('TZ06 R2: down отменяет замах без падения', e.phase === 'none' && !e.air && e.anim !== 'down');
+}
+{
+  const { w, p, e } = bossSetup(); e.x = p.x + 40;
+  p.stormMs = STORM_MS; p.stormTickMs = 0; step(w, {});
+  check('TZ06 R2: freeze вдвое короче', e.frozenMs === FREEZE_MS / 2 - TICK_MS);
+}
+
+
+{
+  const { w, p, e } = bossSetup(); forceBossAttack(e, 'fans'); run(w, 850);
+  e.hp = 0; step(w, {}); p.invulnMs = 10000; run(w, 1600);
+  check('TZ06 R1: второй босс приходит, даже если остались призванные', Object.values(w.enemies).some(e => e.boss === 'pizdulina') && Object.values(w.enemies).some(e => !e.boss && e.hp > 0));
 }
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');

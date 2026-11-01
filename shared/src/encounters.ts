@@ -1,6 +1,7 @@
+import type { BossId } from './boss-data.ts';
 import type { EnemyKind } from './enemy-data.ts';
 export interface Spawn { kind: EnemyKind; side: 'L' | 'R' }
-export interface Encounter { trigger: number; arena: [number, number]; waves: Spawn[][] }
+export interface Encounter { trigger: number; arena: [number, number]; waves: Spawn[][]; bosses?: BossId[] }
 export const ENCOUNTERS: Record<string, Encounter[]> = {
   street: [
     { trigger: 300, arena: [240, 720], waves: [[{ kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'R' }], [{ kind: 'vatnik', side: 'R' }, { kind: 'omon', side: 'L' }]] },
@@ -18,7 +19,7 @@ export const ENCOUNTERS: Record<string, Encounter[]> = {
   ],
   mayak: [
     { trigger: 260, arena: [200, 680], waves: [[{ kind: 'clerk', side: 'R' }, { kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'L' }], [{ kind: 'clerk', side: 'R' }, { kind: 'zek', side: 'R' }, { kind: 'zek', side: 'L' }, { kind: 'vatnik', side: 'R' }]] },
-    { trigger: 1000, arena: [940, 1420], waves: [[{ kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'L' }, { kind: 'vatnik', side: 'R' }, { kind: 'clerk', side: 'R' }]] }
+    { trigger: 1000, arena: [940, 1420], waves: [[{ kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'L' }]], bosses: ['shaman', 'pizdulina'] }
   ],
   city: [
     { trigger: 560, arena: [500, 980], waves: [[{ kind: 'info_m', side: 'R' }, { kind: 'info_m', side: 'R' }, { kind: 'info_f', side: 'R' }], [{ kind: 'info_f', side: 'R' }, { kind: 'info_f', side: 'L' }, { kind: 'omon', side: 'R' }]] },

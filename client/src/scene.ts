@@ -1,27 +1,31 @@
 import * as Phaser from 'phaser';
-import { ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
+import { showFinale } from './story.ts';
 import { beep } from './audio.ts';
 import { FONT, UIScene, textStyle } from './ui.ts';
 import { StageView, preloadStages, debugLane } from './stage.ts';
 import { buildLevel, preloadLevel, showCard } from './level.ts';
 
 const CAM_LEAD = 0.33;
+const UI_RIGHT = (width: number) => Math.round(width * 0.40);
 const INTERP_MS = 60; // буфер интерполяции чужих и врагов: мир на 60 мс в прошлом. Свою героиню рисуем без отставания
 const CELL = 128; // кадр спрайта героини
 const FEET_Y = 112; // ступни в кадре
 const SCALE = 1.5; // героиня крупнее исходных 128 px по просьбе mr.R
+const ENEMY_SCALE: Record<string, number> = { omon_shield: 1.08, clerk: 1.08, shaman: 1.15, pizdulina: 1.15 };
 const HEAD = 62 * SCALE; // высота над ступнями для полоски жизни и имени
 const FLAKES = 90; // снежинок в буре
 const ENEMY_LOOK: Record<string, [number, number, number]> = {
+  shaman: [0xd8d8d8, 44, 96], pizdulina: [0x8b1e3f, 44, 96],
   omon: [0x3b4a66, 30, 78], omon_shield: [0x2c3850, 38, 84], vatnik: [0x6b6b3a, 32, 74],
   zek: [0x2b2b2b, 24, 72], clerk: [0x777777, 40, 76], info_m: [0x6a3fc4, 26, 76], info_f: [0xd9b98c, 26, 74],
 };
 const ICE = 0x66b8ff; // цвет замороженного врага
 
 interface Storm { zone: Phaser.GameObjects.Ellipse; flakes: Phaser.GameObjects.Rectangle[]; seed: number[] }
-interface View { enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
+interface View { ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
@@ -31,6 +35,13 @@ export class GameScene extends Phaser.Scene {
   private prompt?: Phaser.GameObjects.Text;
   private lockNoticeUntil = 0;
   private forwardFrom?: number;
+  private floorFx?: Phaser.GameObjects.Graphics;
+  private shotFx?: Phaser.GameObjects.Graphics;
+  private bossHp?: Phaser.GameObjects.Rectangle;
+  private bossName?: Phaser.GameObjects.Text;
+  private phaseUntil = 0;
+  private pendingBoss?: string;
+  private telegraphs: { ev: Extract<SimEvent, { t: 'tele' }>; until: number }[] = [];
   private views = new Map<string, View>();
   constructor() { super('game'); }
 
@@ -73,8 +84,8 @@ export class GameScene extends Phaser.Scene {
     let target = Math.max(0, Math.min(this.worldWidth - this.scale.width, x - this.scale.width * CAM_LEAD));
     const snap = this.session.snapshots[this.session.snapshots.length - 1];
     if (snap?.lockX0 >= 0) {
-      const lo = snap.lockX0, hi = snap.lockX1 - this.scale.width;
-      target = hi < lo ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, target));
+      const lo = snap.lockX0 - 16, hi = snap.lockX1 + UI_RIGHT(this.scale.width) - this.scale.width;
+      target = hi < lo ? lo : Math.max(lo, Math.min(hi, x - this.scale.width * CAM_LEAD));
       // Не выпускаем камеру за арену даже во время плавного следования.
       this.camX = hi < lo ? target : Math.max(lo, Math.min(hi, this.camX ?? target));
     }
@@ -154,6 +165,12 @@ export class GameScene extends Phaser.Scene {
 
   private onEvents(evs: SimEvent[]) {
     for (const e of evs) {
+      if (e.t === 'victory') void showFinale(() => this.replay());
+      if (e.t === 'tele') this.telegraphs.push({ ev: e, until: this.time.now + e.ms });
+      if (e.t === 'phase') { this.phaseUntil = this.time.now + 1000; this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id); }
+      if (e.t === 'bossDown') this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id);
+      if (e.t === 'restart' || e.t === 'stage') this.telegraphs = [];
+      if (e.t === 'boss') this.pendingBoss = e.id;
       if (e.t === 'lock') { this.lockNoticeUntil = this.time.now + 1200; this.forwardFrom = undefined; }
       if (e.t === 'clear') {
         const last = this.session.snapshots[this.session.snapshots.length - 1];
@@ -183,7 +200,7 @@ export class GameScene extends Phaser.Scene {
           this.tweens.add({ targets: t, y: t.y - 18, alpha: 0, duration: 600, onComplete: () => t.destroy() });
         }
       } else if (e.t === 'taunt') {
-        const v = this.views.get('p:' + e.id);
+        const v = this.views.get('p:' + e.id) ?? this.views.get('e:' + e.id);
         if (v) {
           v.bubble?.destroy();
           v.bubble = this.add.text(v.body.x, v.body.y - HEAD - 18, e.line, { fontFamily: FONT, fontSize: '8px', color: '#120c19', backgroundColor: '#d7d1c7', padding: { x: 4, y: 3 }, wordWrap: { width: 150 }, align: 'center' }).setOrigin(0.5).setDepth(1600);
@@ -274,18 +291,19 @@ export class GameScene extends Phaser.Scene {
         hp: this.add.rectangle(0, 0, 40, 3, isPlayer ? 0x4cd964 : 0xff3b30).setOrigin(0, 0.5),
       };
       if (!isPlayer) {
-        const look = ENEMY_LOOK[snap.kind ?? 'omon'];
+        const kind = snap.boss || snap.kind || 'omon';
+        const look = ENEMY_LOOK[kind];
         v.body.setSize(look[1], look[2]).setFillStyle(look[0]);
         v.warning = this.add.text(0, 0, '!', textStyle(16, '#ffe45c')).setOrigin(0.5, 1).setVisible(false);
         if (snap.kind === 'omon_shield') v.shield = this.add.rectangle(0, 0, 5, look[2] - 8, 0xbac9da).setOrigin(0.5, 1);
-        const clips = ENEMY_ANIMS[snap.kind ?? ''];
+        const clips = ENEMY_ANIMS[kind];
         if (clips) {
           const clip = clips.idle ? 'idle' : Object.keys(clips)[0];
           v.body.setVisible(false);
-          v.sprite = this.add.image(0, 0, `enemy/${snap.kind}/${clip}`, 0).setOrigin(0.5, FEET_Y / CELL).setScale(SCALE);
+          v.sprite = this.add.image(0, 0, `enemy/${kind}/${clip}`, 0).setOrigin(0.5, FEET_Y / CELL).setScale(SCALE * (ENEMY_SCALE[kind] ?? 1));
         }
       }
-      if (!isPlayer) v.shadow = this.add.ellipse(0, 0, 34, 8, 0x000000, 0.3);
+      if (!isPlayer) v.shadow = this.add.ellipse(0, 0, 38 * SCALE, 9 * SCALE, 0x000000, 0.3);
       if (isPlayer && isSpriteHero(snap.char ?? '')) {
         v.body.setVisible(false);
         v.shadow = this.add.ellipse(0, 0, 38 * SCALE, 9 * SCALE, 0x000000, 0.3);
@@ -293,6 +311,7 @@ export class GameScene extends Phaser.Scene {
       }
       if (isPlayer) {
         const me = key === 'p:' + this.session.me;
+        v.ring = this.add.ellipse(0, 0, 38 * SCALE, 9 * SCALE).setStrokeStyle(2, ch?.color ?? 0xffffff).setAlpha(me ? 0.8 : 0.35);
         // Имя и здоровье своей героини в панели HUD, над головой только метка игрока
         v.label = this.add.text(0, 0, me ? '1P' : (ch?.name ?? '2P'), textStyle(8, '#' + (ch?.color ?? 0xffffff).toString(16).padStart(6, '0'))).setOrigin(0.5, 1);
         if (me) v.hp.setVisible(false);
@@ -300,6 +319,51 @@ export class GameScene extends Phaser.Scene {
       this.views.set(key, v);
     }
     return v;
+  }
+
+  private replay() {
+    this.session.leave();
+    // Сохраняем параметры уровня; завершённую онлайн-комнату не открываем снова.
+    history.replaceState(null, '', location.pathname + location.search);
+    location.reload();
+  }
+
+  private drawBossFx(s: Snapshot) {
+    const arriving = this.pendingBoss ? s.enemies.get(this.pendingBoss)?.boss : undefined;
+    if (arriving) {
+      this.pendingBoss = undefined;
+      const card = this.add.text(this.scale.width / 2, 115, BOSS[arriving as BossId].name, textStyle(16)).setOrigin(0.5).setScrollFactor(0).setDepth(5000);
+      this.time.delayedCall(1500, () => card.destroy());
+    }
+    this.floorFx ??= this.add.graphics().setDepth(0);
+    this.shotFx ??= this.add.graphics().setDepth(1400);
+    const g = this.floorFx; g.clear(); this.shotFx.clear();
+    this.telegraphs = this.telegraphs.filter(t => {
+      const owner = s.enemies.get(t.ev.id);
+      const arrived = this.time.now > t.until - t.ev.ms + 100;
+      return t.until > this.time.now && owner?.hp !== 0 && !(arrived && (!owner || owner.frozen || owner.phase === 'none' || owner.phase === 'recover'));
+    });
+    for (const t of this.telegraphs) {
+      const e = t.ev, alpha = 0.2 + 0.6 * (1 - (t.until - this.time.now) / e.ms);
+      g.lineStyle(2, 0xff3030, alpha); g.fillStyle(0xff2020, alpha * 0.4);
+      if (e.shape === 'line') {
+        const end = e.dir! > 0 ? s.lockX1 : s.lockX0;
+        g.fillRect(Math.min(end, e.x), e.y - e.h!, Math.abs(end - e.x), e.h! * 2);
+      } else g.strokeEllipse(e.x, e.y, e.r! * 2, e.r! * (e.shape === 'ring' ? 0.7 : 0.8));
+    }
+    for (const z of s.zones) { g.fillStyle(0xff2020, 0.55); g.fillEllipse(z.x, z.y, z.r * 2, z.r * 0.8); }
+    for (const shot of s.shots) {
+      this.shotFx.fillStyle(0xc82032); this.shotFx.lineStyle(1, 0xffffff);
+      this.shotFx.fillCircle(shot.x, shot.y - 15, 5); this.shotFx.strokeCircle(shot.x, shot.y - 15, 5);
+    }
+    this.bossHp ??= this.add.rectangle(0, 36, 220, 5, 0xc82032).setOrigin(0, 0.5).setScrollFactor(0).setDepth(2200);
+    this.bossName ??= this.add.text(0, 20, '', textStyle(9)).setOrigin(0.5).setScrollFactor(0).setDepth(2200);
+    const boss = [...s.enemies.values()].find(e => e.boss && e.hp > 0);
+    this.bossHp.setVisible(!!boss); this.bossName.setVisible(!!boss);
+    if (boss) {
+      this.bossHp.setX(this.scale.width / 2 - 110).setSize(220 * boss.hp / boss.maxHp!, 5).setFillStyle(boss.bossPhase === 2 ? 0x7d152c : 0xc82032);
+      this.bossName.setX(this.scale.width / 2).setText(BOSS[boss.boss as BossId].name).setAlpha(this.time.now < this.phaseUntil && Math.floor(this.time.now / 100) % 2 ? 0.25 : 1);
+    }
   }
 
   // Снежная буря: ледяной овал на земле и падающий снег по всей зоне, пока идёт заклинание
@@ -389,6 +453,7 @@ export class GameScene extends Phaser.Scene {
       const x = sa && !live ? sa.x + (sb.x - sa.x) * f : sb.x;
       const y = sa && !live ? sa.y + (sb.y - sa.y) * f : sb.y;
       const v = this.viewFor(key, isPlayer, sb);
+      v.ring?.setPosition(x, y).setDepth(y - 0.05);
       const down = sb.anim === 'down' && !v.sprite;
       // Подброшенный враг летит по дуге; тень остаётся на земле
       const lift = sa && !live ? (sa.height ?? 0) + ((sb.height ?? 0) - (sa.height ?? 0)) * f : (sb.height ?? 0);
@@ -404,16 +469,20 @@ export class GameScene extends Phaser.Scene {
         v.shield?.setVisible(!v.sprite).setPosition(x + sb.facing * 18, y - lift - 4).setDepth(y + 0.1);
       }
       if (v.sprite && !isPlayer) {
-        const clips = ENEMY_ANIMS[sb.kind ?? '']!;
-        let clip = sb.anim === 'down' ? 'fall' : sb.anim;
+        const kind = sb.boss || sb.kind || 'omon';
+        const clips = ENEMY_ANIMS[kind]!;
+        const casting = !!sb.boss && !!sb.atk && BOSS_ATTACK[sb.atk]?.kind !== 'melee' && (sb.phase === 'windup' || sb.phase === 'active' || sb.phase === 'recover');
+        let clip = sb.anim === 'down' ? 'fall' : sb.anim === 'hurt' ? 'hurt' : casting ? (sb.phase !== 'windup' && clips.release ? 'release' : 'cast') : sb.anim;
+        if (casting && sb.phase === 'active' && !v.castActive) { v.enemySince = this.time.now; v.castActive = true; }
+        if (sb.phase === 'windup' || !casting) v.castActive = false;
         if (clip === 'dash' && !clips.dash) clip = 'strike';
         if (!clips[clip]) clip = 'idle';
         const def = clips[clip];
         if (def) {
           if (v.enemyClip !== clip) { v.enemyClip = clip; v.enemySince = this.time.now; }
           const raw = Math.floor((this.time.now - (v.enemySince ?? this.time.now)) * def.fps / 1000);
-          const frame = def.loop && clip !== 'windup' ? raw % def.frames : Math.min(def.frames - 1, raw);
-          v.sprite.setTexture(`enemy/${sb.kind}/${clip}`, frame).setFlipX(sb.facing < 0).setPosition(x, y - lift).setDepth(y).setAlpha(sb.phase === 'recover' ? 0.7 : 1);
+          const frame = def.loop && clip !== 'windup' && clip !== 'cast' && clip !== 'release' ? raw % def.frames : Math.min(def.frames - 1, raw);
+          v.sprite.setTexture(`enemy/${kind}/${clip}`, frame).setFlipX(sb.facing < 0).setPosition(x, y - lift).setDepth(y).setAlpha(sb.phase === 'recover' ? 0.7 : 1);
         }
       }
       if (v.sprite && isPlayer) {
@@ -421,7 +490,7 @@ export class GameScene extends Phaser.Scene {
         this.drawHero(v, sb, x, y, live ? 1 : f, !!away, lead);
       }
       // Замороженный враг синий с ледяной окантовкой
-      v.body.setFillStyle(sb.frozen ? ICE : sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : sb.phase === 'active' && this.time.now - (v.enemySince ?? this.time.now) < 65 ? 0xffffff : sb.dummy ? 0xb08d57 : ENEMY_LOOK[sb.kind ?? 'omon'][0]));
+      v.body.setFillStyle(sb.frozen ? ICE : sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : sb.phase === 'active' && this.time.now - (v.enemySince ?? this.time.now) < 65 ? 0xffffff : sb.dummy ? 0xb08d57 : ENEMY_LOOK[sb.boss || sb.kind || 'omon'][0]));
       if (sb.frozen) v.body.setStrokeStyle(2, 0xe8f8ff); else v.body.setStrokeStyle();
       if (isPlayer) this.drawStorm(v, sb, x, y);
       else this.drawStatus(v, sb, x, y - lift);
@@ -445,13 +514,15 @@ export class GameScene extends Phaser.Scene {
     if (this.forwardFrom !== undefined && mineX >= this.forwardFrom + 200) this.forwardFrom = undefined;
     const forward = this.forwardFrom !== undefined && !latest.won && latest.lockX0 < 0;
     this.prompt.setX(forward ? this.scale.width - 70 : this.scale.width / 2)
-      .setText(latest.won ? 'МАРШРУТ ПРОЙДЕН' : this.time.now < this.lockNoticeUntil ? 'РАЗБЕРИТЕСЬ С НИМИ!' : forward ? 'ВПЕРЁД →' : '')
+      .setText(latest.won ? '' : this.time.now < this.lockNoticeUntil ? 'РАЗБЕРИТЕСЬ С НИМИ!' : forward ? 'ВПЕРЁД →' : '')
       .setAlpha(forward ? (Math.floor(this.time.now / 350) % 2 ? 1 : 0.35) : 1);
+    this.drawBossFx(latest);
+    if (latest.won) void showFinale(() => this.replay());
     for (const [id, sb] of b.enemies) draw('e:' + id, false, a.enemies.get(id), sb);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
       v.storm?.zone.destroy(); v.storm?.flakes.forEach(f => f.destroy()); v.status?.destroy();
-      v.warning?.destroy(); v.shield?.destroy(); v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
+      v.ring?.destroy(); v.warning?.destroy(); v.shield?.destroy(); v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
       this.views.delete(key);
     }
   }

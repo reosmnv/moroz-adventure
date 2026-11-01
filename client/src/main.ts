@@ -1,5 +1,6 @@
 import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, TEST_TOOLS } from '@bc/shared';
 import { LocalSession, OnlineSession, type GameSession } from './session.ts';
+import { showIntro } from './story.ts';
 import { startGame } from './scene.ts';
 import { audioState, unlockAudio } from './audio.ts';
 
@@ -36,6 +37,10 @@ refreshMenu();
 
 let session: GameSession | null = null;
 let game: any = null;
+let introSeen = false;
+function maybeIntro() {
+  if (!introSeen && session?.needsIntro()) { introSeen = true; void showIntro(() => session?.finishIntro()); }
+}
 
 startBtn.onclick = () => begin(roomCode);
 joinBtn.onclick = () => {
@@ -72,7 +77,7 @@ async function begin(code?: string) {
   await Promise.race([document.fonts.load('8px "Press Start 2P"').catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
   game = startGame('game', session);
   // Уже в мире (вернулись по токену) — выбор персонажа не нужен
-  setTimeout(() => { if (!session!.hasMe()) showPicker(); }, 300);
+  setTimeout(() => { if (!session!.hasMe()) showPicker(); else maybeIntro(); }, 300);
 }
 
 // Тестовая кнопка: три настоящих врага
@@ -128,7 +133,7 @@ function showPicker() {
   const box = $('chars');
   $('picker').classList.remove('hidden');
   const render = () => {
-    if (session!.hasMe()) { $('picker').classList.add('hidden'); clearInterval(timer); return; }
+    if (session!.hasMe()) { $('picker').classList.add('hidden'); clearInterval(timer); maybeIntro(); return; }
     const taken = session!.taken();
     box.innerHTML = '';
     for (const c of CHARACTERS) {

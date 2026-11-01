@@ -2,6 +2,7 @@
 // Чистые данные и функции, без Phaser и Colyseus.
 import { LEVELS, stageOf, laneTop, laneBottom, levelW, walkBounds, clampToLane } from './levels.ts';
 import { KIND, ROLE, DUO_HP_MULT, MAX_ALIVE, TOKENS_PER_TARGET, TOKENS_TOTAL, TOKEN_GAP_MS, WAIT_RING, GUARD_FRONT_MULT, type EnemyKind } from './enemy-data.ts';
+import { BOSS, BOSS_ATTACK, type BossId } from './boss-data.ts';
 import { ENCOUNTERS, type Spawn } from './encounters.ts';
 import type { Form } from './anims-data.ts';
 import {
@@ -87,10 +88,15 @@ export interface Player {
 }
 
 export interface Enemy {
+  boss?: BossId; bossPhase?: 1 | 2; atk?: string;
+  atkIndex?: number; cooldowns?: Record<string, number>; invulnMs?: number;
+  deathMs?: number; shotCount?: number; shotMs?: number; wideToken?: boolean;
+  zonePoints?: { x: number; y: number }[];
   kind: EnemyKind;
   phase: 'none' | 'windup' | 'active' | 'recover';
   phaseMs: number;
   token?: string;
+  atkX?: number;
   atkY?: number;
   atkDir?: 1 | -1;
   dashLeft?: number;
@@ -125,11 +131,14 @@ export interface Enemy {
   homeY?: number;
 }
 
+export interface BossShot { x: number; y: number; dir: number; speed: number; dmg: number }
+export interface BossZone { x: number; y: number; r: number; ms: number; tickMs: number; dmg: number }
 export interface World {
+  shots: BossShot[]; zones: BossZone[];
   timeMs: number;
   tokenReleased: Record<string, number>;
   won: boolean;
-  enc: { stage: number; index: number; wave: number; queue: Spawn[]; lock: [number, number] | null; cleared: number };
+  enc: { stage: number; index: number; wave: number; queue: Spawn[]; lock: [number, number] | null; cleared: number; bossIndex?: number; bossStarted?: boolean; bossWait?: number };
   level: 'route' | 'old';
   stage: number;
   trans?: { ms: number; to: number };
@@ -162,6 +171,9 @@ export interface Input {
 export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: false, taunt: false, ult: false, ult2: false, run: false });
 
 export type SimEvent =
+  | { t: 'boss' | 'phase' | 'bossDown'; id: string }
+  | { t: 'tele'; id: string; shape: 'ring' | 'line' | 'zone'; x: number; y: number; r?: number; h?: number; dir?: number; ms: number }
+
   | { t: 'lock'; x0: number; x1: number }
   | { t: 'clear' }
   | { t: 'victory' }
@@ -204,7 +216,7 @@ function focusX(w: World): number {
 
 export function createWorld(seed = 1, testTools = false, level: 'route' | 'old' = 'route', stage = 0): World {
   stage = Number.isInteger(stage) && stage >= 0 && stage < LEVELS[level].stages.length ? stage : 0;
-  return { timeMs: 0, tokenReleased: {}, won: false, enc: { stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 }, level, stage, tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
+  return { shots: [], zones: [], timeMs: 0, tokenReleased: {}, won: false, enc: { stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 }, level, stage, tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
 }
 
 export function takenChars(w: World): string[] {
@@ -274,13 +286,13 @@ type HitOpts = {
 
 // Одно попадание по врагу: урон, отлёт, контроль, шкалы героя, событие
 function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: SimEvent[], opts: HitOpts, allAround = false) {
-  if (e.hp <= 0) return;
+  if (e.hp <= 0 || (e.invulnMs ?? 0) > 0) return;
   const heavy = opts.down || opts.launch || opts.slam || opts.pin || opts.stunMs || e.frozenMs;
   const blocked = KIND[e.kind].guard && e.phase !== 'windup' && e.phase !== 'recover'
     && (p.x - e.x) * e.facing > 0 && !heavy && !allAround && !opts.noCharge && !opts.flash;
   if (blocked) { dmg *= GUARD_FRONT_MULT; ev.push({ t: 'block', id: e.id }); }
-  const armored = ROLE[KIND[e.kind].role].armor && !heavy;
-  if ((!blocked && !armored) || heavy) cancelAttack(w, e);
+  const armored = !!e.boss || ROLE[KIND[e.kind].role].armor && !heavy;
+  if (e.boss ? opts.down && e.phase === 'windup' : (!blocked && !armored) || heavy) cancelAttack(w, e);
   const airborne = (e.air ?? 0) > 0;
   if (p.char === HERO_ID) {
     if (opts.slam) dmg *= SLAM_MULT;
@@ -306,8 +318,9 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
       e.pin = { ms: PIN_MS, speed: kb / PIN_MS, dir, by: p.id, hit: [] };
     } else e.x = clampEnemyX(w, e.x + dir * kb);
   }
+  if (e.boss && !e.frozenMs) { e.x = clampEnemyX(w, e.x + dir * (opts.kb ?? 8) * 0.25); e.anim = 'hurt'; e.animMs = 120; }
   if (opts.slowMs) { e.slowMs = opts.slowMs; e.slow = opts.slow ?? 0.5; }
-  if (opts.stunMs) { e.stunMs = opts.stunMs; e.anim = 'hurt'; e.animMs = Math.max(e.animMs, opts.stunMs); }
+  if (opts.stunMs && !e.boss) { e.stunMs = opts.stunMs; e.anim = 'hurt'; e.animMs = Math.max(e.animMs, opts.stunMs); }
   if (opts.silent) return;
   if (!opts.noCharge && p.form !== 'ultimate') { // в Ultimate шкала не копится
     const control = p.form === 'nadya' && (opts.slowMs || opts.stunMs) ? CONTROL_ULT : 0;
@@ -457,6 +470,11 @@ function stepKiss(w: World, d: Pending, dtMs: number, ev: SimEvent[]): boolean {
   for (const e of Object.values(w.enemies)) {
     if (hit.includes(e.id) || e.x < lo || e.x > hi || Math.abs(e.y - d.y!) > KISS_BAND) continue;
     hit.push(e.id);
+    if (e.boss) {
+      const line = BOSS[e.boss].kissLine;
+      if (line) ev.push({ t: 'taunt', id: e.id, line });
+      continue;
+    }
     e.charmMs = CHARM_MS; e.charmBy = d.owner;
     ev.push({ t: 'charm', target: e.id, x: e.x, y: e.y });
   }
@@ -527,7 +545,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       p.stormTickMs += STORM_TICK_MS;
       for (const e of Object.values(w.enemies)) {
         if (Math.hypot(e.x - p.x, e.y - p.y) > STORM_RADIUS) continue;
-        e.frozenMs = FREEZE_MS;
+        e.frozenMs = FREEZE_MS / (e.boss ? 2 : 1);
         applyHit(w, p, e, STORM_DMG, p.facing, ev, { noCharge: true });
       }
     }
@@ -743,7 +761,7 @@ export const encountersOf = (w: World) => w.level === 'route' ? ENCOUNTERS[stage
 
 function releaseToken(w: World, e: Enemy) {
   if (e.token) w.tokenReleased[e.token] = w.timeMs;
-  e.token = undefined;
+  e.token = undefined; e.wideToken = false;
 }
 function cancelAttack(w: World, e: Enemy) {
   releaseToken(w, e);
@@ -751,11 +769,11 @@ function cancelAttack(w: World, e: Enemy) {
   e.waitMs = 0;
 }
 
-function stepEncounters(w: World, ev: SimEvent[]) {
+function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
   if (w.won) return;
   const enc = w.enc, data = encountersOf(w), next = data[enc.index];
   if (!enc.lock && next && livePlayers(w).some(p => p.x >= next.trigger)) {
-    enc.lock = [...next.arena]; enc.wave = 0; enc.queue = [...next.waves[0]];
+    enc.lock = [...next.arena]; enc.bossIndex = 0; enc.bossStarted = false; enc.wave = 0; enc.queue = [...next.waves[0]];
     ev.push({ t: 'lock', x0: enc.lock[0], x1: enc.lock[1] });
   }
   if (!enc.lock || !next) return;
@@ -772,7 +790,21 @@ function stepEncounters(w: World, ev: SimEvent[]) {
       y: laneTop(w, x) + rand(w) * (laneBottom(w) - laneTop(w, x)),
       hp, maxHp: hp, facing: spawn.side === 'L' ? 1 : -1, anim: 'walk', animMs: 0, cdMs: 0 };
   }
-  if (!enc.queue.length && alive() === 0 && enc.wave === next.waves.length - 1) {
+  if (!enc.queue.length && enc.wave === next.waves.length - 1) {
+    if (next.bosses) {
+      if (enc.bossStarted || !(enc.bossIndex ?? 0) && alive() > 0) return;
+      if (enc.bossWait) { enc.bossWait = Math.max(0, enc.bossWait - dtMs); if (enc.bossWait) return; }
+      const boss = next.bosses[enc.bossIndex ?? 0];
+      if (boss) {
+        const id = 'e' + w.nextEnemyId++, info = BOSS[boss];
+        const hp = info.hp * (livePlayers(w).length >= 2 ? DUO_HP_MULT : 1);
+        w.enemies[id] = { id, kind: 'vatnik', boss, bossPhase: 1, hp, maxHp: hp,
+          x: enc.lock[1] + 30, y: laneBottom(w) - 20, facing: -1,
+          phase: 'none', phaseMs: 0, anim: 'walk', animMs: 0, cdMs: 0 };
+        enc.bossStarted = true; ev.push({ t: 'boss', id }); return;
+      }
+    }
+    if (alive() > 0) return;
     enc.lock = null; enc.cleared++; enc.index++; ev.push({ t: 'clear' });
     if (w.stage === LEVELS[w.level].stages.length - 1 && enc.cleared === data.length) {
       w.won = true; ev.push({ t: 'victory' });
@@ -784,7 +816,7 @@ function stepEncounters(w: World, ev: SimEvent[]) {
 function prepareTokens(w: World, dtMs: number) {
   const targets = livePlayers(w), enemies = Object.values(w.enemies);
   for (const e of enemies) {
-    const disabled = e.hp <= 0 || e.dummy || e.frozenMs || e.stunMs || e.air || e.pin || e.charmMs || (e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0;
+    const disabled = e.hp <= 0 || (e.invulnMs ?? 0) > 0 || e.dummy || e.frozenMs || e.stunMs || e.air || e.pin || e.charmMs || !e.boss && (e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0;
     if (disabled || e.token && !targets.some(p => p.id === e.token)) cancelAttack(w, e);
     e.targetMs = Math.max(0, (e.targetMs ?? 0) - dtMs);
     if (!e.token && !e.targetMs && targets.length) {
@@ -798,7 +830,7 @@ function prepareTokens(w: World, dtMs: number) {
   for (const e of candidates) {
     if (!targets.some(p => p.id === e.target)) continue;
     const holders = enemies.filter(o => o.token);
-    if (holders.length >= TOKENS_TOTAL || holders.filter(o => o.token === e.target).length >= TOKENS_PER_TARGET) continue;
+    if (holders.some(o => o.wideToken) || holders.length >= TOKENS_TOTAL || holders.filter(o => o.token === e.target).length >= TOKENS_PER_TARGET) continue;
     if (w.timeMs - (w.tokenReleased[e.target!] ?? -Infinity) < TOKEN_GAP_MS) continue;
     e.token = e.target;
   }
@@ -872,6 +904,100 @@ function stepEnemyAttack(w: World, e: Enemy, targets: Player[], speed: number, d
   }
 }
 
+// Опасности живут в мире, а не в клиентских эффектах.
+function stepBossHazards(w: World, dtMs: number, ev: SimEvent[]) {
+  const bounds = w.enc.lock ?? [0, levelW(w)];
+  w.shots = w.shots.filter(s => {
+    const from = s.x; s.x += s.dir * s.speed * dtMs / 1000;
+    const p = livePlayers(w).find(p => p.x >= Math.min(from, s.x) - 10 && p.x <= Math.max(from, s.x) + 10 && Math.abs(p.y - s.y) <= 12);
+    if (p) { enemyHit(w, p, s.dmg, ev); return false; }
+    return s.x >= bounds[0] && s.x <= bounds[1];
+  });
+  w.zones = w.zones.filter(z => {
+    z.ms -= dtMs; z.tickMs -= dtMs;
+    while (z.tickMs <= 0) {
+      for (const p of livePlayers(w)) if (Math.abs(p.x - z.x) <= z.r && Math.abs(p.y - z.y) <= z.r * 0.4) enemyHit(w, p, z.dmg, ev);
+      z.tickMs += 500;
+    }
+    return z.ms > 0;
+  });
+}
+
+function stepBoss(w: World, e: Enemy, targets: Player[], dtMs: number, ev: SimEvent[]) {
+  const info = BOSS[e.boss!];
+  if (e.phase === 'none') {
+    const list = info.attacks[(e.bossPhase ?? 1) - 1];
+    let selected: string | undefined, selectedIndex = 0;
+    for (let n = 0; n < list.length; n++) {
+      const i = ((e.atkIndex ?? 0) + n) % list.length;
+      if ((e.cooldowns?.[list[i]] ?? 0) <= w.timeMs) { selected = list[i]; selectedIndex = i; break; }
+    }
+    const t = targets.find(p => p.id === (e.token ?? e.target));
+    if (!t || !selected) { e.anim = 'idle'; if (!selected) releaseToken(w, e); return; }
+    const a = BOSS_ATTACK[selected];
+    const wide = ['ring', 'line', 'zones'].includes(a.kind);
+    const gap = a.kind === 'melee' ? a.reach! - 6 : 85;
+    const gx = t.x + (e.x < t.x ? -gap : gap), dx = gx - e.x, dy = t.y - e.y;
+    e.facing = t.x > e.x ? 1 : -1;
+    if (!e.token || Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      const len = Math.hypot(dx, dy), dist = Math.min(len, info.speed * (e.slowMs ? 1 - (e.slow ?? 0) : 1) * dtMs / 1000);
+      if (len) { e.x += dx / len * dist; e.y += dy / len * dist; }
+      e.anim = 'walk'; return;
+    }
+    if (wide && Object.values(w.enemies).some(o => o !== e && o.token)) { e.anim = 'idle'; return; }
+    e.atkIndex = (selectedIndex + 1) % list.length;
+    e.wideToken = wide; e.atk = selected; e.atkX = e.x; e.atkY = e.y; e.atkDir = e.facing;
+    e.phase = 'windup'; e.phaseMs = a.windupMs; e.anim = 'windup';
+    if (a.kind === 'ring') ev.push({ t: 'tele', id: e.id, shape: 'ring', x: e.x, y: e.y, r: a.radius, ms: a.windupMs });
+    if (a.kind === 'line') ev.push({ t: 'tele', id: e.id, shape: 'line', x: e.x, y: e.y, h: a.halfH, dir: e.atkDir, ms: a.windupMs });
+    if (a.kind === 'zones') {
+      const bounds = w.enc.lock ?? [0, levelW(w)];
+      e.zonePoints = Array.from({ length: a.count! }, (_, i) => {
+        if (targets[i]) return { x: targets[i].x, y: targets[i].y };
+        const x = bounds[0] + rand(w) * (bounds[1] - bounds[0]);
+        return { x, y: laneTop(w, x) + rand(w) * (laneBottom(w) - laneTop(w, x)) };
+      });
+      for (const p of e.zonePoints) ev.push({ t: 'tele', id: e.id, shape: 'zone', ...p, r: a.zoneR, ms: a.windupMs });
+    }
+    return;
+  }
+  const a = BOSS_ATTACK[e.atk!];
+  if (!a) { cancelAttack(w, e); return; }
+  e.phaseMs -= dtMs;
+  if (e.phase === 'windup' && e.phaseMs <= 0) {
+    e.phase = 'active'; e.phaseMs = a.activeMs; e.shotCount = 0; e.shotMs = dtMs;
+    (e.cooldowns ??= {})[a.id] = w.timeMs + a.cdMs;
+    for (const p of targets) {
+      const x = e.atkX ?? e.x;
+      const dx = (p.x - x) * e.atkDir!, dy = Math.abs(p.y - e.atkY!);
+      if (a.kind === 'melee' && dx >= 0 && dx <= a.reach! && dy <= a.depth! ||
+          a.kind === 'line' && dx >= 0 && dy <= a.halfH! ||
+          a.kind === 'ring' && Math.abs(p.x - x) <= a.radius! && dy <= a.radius! * 0.35) {
+        enemyHit(w, p, a.dmg, ev);
+        if (a.kind === 'ring') p.x += (p.x < x ? -1 : 1) * 60;
+      }
+    }
+    if (a.kind === 'zones') for (const p of e.zonePoints ?? []) w.zones.push({ ...p, r: a.zoneR!, ms: a.zoneMs!, tickMs: 500, dmg: a.dmg });
+    if (a.kind === 'summon') for (const group of a.summon ?? []) for (let n = 0; n < group.n; n++) {
+      if (Object.values(w.enemies).filter(o => o.hp > 0).length >= (targets.length >= 2 ? MAX_ALIVE.duo : MAX_ALIVE.solo)) break;
+      const kind = group.kind as EnemyKind, stats = ROLE[KIND[kind].role], bounds = w.enc.lock ?? [0, levelW(w)];
+      const id = 'e' + w.nextEnemyId++, hp = Math.round(stats.hp * (KIND[kind].hpMult ?? 1) * (targets.length >= 2 ? DUO_HP_MULT : 1));
+      w.enemies[id] = { id, kind, hp, maxHp: hp, x: bounds[n % 2] + (n % 2 ? 30 : -30), y: e.y, facing: n % 2 ? -1 : 1, phase: 'none', phaseMs: 0, anim: 'walk', animMs: 0, cdMs: 0 };
+    }
+  } else if (e.phase === 'active' && e.phaseMs <= 0) {
+    releaseToken(w, e); e.phase = 'recover'; e.phaseMs = a.recoverMs;
+  } else if (e.phase === 'recover' && e.phaseMs <= 0) { e.phase = 'none'; e.atk = undefined; }
+  if (e.phase === 'active' && a.kind === 'shots') {
+    e.shotMs = (e.shotMs ?? 0) - dtMs;
+    while (e.shotMs <= 0 && e.shotCount! < a.count! && targets.length) {
+      const p = targets.reduce((a, b) => Math.hypot(a.x - e.x, a.y - e.y) < Math.hypot(b.x - e.x, b.y - e.y) ? a : b);
+      w.shots.push({ x: e.x, y: p.y, dir: e.atkDir!, speed: a.speed!, dmg: a.dmg });
+      e.shotCount!++; e.shotMs += 100;
+    }
+  }
+  e.anim = e.phase === 'active' ? 'strike' : e.phase === 'none' ? 'idle' : e.phase;
+}
+
 // Запрос из тестовой кнопки; событие отдаётся ближайшим тиком.
 export function nextStage(w: World) {
   if (!w.testTools || w.trans) return;
@@ -885,7 +1011,7 @@ function finishTransition(w: World, ev: SimEvent[]) {
   w.tokenReleased = {}; w.won = false;
   w.trans = undefined;
   w.enemies = {};
-  w.pending = [];
+  w.pending = []; w.shots = []; w.zones = [];
   const [x, y] = stageOf(w).spawn;
   Object.values(w.players).forEach((p, i) => {
     Object.assign(p, clampToLane(w, x - i * 30, y + i * 20));
@@ -915,7 +1041,7 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     return ev;
   }
 
-  if (w.level === 'route') stepEncounters(w, ev);
+  if (w.level === 'route') stepEncounters(w, ev, dtMs);
   else if (w.testTools) ensureDummy(w);
   else if (Object.keys(w.enemies).length === 0) spawnWave(w, ev);
 
@@ -970,10 +1096,28 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
 
   stepPending(w, dtMs, ev);
 
+  stepBossHazards(w, dtMs, ev);
   prepareTokens(w, dtMs);
   // Враги: к ближайшему живому игроку на его дорожку, удар, пауза
   const targets = active.filter(p => p.hp > 0);
   for (const e of Object.values(w.enemies)) {
+    if (e.boss) {
+      if (e.hp <= 0) {
+        cancelAttack(w, e); e.anim = 'down';
+        if (e.deathMs === undefined) {
+          e.deathMs = 1500; ev.push({ t: 'bossDown', id: e.id });
+          w.enc.bossIndex = (w.enc.bossIndex ?? 0) + 1; w.enc.bossStarted = false; w.enc.bossWait = 1500;
+        }
+        else e.deathMs -= dtMs;
+        if (e.deathMs <= 0) delete w.enemies[e.id];
+        continue;
+      }
+      if (e.bossPhase === 1 && e.hp <= BOSS[e.boss].phase2At * e.maxHp) {
+        e.bossPhase = 2; cancelAttack(w, e); e.atk = undefined; e.invulnMs = 1000;
+        ev.push({ t: 'phase', id: e.id });
+      }
+      if ((e.invulnMs ?? 0) > 0) { e.invulnMs = Math.max(0, e.invulnMs! - dtMs); e.anim = 'idle'; continue; }
+    }
     if (e.hp <= 0 || e.frozenMs || e.stunMs || e.air || e.pin || e.charmMs || e.anim === 'down' && e.animMs > 0) cancelAttack(w, e);
     e.animMs = Math.max(0, e.animMs - dtMs);
     e.cdMs = Math.max(0, e.cdMs - dtMs);
@@ -998,7 +1142,7 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     if (e.air && e.hp > 0) { e.anim = 'down'; continue; }
     if (e.dummy) {
       if (e.hp <= 0) e.hp = e.maxHp;
-      if ((e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0) continue;
+      if (!e.boss && (e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0) continue;
       e.anim = 'idle';
       e.hp = Math.min(e.maxHp, e.hp + 40 * dt);
       const hx = (e.homeX ?? e.x) - e.x, hy = (e.homeY ?? e.y) - e.y, hl = Math.hypot(hx, hy);
@@ -1006,7 +1150,7 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
       continue;
     }
     if (e.hp <= 0) { delete w.enemies[e.id]; continue; }
-    if ((e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0) continue;
+    if (!e.boss && (e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0) continue;
     if (e.pin) { e.anim = 'down'; continue; }
     if (e.stunMs) { e.anim = 'idle'; continue; } // оглушён: стоит
     const speed = ROLE[KIND[e.kind].role].speed * (e.slowMs ? 1 - (e.slow ?? 0) : 1);
@@ -1024,26 +1168,31 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
       } else if (e.cdMs === 0) {
         e.anim = 'attack'; e.animMs = 300; e.cdMs = 1400;
         const dmg = Math.ceil(ENEMY_DMG * 0.5);
+        if ((r.invulnMs ?? 0) > 0) continue;
         r.hp -= dmg;
-        if (!r.frozenMs) { cancelAttack(w, r); r.anim = 'hurt'; r.animMs = 250; }
+        if (!r.frozenMs && !r.boss) { cancelAttack(w, r); r.anim = 'hurt'; r.animMs = 250; }
         ev.push({ t: 'hit', target: r.id, dmg, x: r.x, y: r.y });
         const nadya = e.charmBy ? w.players[e.charmBy] : undefined;
         if (nadya && !nadya.charmSaid) { nadya.charmSaid = true; ev.push({ t: 'taunt', id: nadya.id, line: CHARM_LINE }); }
       } else if (e.animMs === 0) e.anim = 'idle';
       continue;
     }
-    stepEnemyAttack(w, e, targets, speed, dtMs, ev);
+    if (e.boss) { stepBoss(w, e, targets, dtMs, ev); if (e.animMs > 0) e.anim = 'hurt'; }
+    else stepEnemyAttack(w, e, targets, speed, dtMs, ev);
   }
 
   // Все на связи лежат: перезапуск уровня
   if (active.every(p => p.hp <= 0)) {
     w.enemies = {};
-    w.pending = [];
+    w.pending = []; w.shots = []; w.zones = [];
     w.wave = 0;
     w.tokenReleased = {};
     if (w.enc.lock) {
-      w.enc.wave = 0;
-      w.enc.queue = [...encountersOf(w)[w.enc.index].waves[0]];
+      if (w.enc.bossStarted || (w.enc.bossIndex ?? 0) > 0) { w.enc.bossStarted = false; w.enc.bossWait = undefined; w.enc.queue = []; }
+      else {
+        w.enc.wave = 0;
+        w.enc.queue = [...encountersOf(w)[w.enc.index].waves[0]];
+      }
     }
     for (const [i, p] of players.entries()) { p.hp = PLAYER_HP; p.anim = 'idle'; p.animMs = 0; p.ult = 0; p.charge2 = 0; Object.assign(p, clampToLane(w, (w.enc.lock ? w.enc.lock[0] + 60 + i * 30 : stageOf(w).spawn[0]), p.y)); heroReset(p); }
     ev.push({ t: 'restart' });

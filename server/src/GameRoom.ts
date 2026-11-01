@@ -29,6 +29,7 @@ export const PlayerState = schema({
 export type PlayerState = SchemaType<typeof PlayerState>;
 
 export const EnemyState = schema({
+  boss: t.string(), bossPhase: t.number(), atk: t.string(),
   kind: t.string(),
   phase: t.string(),
   x: t.number(),
@@ -47,7 +48,11 @@ export const EnemyState = schema({
 }, 'EnemyState');
 export type EnemyState = SchemaType<typeof EnemyState>;
 
+export const ShotState = schema({ x: t.number(), y: t.number(), dir: t.number() }, 'ShotState');
+export const ZoneState = schema({ x: t.number(), y: t.number(), r: t.number(), ms: t.number() }, 'ZoneState');
 export const GameState = schema({
+  intro: t.boolean(), introHost: t.string(),
+  shots: t.array(ShotState), zones: t.array(ZoneState),
   lockX0: t.number(), lockX1: t.number(),
   encDone: t.number(), encTotal: t.number(), won: t.boolean(),
   level: t.string(),
@@ -70,11 +75,14 @@ export class GameRoom extends Room<{ state: GameState }> {
   state = new GameState();
   world: World = createWorld(Date.now() & 0xffff, TEST_TOOLS);
   playerInputs: Record<string, Input> = {};
+  private introReaders = new Set<string>();
+  private introReady = new Set<string>();
 
   onCreate(options: { level?: unknown; stage?: unknown } = {}) {
     const level = options.level === 'old' ? 'old' : 'route';
     const stage = typeof options.stage === 'number' && Number.isInteger(options.stage) && options.stage >= 0 && options.stage < LEVELS[level].stages.length ? options.stage : 0;
     this.world = createWorld(Date.now() & 0xffff, TEST_TOOLS, level, stage);
+    this.state.intro = level === 'route' && stage === 0;
     this.sync();
     this.onMessage('next', (client: Client) => {
       if (TEST_TOOLS && this.world.players[client.sessionId]) nextStage(this.world);
@@ -88,7 +96,8 @@ export class GameRoom extends Room<{ state: GameState }> {
         client.send('pickError', 'Персонаж занят');
         return;
       }
-      addPlayer(this.world, client.sessionId, char);
+      const p = addPlayer(this.world, client.sessionId, char);
+      if (this.state.intro && !this.introReady.has(client.sessionId)) { this.introReaders.add(client.sessionId); p.away = true; }
       this.playerInputs[client.sessionId] = emptyInput();
     });
 
@@ -112,6 +121,13 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (TEST_TOOLS) chargeUlt(this.world, client.sessionId);
     });
 
+    this.onMessage('introDone', (client: Client) => {
+      this.introReaders.delete(client.sessionId); this.introReady.add(client.sessionId);
+      const p = this.world.players[client.sessionId];
+      if (p) { p.away = false; this.playerInputs[client.sessionId] = emptyInput(); }
+      if (client.sessionId === this.state.introHost) this.state.intro = false;
+    });
+
     // Пауза общая на комнату: поставить и снять может любой из двоих
     this.onMessage('pause', (client: Client, on: boolean) => {
       this.state.paused = !!on;
@@ -121,7 +137,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     // Свернул Safari: персонаж замирает, при всех свёрнутых мир стоит
     this.onMessage('away', (client: Client, on: boolean) => {
       const p = this.world.players[client.sessionId];
-      if (p) { p.away = !!on; this.playerInputs[client.sessionId] = emptyInput(); }
+      if (p) { p.away = !!on || this.introReaders.has(client.sessionId); this.playerInputs[client.sessionId] = emptyInput(); }
     });
 
     this.setPatchRate(TICK_MS); // состояние уходит клиентам каждый тик, а не раз в 50 мс
@@ -129,7 +145,7 @@ export class GameRoom extends Room<{ state: GameState }> {
   }
 
   tick() {
-    if (this.state.paused) return;
+    if (this.state.paused || this.state.intro) { this.sync(); return; }
     const events = step(this.world, this.playerInputs);
     for (const inp of Object.values(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.ult2 = false; }
     this.sync();
@@ -139,6 +155,8 @@ export class GameRoom extends Room<{ state: GameState }> {
   // Копия мира в Schema: Colyseus сам отправит только изменившиеся поля
   sync() {
     const s = this.state, w = this.world;
+    s.shots.clear(); for (const shot of w.shots) s.shots.push(new ShotState({ x: shot.x, y: shot.y, dir: shot.dir }));
+    s.zones.clear(); for (const zone of w.zones) s.zones.push(new ZoneState({ x: zone.x, y: zone.y, r: zone.r, ms: zone.ms }));
     s.level = w.level; s.stage = w.stage; s.trans = w.trans?.ms ?? 0;
     s.tick = w.tick;
     s.wave = w.wave;
@@ -157,12 +175,14 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
-      es.kind = e.kind; es.phase = e.phase;
+      es.boss = e.boss ?? ''; es.bossPhase = e.bossPhase ?? 0; es.atk = e.atk ?? '';
+      es.kind = e.boss ?? e.kind; es.phase = e.phase;
       es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.air = Math.round(e.air ?? 0); es.height = round(e.height ?? 0); es.frozen = (e.frozenMs ?? 0) > 0; es.slow = (e.slowMs ?? 0) > 0; es.stun = (e.stunMs ?? 0) > 0; es.charm = (e.charmMs ?? 0) > 0; es.facing = e.facing; es.anim = e.anim;
     }
   }
 
   onJoin(client: Client) {
+    if (!this.state.introHost) this.state.introHost = client.sessionId;
     console.log(`[${this.roomId}] join ${client.sessionId}`);
   }
 
@@ -176,11 +196,16 @@ export class GameRoom extends Room<{ state: GameState }> {
 
   onReconnect(client: Client) {
     const p = this.world.players[client.sessionId];
-    if (p) { p.connected = true; p.away = false; }
+    if (p) { p.connected = true; p.away = this.introReaders.has(client.sessionId); }
     console.log(`[${this.roomId}] reconnect ${client.sessionId}`);
   }
 
   onLeave(client: Client) {
+    if (this.state.introHost === client.sessionId) {
+      this.state.introHost = this.clients.find(c => c.sessionId !== client.sessionId)?.sessionId ?? '';
+      if (this.introReady.has(this.state.introHost)) this.state.intro = false;
+    }
+    this.introReaders.delete(client.sessionId); this.introReady.delete(client.sessionId);
     removePlayer(this.world, client.sessionId);
     delete this.playerInputs[client.sessionId];
     console.log(`[${this.roomId}] leave ${client.sessionId}`);
