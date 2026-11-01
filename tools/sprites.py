@@ -38,6 +38,10 @@ DROP = {("prime", "cross", "east"): [2], ("prime", "cross", "west"): [2, 3],
         ("prime", "uppercut", "east"): [3, 4, 7, 8], ("prime", "uppercut", "west"): [1, 2, 7, 8],
         ("prime", "superman", "west"): [1, 2, 3],
         ("ultimate", "flying-knee", "east"): [4]}
+# удержание: (форма, анимация, направление) -> номера кадров полосы (после DROP), которые показать дважды.
+# Выравнивает east и west по длине и кадру попадания (A2 и ресерч 01.11: время контакта в обе стороны одно)
+HOLD = {("prime", "superman", "west"): [0, 1, 2], ("prime", "cross", "west"): [1],
+        ("ultimate", "flying-knee", "east"): [2]}
 # удар = выпад (<name>-in: стойка -> ключевая поза) + возврат (<name>-out: ключевая поза -> стойка);
 # общий ключевой кадр берётся один раз, его номер пишется в anims.json как hit
 
@@ -182,6 +186,9 @@ def build_strikes(state, od, manifest):
             drop = DROP.get((state, name, ddir.name), [])
             hit -= sum(1 for i in drop if i < hit)
             frames = [f for i, f in enumerate(frames) if i not in drop]
+            hold = HOLD.get((state, name, ddir.name), [])
+            hit += sum(1 for i in hold if i < hit)
+            frames = [g for i, f in enumerate(frames) for g in ([f, f] if i in hold else [f])]
             strip = Image.new("RGBA", (CELL * len(frames), CELL))
             for i, f in enumerate(frames):
                 strip.paste(f, (i * CELL, 0))

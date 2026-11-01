@@ -79,9 +79,9 @@
     "east": 8,
     "hit": {
      "east": 3,
-     "west": 2
+     "west": 3
     },
-    "west": 7,
+    "west": 8,
     "fps": 18,
     "loop": false
    },
@@ -99,9 +99,9 @@
     "east": 11,
     "hit": {
      "east": 6,
-     "west": 3
+     "west": 6
     },
-    "west": 8,
+    "west": 11,
     "fps": 18,
     "loop": false
    },
@@ -211,9 +211,9 @@
     "loop": false
    },
    "flying-knee": {
-    "east": 10,
+    "east": 11,
     "hit": {
-     "east": 5,
+     "east": 6,
      "west": 6
     },
     "west": 11,
