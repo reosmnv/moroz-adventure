@@ -1,0 +1,8 @@
+{
+ "boss-shaman": {
+  "out": "{\n  \"background_job_id\": \"56e6e150-932e-4405-86a0-690c610aadb0\",\n  \"character_id\": \"9658cec2-773e-4d4f-9fcf-eaa84af48352\",\n  \"status\": \"processing\",\n  \"first_direction_generated\": true,\n  \"estimated_generations\": 6,\n  \"job_id\": \"56e6e150-932e-4405-86a0-690c610aadb0\",\n  \"n_directions\": 8,\n  \"poll_tool\": \"get_character\",\n  \"status_path\": \"/v2/background-jobs/56e6e150-932e-4405-86a0-690c610aadb0\",\n  \"download_path\": \"/mcp/characters/9658cec2-773e-4d4f-9fcf-eaa84af48352/download\"\n}\nid: 9658cec2-773e-4d4f-9fcf-eaa84af48352\nPoll get_character(character_id=\"9658cec2-773e-4d4f-9fcf-eaa84af48352\") or /"
+ },
+ "boss-pizdulina": {
+  "out": "{\n  \"background_job_id\": \"1981e4b0-d99e-46e1-b736-80f05d85448e\",\n  \"character_id\": \"3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\",\n  \"status\": \"processing\",\n  \"first_direction_generated\": true,\n  \"estimated_generations\": 6,\n  \"job_id\": \"1981e4b0-d99e-46e1-b736-80f05d85448e\",\n  \"n_directions\": 8,\n  \"poll_tool\": \"get_character\",\n  \"status_path\": \"/v2/background-jobs/1981e4b0-d99e-46e1-b736-80f05d85448e\",\n  \"download_path\": \"/mcp/characters/3c52fa4d-c0ac-40ab-b9c4-df9674926fe3/download\"\n}\nid: 3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\nPoll get_character(character_id=\"3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\") or /"
+ }
+}

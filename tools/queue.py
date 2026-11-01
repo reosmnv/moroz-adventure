@@ -19,7 +19,7 @@ for s in specs:
             print(s["name"], "network", e, flush=True)
             time.sleep(20)
             continue
-        if re.search(r"slot|rate limit", out):
+        if re.search(r"slot|rate limit|concurrent", out):
             print(s["name"], "wait:", out.splitlines()[0][:150], flush=True)
             time.sleep(25)
             continue

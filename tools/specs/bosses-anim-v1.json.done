@@ -1,0 +1,38 @@
+{
+ "shaman-idle": {
+  "out": "character: 9658cec2-773e-4d4f-9fcf-eaa84af48352\nanimation: fight-stance-idle-8-frames\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=faf33950-cd56-4d56-91ec-998226ab0ae6\ngroup: eff9323b-3340-46ff-84d1-3f06d13af161\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"9658cec2-773e-4d4f-9fcf-eaa84af48352\", mode=\"skeleton-v3\", template_animation_id=\"fight-stance-idle-8-frames\", animation_group_id=\"eff9323b-3340-46ff-84d1-3f06d13af161\", directions=[...])\n\nhint: get_character(character_id=\"9658cec2-773e-4d4f-9fcf-eaa84"
+ },
+ "shaman-walk": {
+  "out": "character: 9658cec2-773e-4d4f-9fcf-eaa84af48352\nanimation: walk\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=28583ac6-09df-4331-9de8-63eba6be4571\ngroup: d1990c63-746d-4f07-86f1-cd1e55b46097\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"9658cec2-773e-4d4f-9fcf-eaa84af48352\", mode=\"skeleton-v3\", template_animation_id=\"walk\", animation_group_id=\"d1990c63-746d-4f07-86f1-cd1e55b46097\", directions=[...])\n\nhint: get_character(character_id=\"9658cec2-773e-4d4f-9fcf-eaa84af48352\")"
+ },
+ "shaman-hurt": {
+  "out": "character: 9658cec2-773e-4d4f-9fcf-eaa84af48352\nanimation: taking-punch\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=aea06aba-574b-4090-a082-1c6b4602a5cc\ngroup: a0bca443-2aa3-4619-a43e-7c9d1389ffc4\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"9658cec2-773e-4d4f-9fcf-eaa84af48352\", mode=\"skeleton-v3\", template_animation_id=\"taking-punch\", animation_group_id=\"a0bca443-2aa3-4619-a43e-7c9d1389ffc4\", directions=[...])\n\nhint: get_character(character_id=\"9658cec2-773e-4d4f-9fcf-eaa84af48352\")"
+ },
+ "shaman-fall": {
+  "out": "character: 9658cec2-773e-4d4f-9fcf-eaa84af48352\nanimation: falling-back-death\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=55ad0fee-e5cd-412b-8acd-294d575ed391\ngroup: 0677f709-75f4-4159-a6b8-105c432ec719\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"9658cec2-773e-4d4f-9fcf-eaa84af48352\", mode=\"skeleton-v3\", template_animation_id=\"falling-back-death\", animation_group_id=\"0677f709-75f4-4159-a6b8-105c432ec719\", directions=[...])\n\nhint: get_character(character_id=\"9658cec2-773e-4d4f-9fcf-eaa84af48352\")"
+ },
+ "shaman-attack": {
+  "out": "character: 9658cec2-773e-4d4f-9fcf-eaa84af48352\nanimation: pixminimax custom (swings the microphone like a club: pulls it back over his shoulder and holds, then smashes it forward, then returns to his pose; stays in strict side profile facing right the whole time, never turns to the camera)\ndirections: east (1 jobs)\njob_ids: east=8626b979-a4de-419c-a20b-dbdfc38e0b41\ngroup: 78ab51a1-c482-462c-a4c2-4387e9ea9439\nframes: 17 (1 reference + 16 animated)\ncanvas: east 84x84 (frames are stored at this size: the character plus room to move)\ncost: 1 generation (1/dir x 1)\neta: ~2 min/direction\n\nhint: get"
+ },
+ "shaman-cast": {
+  "out": "character: 9658cec2-773e-4d4f-9fcf-eaa84af48352\nanimation: pixminimax custom (dramatic singing power move: clenches both fists to his chest, then throws his head back and arms wide, belting a huge high note, then returns to his pose; stays in strict side profile facing right the whole time, never turns to the camera)\ndirections: east (1 jobs)\njob_ids: east=2c3dd60d-b0ac-4132-a8d5-b1ac009fcb67\ngroup: b8cd780e-b82d-45c5-81ce-aa40c360d699\nframes: 17 (1 reference + 16 animated)\ncanvas: east 84x84 (frames are stored at this size: the character plus room to move)\ncost: 1 generation (1/dir x 1)\neta: "
+ },
+ "pizdulina-idle": {
+  "out": "character: 3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\nanimation: fight-stance-idle-8-frames\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=30b57063-0948-46ba-a757-00691725bbd1\ngroup: ed0c5f55-4205-4db7-890a-d17f2257d498\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\", mode=\"skeleton-v3\", template_animation_id=\"fight-stance-idle-8-frames\", animation_group_id=\"ed0c5f55-4205-4db7-890a-d17f2257d498\", directions=[...])\n\nhint: get_character(character_id=\"3c52fa4d-c0ac-40ab-b9c4-df967"
+ },
+ "pizdulina-walk": {
+  "out": "character: 3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\nanimation: walk\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=264e346a-900a-4abe-a4e7-d3da40333c72\ngroup: 451c1d57-54be-46de-80b9-e97cca9ce4a0\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\", mode=\"skeleton-v3\", template_animation_id=\"walk\", animation_group_id=\"451c1d57-54be-46de-80b9-e97cca9ce4a0\", directions=[...])\n\nhint: get_character(character_id=\"3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\")"
+ },
+ "pizdulina-hurt": {
+  "out": "character: 3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\nanimation: taking-punch\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=f35e57eb-bf6e-4354-baff-d2f047930d8d\ngroup: dbb0547b-c8f2-4e26-906d-9d1a78241f30\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\", mode=\"skeleton-v3\", template_animation_id=\"taking-punch\", animation_group_id=\"dbb0547b-c8f2-4e26-906d-9d1a78241f30\", directions=[...])\n\nhint: get_character(character_id=\"3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\")"
+ },
+ "pizdulina-fall": {
+  "out": "character: 3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\nanimation: falling-back-death\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=63576f51-d729-4de4-971e-98e714cfc9fa\ngroup: d78b8527-ff5b-4d43-95f4-321b1c4bb917\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\", mode=\"skeleton-v3\", template_animation_id=\"falling-back-death\", animation_group_id=\"d78b8527-ff5b-4d43-95f4-321b1c4bb917\", directions=[...])\n\nhint: get_character(character_id=\"3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\")"
+ },
+ "pizdulina-attack": {
+  "out": "character: 3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\nanimation: pixminimax custom (raises the big red rubber stamp and holds, then strikes forward hitting with the stamp, then returns to her pose; stays in strict side profile facing right the whole time, never turns to the camera)\ndirections: east (1 jobs)\njob_ids: east=3ae88419-78bc-4cc3-9069-2b3cbfbee8a3\ngroup: 90a04e62-495f-48b0-b2ba-8b2ebfa0130c\nframes: 17 (1 reference + 16 animated)\ncanvas: east 84x84 (frames are stored at this size: the character plus room to move)\ncost: 1 generation (1/dir x 1)\neta: ~2 min/direction\n\nhint: get_character(char"
+ },
+ "pizdulina-cast": {
+  "out": "character: 3c52fa4d-c0ac-40ab-b9c4-df9674926fe3\nanimation: pixminimax custom (raises the big red rubber stamp high above her head with both hands, holds, then slams it down onto the floor in front of her, then straightens back to her pose; stays in strict side profile facing right the whole time, never turns to the camera)\ndirections: east (1 jobs)\njob_ids: east=79c029b0-dfe9-465a-a855-94de7358c3d4\ngroup: 555e2a0c-55ff-4fc3-9dc5-63f320962c48\nframes: 17 (1 reference + 16 animated)\ncanvas: east 84x84 (frames are stored at this size: the character plus room to move)\ncost: 1 generation (1/dir x 1)"
+ }
+}

@@ -1,0 +1,32 @@
+[
+ {
+  "name": "boss-shaman",
+  "tool": "create_character_pro_flash",
+  "args": {
+   "view": "side",
+   "width": 64,
+   "height": 64,
+   "name": "boss shaman",
+   "style_image": {
+    "base64": "@assets/enemy-concept/ref/style-anastasia.png",
+    "usage_description": "match pixel density, 1px dark outline, shading and muted palette of this hero sprite"
+   },
+   "description": "caricature of a Russian patriotic pop singer boss: tall man, platinum blond hair styled up, pale face, intense stare, black leather jacket, black shirt and trousers, black boots, holding a microphone, dramatic pose, side view beat-em-up boss"
+  }
+ },
+ {
+  "name": "boss-pizdulina",
+  "tool": "create_character_pro_flash",
+  "args": {
+   "view": "side",
+   "width": 64,
+   "height": 64,
+   "name": "boss pizdulina",
+   "style_image": {
+    "base64": "@assets/enemy-concept/ref/style-anastasia.png",
+    "usage_description": "match pixel density, 1px dark outline, shading and muted palette of this hero sprite"
+   },
+   "description": "caricature of a young female internet censor official boss: long straight dark hair, strict black business dress suit, red lipstick, cold smug face, holding a big red rubber stamp, side view beat-em-up boss"
+  }
+ }
+]

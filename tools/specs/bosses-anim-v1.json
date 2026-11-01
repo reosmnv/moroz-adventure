@@ -1,0 +1,162 @@
+[
+ {
+  "name": "shaman-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9658cec2-773e-4d4f-9fcf-eaa84af48352",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "shaman-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9658cec2-773e-4d4f-9fcf-eaa84af48352",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "shaman-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9658cec2-773e-4d4f-9fcf-eaa84af48352",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "shaman-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9658cec2-773e-4d4f-9fcf-eaa84af48352",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "shaman-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9658cec2-773e-4d4f-9fcf-eaa84af48352",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "swings the microphone like a club: pulls it back over his shoulder and holds, then smashes it forward, then returns to his pose; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "shaman-cast",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9658cec2-773e-4d4f-9fcf-eaa84af48352",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "cast",
+   "action_description": "dramatic singing power move: clenches both fists to his chest, then throws his head back and arms wide, belting a huge high note, then returns to his pose; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "pizdulina-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3c52fa4d-c0ac-40ab-b9c4-df9674926fe3",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "pizdulina-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3c52fa4d-c0ac-40ab-b9c4-df9674926fe3",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "pizdulina-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3c52fa4d-c0ac-40ab-b9c4-df9674926fe3",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "pizdulina-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3c52fa4d-c0ac-40ab-b9c4-df9674926fe3",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "pizdulina-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3c52fa4d-c0ac-40ab-b9c4-df9674926fe3",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "raises the big red rubber stamp and holds, then strikes forward hitting with the stamp, then returns to her pose; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "pizdulina-cast",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3c52fa4d-c0ac-40ab-b9c4-df9674926fe3",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "cast",
+   "action_description": "raises the big red rubber stamp high above her head with both hands, holds, then slams it down onto the floor in front of her, then straightens back to her pose; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ }
+]

@@ -1,0 +1,555 @@
+[
+ {
+  "name": "omon_shield-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "a59616be-c47f-41fa-8467-1f4fb39ac41f",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "omon_shield-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "a59616be-c47f-41fa-8467-1f4fb39ac41f",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "omon_shield-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "a59616be-c47f-41fa-8467-1f4fb39ac41f",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "omon_shield-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "a59616be-c47f-41fa-8467-1f4fb39ac41f",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "omon_shield-getup",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "a59616be-c47f-41fa-8467-1f4fb39ac41f",
+   "mode": "skeleton-v3",
+   "template_animation_id": "getting-up",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "getup"
+  }
+ },
+ {
+  "name": "omon_shield-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "a59616be-c47f-41fa-8467-1f4fb39ac41f",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "heavy riot officer shield bash: pulls the tall shield back and crouches, holds, then lunges forward slamming the shield into the enemy in front, then steps back to stance; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "vatnik-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3e77c3dc-e6a0-4911-aa76-e044c1b3d166",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "vatnik-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3e77c3dc-e6a0-4911-aa76-e044c1b3d166",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "vatnik-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3e77c3dc-e6a0-4911-aa76-e044c1b3d166",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "vatnik-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3e77c3dc-e6a0-4911-aa76-e044c1b3d166",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "vatnik-getup",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3e77c3dc-e6a0-4911-aa76-e044c1b3d166",
+   "mode": "skeleton-v3",
+   "template_animation_id": "getting-up",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "getup"
+  }
+ },
+ {
+  "name": "vatnik-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "3e77c3dc-e6a0-4911-aa76-e044c1b3d166",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "drunk man throws a big wild haymaker punch: winds his right fist far back over his shoulder and holds, then swings a heavy hook forward, staggers, returns to stance; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "zek-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "eff611ab-70d5-49ce-afa7-80c7166a24ed",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "zek-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "eff611ab-70d5-49ce-afa7-80c7166a24ed",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "zek-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "eff611ab-70d5-49ce-afa7-80c7166a24ed",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "zek-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "eff611ab-70d5-49ce-afa7-80c7166a24ed",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "zek-getup",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "eff611ab-70d5-49ce-afa7-80c7166a24ed",
+   "mode": "skeleton-v3",
+   "template_animation_id": "getting-up",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "getup"
+  }
+ },
+ {
+  "name": "zek-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "eff611ab-70d5-49ce-afa7-80c7166a24ed",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "ex-convict knife lunge: crouches low and coils back holding the knife, then dashes forward stabbing straight ahead with the knife, then recovers to his hunched stance; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "info_m-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "85db48a3-b4f2-4c81-b66b-6e72c692f739",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "info_m-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "85db48a3-b4f2-4c81-b66b-6e72c692f739",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "info_m-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "85db48a3-b4f2-4c81-b66b-6e72c692f739",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "info_m-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "85db48a3-b4f2-4c81-b66b-6e72c692f739",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "info_m-getup",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "85db48a3-b4f2-4c81-b66b-6e72c692f739",
+   "mode": "skeleton-v3",
+   "template_animation_id": "getting-up",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "getup"
+  }
+ },
+ {
+  "name": "info_m-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "85db48a3-b4f2-4c81-b66b-6e72c692f739",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "smug guru lunge: leans back, then dashes forward and jabs the smartphone at the enemy like a punch, then recovers to stance; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "info_f-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ae30bbfe-a068-46b8-b8ba-db631ac63ed6",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "info_f-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ae30bbfe-a068-46b8-b8ba-db631ac63ed6",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "info_f-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ae30bbfe-a068-46b8-b8ba-db631ac63ed6",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "info_f-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ae30bbfe-a068-46b8-b8ba-db631ac63ed6",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "info_f-getup",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ae30bbfe-a068-46b8-b8ba-db631ac63ed6",
+   "mode": "skeleton-v3",
+   "template_animation_id": "getting-up",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "getup"
+  }
+ },
+ {
+  "name": "info_f-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ae30bbfe-a068-46b8-b8ba-db631ac63ed6",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "woman coach slaps: winds her right hand far back and holds, then delivers a big swinging slap forward with her phone hand, then returns to stance; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "clerk-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ebab4838-eb42-45a4-ac5e-3b82a5547cb7",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "clerk-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ebab4838-eb42-45a4-ac5e-3b82a5547cb7",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "clerk-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ebab4838-eb42-45a4-ac5e-3b82a5547cb7",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "clerk-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ebab4838-eb42-45a4-ac5e-3b82a5547cb7",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "clerk-getup",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ebab4838-eb42-45a4-ac5e-3b82a5547cb7",
+   "mode": "skeleton-v3",
+   "template_animation_id": "getting-up",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "getup"
+  }
+ },
+ {
+  "name": "clerk-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "ebab4838-eb42-45a4-ac5e-3b82a5547cb7",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "angry fat clerk lifts the paper folder high over his head with both hands and holds, then slams it down hard in front of him, papers flying, then returns to stance; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "omon-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9efdf1ec-a89c-4edc-9536-0b9c001760f4",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "omon-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9efdf1ec-a89c-4edc-9536-0b9c001760f4",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "omon-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9efdf1ec-a89c-4edc-9536-0b9c001760f4",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "omon-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9efdf1ec-a89c-4edc-9536-0b9c001760f4",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "omon-getup",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9efdf1ec-a89c-4edc-9536-0b9c001760f4",
+   "mode": "skeleton-v3",
+   "template_animation_id": "getting-up",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "getup"
+  }
+ },
+ {
+  "name": "omon-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9efdf1ec-a89c-4edc-9536-0b9c001760f4",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "riot officer swings his rubber baton: raises the baton high behind his head and holds the wind-up, then smashes it down forward in a hard overhead strike, then returns to his ready stance; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ }
+]
