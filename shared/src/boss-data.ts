@@ -8,8 +8,8 @@ export interface BossAttack {
 }
 export interface BossInfo { name: string; hp: number; speed: number; phase2At: number; attacks: [string[], string[]]; kissLine?: string }
 export const BOSS: Record<BossId, BossInfo> = {
-  shaman: { name: 'ШАМАН', hp: 600, speed: 40, phase2At: 0.5, attacks: [['mic', 'vstayu'], ['mic', 'vstayu', 'chorus', 'fans']], kissLine: 'Я люблю только Катеньку' },
-  pizdulina: { name: 'ПИЗДУЛИНА ЕКАТЕРИНА', hp: 520, speed: 46, phase2At: 0.5, attacks: [['slap', 'ban'], ['slap', 'ban', 'zones', 'omon']] },
+  shaman: { name: 'ШАМАН', hp: 1400, speed: 40, phase2At: 0.5, attacks: [['mic', 'vstayu'], ['mic', 'vstayu', 'chorus', 'fans']], kissLine: 'Я люблю только Катеньку' },
+  pizdulina: { name: 'ПИЗДУЛИНА ЕКАТЕРИНА', hp: 1200, speed: 46, phase2At: 0.5, attacks: [['slap', 'ban'], ['slap', 'ban', 'zones', 'omon']] },
 };
 export const BOSS_ATTACK: Record<string, BossAttack> = {
   mic: { id: 'mic', kind: 'melee', windupMs: 650, activeMs: 120, recoverMs: 500, dmg: 12, reach: 52, depth: 16, cdMs: 900 },

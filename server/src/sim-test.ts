@@ -1,5 +1,5 @@
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { BOSS, BOSS_ATTACK, type BossId, ROLE, ENCOUNTERS, LEVELS, stageOf, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
+import { BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -483,7 +483,7 @@ check('длительности из данных (x1.4)', moveDurMs('prime', 'j
 
 // ТЗ-05: реальные тики общей симуляции, без сервера.
 function arenaSetup(kind: 'omon' | 'clerk' | 'omon_shield' | 'zek' = 'omon') {
-  const w = createWorld(19, true, 'route');
+  const w = createWorld(19, true, 'route'); w.introduced = Object.keys(ENEMY_INTRO);
   const p = addPlayer(w, 'h', HERO_ID); p.x = 200; p.y = 200;
   spawnEnemies(w, 1);
   const e = Object.values(w.enemies)[0];
@@ -524,7 +524,7 @@ for (const count of [1, 2]) {
     step(w, {});
     const attacking = Object.values(w.enemies).filter(e => e.phase === 'windup' || e.phase === 'active');
     attacks += attacking.length;
-    valid &&= attacking.length <= 2 && Object.values(w.players).every(p => attacking.filter(e => e.token === p.id).length <= 1);
+    valid &&= attacking.length <= 4 && Object.values(w.players).every(p => attacking.filter(e => e.token === p.id).length <= 2);
   }
   check(`R5: лимиты разрешений, игроков ${count}, 10 с`, valid && attacks > 0);
 }
@@ -562,26 +562,28 @@ for (const front of [true, false]) {
   w.enc.wave = 1; w.enc.queue = []; p.hp = 0;
   w.pending.push({ ms: 2000, kind: 'beam', owner: 'h', strike: STRIKES.prime.jab });
   const ev = step(w, {});
-  check('R7: рестарт сохраняет пройденные встречи', w.enc.index === 1 && w.enc.cleared === 1 && w.enc.wave === 0 && w.enc.queue.length === 3 && !Object.keys(w.enemies).length && !w.pending.length && p.hp === 150 && p.x === 1240 && ev.some(e => e.t === 'restart'));
+  check('R7: рестарт сохраняет пройденные встречи', w.enc.index === 1 && w.enc.cleared === 1 && w.enc.wave === 0 && w.enc.queue.length === 4 && !Object.keys(w.enemies).length && !w.pending.length && p.hp === 150 && p.x === 1240 && ev.some(e => e.t === 'restart'));
   step(w, {});
-  check('R7: первая волна появляется снова', Object.keys(w.enemies).length === 3);
+  check('R7: первая волна появляется снова', Object.keys(w.enemies).length === 4);
 }
 {
   const w = createWorld(11, true), p = addPlayer(w, 'h', HERO_ID);
   let ticks = 0, locks = 0, clears = 0, ordered = true, lastStage = 0;
   const bosses: string[] = [];
   const done: number[] = [];
-  while (!w.won && ticks++ < 20000) {
-    for (const e of Object.values(w.enemies)) e.hp = 0;
+  let intros = 0;
+  while (!w.won && ticks++ < 50000) {
+    for (const e of Object.values(w.enemies)) if (e.entered && !w.cine) e.hp = 0;
     p.hp = 150; p.invulnMs = 1000;
     const exit = stageOf(w).exit;
-    let inp = { ...emptyInput(), mx: 1, run: true };
+    let inp = { ...emptyInput(), mx: 1, run: true, skip: true };
     if (w.enc.cleared === encountersOf(w).length && exit) {
       inp.mx = p.x < exit.x0 + 3 ? 1 : p.x > exit.x1 - 3 ? -1 : 0;
       inp.my = p.y > exit.y1 ? -1 : 0;
     }
     const ev = step(w, { h: inp });
     for (const event of ev) if (event.t === 'boss') bosses.push(w.enemies[event.id].boss!);
+    intros += ev.filter(e => e.t === 'cine').length;
     locks += ev.filter(e => e.t === 'lock').length; clears += ev.filter(e => e.t === 'clear').length;
     if (w.stage !== lastStage) {
       ordered &&= done[lastStage] === ENCOUNTERS[LEVELS.route.stages[lastStage].id].length;
@@ -591,6 +593,7 @@ for (const front of [true, false]) {
     done[w.stage] = w.enc.cleared;
   }
   check('R2: бот проходит весь маршрут по порядку', w.won && ordered && locks === 13 && clears === 13 && done.join() === '3,1,1,1,2,2,3', `ticks=${ticks} locks=${locks} clears=${clears} done=${done}`);
+  check('TZ07: бот показал все девять вставок и пропускал их', intros === 9, String(intros));
   check('TZ06 R9.8: маршрут включает обоих боссов', bosses.join() === 'shaman,pizdulina');
   const n = w.nextEnemyId; spawnEnemies(w, 3); step(w, {});
   check('R2: после победы нет новых врагов', w.nextEnemyId === n && !w.enc.lock);
@@ -604,9 +607,9 @@ for (const dodge of [false, true]) {
 {
   const { w, e } = arenaSetup(); const buddy = addPlayer(w, 'b', NADYA_ID);
   spawnEnemies(w, 1);
-  check('R1: duo HP при появлении', Object.values(w.enemies).find(o => o !== e)!.maxHp === 52);
+  check('R1: HP при двух игроках фиксированы', Object.values(w.enemies).find(o => o !== e)!.maxHp === 60);
   buddy.connected = false; spawnEnemies(w, 1);
-  check('R1: отключённый не увеличивает HP', Object.values(w.enemies).at(-1)!.maxHp === 40);
+  check('R1: отключённый не увеличивает HP', Object.values(w.enemies).at(-1)!.maxHp === 60);
 }
 
 {
@@ -628,21 +631,22 @@ for (const dodge of [false, true]) {
   others[0].waitMs = 50; others[1].waitMs = 500;
   e.cdMs = 10000;
   step(w, {});
-  check('R5: первым получает разрешение ожидающий дольше', others[1].token === 'h' && !others[0].token);
+  check('R5: два ожидающих получают разрешение на одну цель', others[1].token === 'h' && others[0].token === 'h');
 }
 {
   const w = createWorld(9, true, 'route', 6), p = addPlayer(w, 'h', HERO_ID);
   w.enc.index = 1; w.enc.cleared = 1; p.x = 2060; step(w, {});
-  check('R2: solo очередь ограничена тремя врагами', Object.values(w.enemies).length === 3);
+  check('R2: solo первая волна из четырёх', Object.values(w.enemies).length === 4);
   const b = addPlayer(w, 'b', NADYA_ID); step(w, {});
-  check('R2: duo очередь дополняется до четырёх', Object.values(w.enemies).length === 4);
-  check('R1: масштаб HP только при появлении', Object.values(w.enemies).at(-1)!.maxHp === 36);
+  check('R2: duo не меняет первую волну', Object.values(w.enemies).length === 4);
+  check('R1: HP зэка фиксированы', Object.values(w.enemies).at(-1)!.maxHp === 42);
 }
 
 
 // TZ-06: настоящая встреча, затем изолированные опасности боссов.
 function bossSetup(boss: BossId = 'shaman') {
   const w = createWorld(71, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
+  w.introduced = Object.keys(ENEMY_INTRO);
   w.enc.index = 1; w.enc.cleared = 1; p.x = 1100; p.y = 220;
   step(w, {}); w.enc.queue = [];
   for (const e of Object.values(w.enemies)) e.hp = 0;
@@ -757,6 +761,97 @@ for (const dodge of [false, true]) {
   const { w, p, e } = bossSetup(); forceBossAttack(e, 'fans'); run(w, 850);
   e.hp = 0; step(w, {}); p.invulnMs = 10000; run(w, 1600);
   check('TZ06 R1: второй босс приходит, даже если остались призванные', Object.values(w.enemies).some(e => e.boss === 'pizdulina') && Object.values(w.enemies).some(e => !e.boss && e.hp > 0));
+}
+
+{
+  const w = createWorld(36, false), p = addPlayer(w, 'h', HERO_ID);
+  p.x = 700; w.enc.lock = [240, 720];
+  dummy(w, 'first', 0); dummy(w, 'second', 0);
+  w.enemies.first.kind = 'vatnik'; w.enemies.second.kind = 'omon';
+  step(w, {}); check('TZ07: первая из двух вставок', w.cine?.kind === 'vatnik');
+  step(w, { h: { ...emptyInput(), skip: true } }, 300);
+  const x = p.x; const ev = step(w, { h: { ...emptyInput(), mx: 1 } });
+  check('TZ07: второй новый вид сразу после первого, без шага боя', String(w.cine?.kind) === 'omon' && p.x === x && ev.some(e => e.t === 'cine'));
+}
+{
+  const w = createWorld(37, false), p = addPlayer(w, 'h', HERO_ID);
+  p.x = 300; step(w, {});
+  const enemies = Object.values(w.enemies); enemies[0].hp = 0;
+  step(w, {});
+  check('TZ07: следующая волна при двух живых и максимум шесть', w.enc.wave === 1 && Object.values(w.enemies).filter(e => e.hp > 0).length === 6);
+}
+
+// TZ-07: входы, границы, общая пауза и остановка поезда.
+{
+  const hp: number[] = [];
+  for (const n of [1, 4]) {
+    const w = createWorld(31, false);
+    for (let i = 0; i < n; i++) addPlayer(w, `p${i}`, [HERO_ID, NADYA_ID, KRIS_ID, 'd'][i]);
+    w.players.p0.x = 300; step(w, {});
+    const enemies = Object.values(w.enemies);
+    hp.push(enemies[0].maxHp);
+    check(`TZ07: ${n} игрока, вход справа x1+260`, enemies.length === 3 && enemies.every(e => e.x === 720 + ENTER_OFF));
+    check(`TZ07: ${n} игрока, ни одного слева`, enemies.every(e => e.x >= 240));
+    check(`TZ07: мир содержит ${n} игроков`, Object.keys(w.players).length === n);
+  }
+  check('TZ07: HP не зависят от числа игроков', hp[0] === hp[1] && hp[0] === 66);
+}
+{
+  const w = createWorld(32, false), p = addPlayer(w, 'h', HERO_ID);
+  p.x = 300; step(w, {});
+  const e = Object.values(w.enemies)[0], hp = e.hp;
+  p.x = 700; p.y = e.y;
+  w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: { dmg: 100, range: 1000, kb: 0, stun: 0 }, ids: [e.id] });
+  step(w, {});
+  check('TZ07: враг вне арены не получает урон и разрешение', e.hp === hp && !e.token);
+  e.x = 710; e.y = p.y; w.introduced = Object.keys(ENEMY_INTRO);
+  w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: { dmg: 1, range: 1000, kb: 500, stun: 0 }, ids: [e.id] });
+  step(w, {});
+  check('TZ07: вошедшего нельзя выбить из арены', e.entered === true && e.x <= 708 && e.x >= 252);
+  e.pin = { ms: 1000, speed: 10, dir: -1, by: p.id, hit: [] };
+  run(w, 200);
+  check('TZ07: кегля остаётся внутри арены', e.x >= 252 && e.x <= 708);
+}
+{
+  const w = createWorld(33, false), p = addPlayer(w, 'h', HERO_ID);
+  p.x = 300; step(w, {});
+  const [e, second] = Object.values(w.enemies); e.x = 710;
+  const ev = step(w, {});
+  check('TZ07: первый vatnik вызывает cine', w.cine?.kind === 'vatnik' && ev.some(e => e.t === 'cine'));
+  const x = p.x, ex = e.x, clock = w.timeMs, cd = p.cdMs, tick = w.tick;
+  step(w, { h: { ...emptyInput(), mx: 1 } }, 100);
+  check('TZ07: cine замораживает мир и боевые таймеры', p.x === x && e.x === ex && w.timeMs === clock && p.cdMs === cd && w.tick === tick);
+  step(w, { h: { ...emptyInput(), skip: true } });
+  check('TZ07: skip сокращает остаток до 300 мс', !!w.cine && w.cine.ms <= 300);
+  for (let i = 0; i < 20; i++) step(w, {});
+  second.x = 700;
+  check('TZ07: второй vatnik без вставки', !step(w, {}).some(e => e.t === 'cine') && !w.cine);
+  p.hp = 0; step(w, {}); step(w, {});
+  Object.values(w.enemies)[0].x = 710;
+  check('TZ07: чекпойнт сохраняет introduced', !step(w, {}).some(e => e.t === 'cine') && w.introduced.includes('vatnik'));
+}
+{
+  const w = createWorld(34, false), p = addPlayer(w, 'h', HERO_ID);
+  p.x = 300; step(w, {}); w.enemies = {}; w.enc.wave = 1;
+  w.enc.queue = [{ kind: 'vatnik', door: 630 }, { kind: 'omon', door: 20 }];
+  step(w, {});
+  const [door, right] = Object.values(w.enemies);
+  check('TZ07: дверь внутри арены и fallback справа', door.x === 630 && door.anim === 'enter' && door.enterMs === 500 && right.x === 980);
+  run(w, 400);
+  check('TZ07: во время enter вставки нет', !w.cine && !door.token);
+  run(w, 120);
+  check('TZ07: после enter вставка', w.cine?.kind === 'vatnik');
+}
+{
+  const w = createWorld(35, false, 'route', 3), p = addPlayer(w, 'h', HERO_ID);
+  w.enc.index = w.enc.cleared = encountersOf(w).length;
+  const exit = stageOf(w).exit!; p.x = exit.x0 + 2; p.y = exit.y1;
+  step(w, {});
+  check('TZ07: торможение начинается с нуля', w.halt === 0 && !w.trans);
+  run(w, HALT_MS - 40);
+  check('TZ07: до 2500 выход закрыт', w.halt < HALT_MS && !w.trans);
+  run(w, 60);
+  check('TZ07: после остановки выход доступен', w.halt === HALT_MS && !!w.trans);
 }
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');

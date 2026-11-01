@@ -1,7 +1,7 @@
 // Общая симуляция боя: одна и та же для сервера (онлайн) и браузера (офлайн).
 // Чистые данные и функции, без Phaser и Colyseus.
 import { LEVELS, stageOf, laneTop, laneBottom, levelW, walkBounds, clampToLane } from './levels.ts';
-import { KIND, ROLE, DUO_HP_MULT, MAX_ALIVE, TOKENS_PER_TARGET, TOKENS_TOTAL, TOKEN_GAP_MS, WAIT_RING, GUARD_FRONT_MULT, type EnemyKind } from './enemy-data.ts';
+import { KIND, ROLE, MAX_ALIVE, TOKENS_PER_TARGET, TOKENS_TOTAL, TOKEN_GAP_MS, WAIT_RING, GUARD_FRONT_MULT, type EnemyKind } from './enemy-data.ts';
 import { BOSS, BOSS_ATTACK, type BossId } from './boss-data.ts';
 import { ENCOUNTERS, type Spawn } from './encounters.ts';
 import type { Form } from './anims-data.ts';
@@ -30,7 +30,11 @@ const REVIVE_MS = 5000;
 const TAUNT_CD_MS = 3000;
 const LANE_TOLERANCE = 24;
 
-export type Anim = 'idle' | 'walk' | 'attack' | 'heavy' | 'hurt' | 'down' | 'taunt' | 'ult' | 'windup' | 'strike' | 'dash' | 'recover';
+export const ENTER_OFF = 260;
+export const HALT_MS = 2500;
+export const CINE_MS = 2800;
+
+export type Anim = 'enter' | 'idle' | 'walk' | 'attack' | 'heavy' | 'hurt' | 'down' | 'taunt' | 'ult' | 'windup' | 'strike' | 'dash' | 'recover';
 
 export interface Character {
   id: string;
@@ -88,6 +92,7 @@ export interface Player {
 }
 
 export interface Enemy {
+  entered?: boolean; enterMs?: number; bornTick?: number;
   boss?: BossId; bossPhase?: 1 | 2; atk?: string;
   atkIndex?: number; cooldowns?: Record<string, number>; invulnMs?: number;
   deathMs?: number; shotCount?: number; shotMs?: number; wideToken?: boolean;
@@ -134,6 +139,7 @@ export interface Enemy {
 export interface BossShot { x: number; y: number; dir: number; speed: number; dmg: number }
 export interface BossZone { x: number; y: number; r: number; ms: number; tickMs: number; dmg: number }
 export interface World {
+  halt: number; introduced: string[]; cine?: { id: string; kind: string; ms: number };
   shots: BossShot[]; zones: BossZone[];
   timeMs: number;
   tokenReleased: Record<string, number>;
@@ -158,6 +164,7 @@ export interface World {
 export interface Pending { ms: number; kind: 'hits' | 'aoe' | 'beam' | 'kiss'; owner: string; strike: Strike; ids?: string[]; x?: number; y?: number; r?: number; dir?: 1 | -1; flash?: boolean }
 
 export interface Input {
+  skip?: boolean;
   mx: number; // -1..1
   my: number; // -1..1
   attack: boolean;
@@ -171,6 +178,7 @@ export interface Input {
 export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: false, taunt: false, ult: false, ult2: false, run: false });
 
 export type SimEvent =
+  | { t: 'cine'; id: string; kind: string }
   | { t: 'boss' | 'phase' | 'bossDown'; id: string }
   | { t: 'tele'; id: string; shape: 'ring' | 'line' | 'zone'; x: number; y: number; r?: number; h?: number; dir?: number; ms: number }
 
@@ -216,7 +224,7 @@ function focusX(w: World): number {
 
 export function createWorld(seed = 1, testTools = false, level: 'route' | 'old' = 'route', stage = 0): World {
   stage = Number.isInteger(stage) && stage >= 0 && stage < LEVELS[level].stages.length ? stage : 0;
-  return { shots: [], zones: [], timeMs: 0, tokenReleased: {}, won: false, enc: { stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 }, level, stage, tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
+  return { halt: -1, introduced: [], shots: [], zones: [], timeMs: 0, tokenReleased: {}, won: false, enc: { stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 }, level, stage, tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
 }
 
 export function takenChars(w: World): string[] {
@@ -226,9 +234,10 @@ export function takenChars(w: World): string[] {
 export function addPlayer(w: World, id: string, char: string): Player {
   // Новичок появляется рядом с живым игроком, а не в начале уровня
   const buddy = Object.values(w.players).find(p => p.connected && p.hp > 0);
+  const i = Object.keys(w.players).length;
   const p: Player = {
     id, char,
-    ...clampToLane(w, buddy ? buddy.x - 30 : stageOf(w).spawn[0], buddy ? buddy.y + 20 : stageOf(w).spawn[1]),
+    ...clampToLane(w, buddy ? buddy.x - 30 * i : stageOf(w).spawn[0], buddy ? buddy.y + 20 * i : stageOf(w).spawn[1]),
     hp: PLAYER_HP, facing: 1, anim: 'idle', animMs: 0, cdMs: 0, tauntCdMs: 0, ult: 0, downMs: 0,
     connected: true, away: false,
     form: HERO_FORM[char] ?? 'prime', move: 'idle', moveT: 0, combo: 0, comboMs: 0, queued: null, formMs: 0, invulnMs: 0, hitstopMs: 0, stormMs: 0, stormTickMs: 0,
@@ -261,14 +270,13 @@ export function spawnEnemies(w: World, count: number) {
   const cx = focusX(w);
   for (let i = 0; i < count; i++) {
     const id = 'e' + w.nextEnemyId++;
-    const fromRight = rand(w) < 0.7;
-    const hp = Math.round(ROLE.grunt.hp * (livePlayers(w).length >= 2 ? DUO_HP_MULT : 1));
-    const x = clamp(cx + (fromRight ? 280 + i * 25 : -280 - i * 25), ...walkBounds(w));
+    const hp = ROLE.grunt.hp;
+    const x = w.enc.lock ? w.enc.lock[1] + ENTER_OFF : cx + 280 + i * 25;
     w.enemies[id] = {
       kind: 'omon', phase: 'none', phaseMs: 0, id,
       x,
       y: laneTop(w, x) + rand(w) * (laneBottom(w) - laneTop(w, x)),
-      hp, maxHp: hp, facing: fromRight ? -1 : 1, anim: 'walk', animMs: 0, cdMs: 800 + rand(w) * 800,
+      hp, maxHp: hp, facing: -1, anim: 'walk', animMs: 0, cdMs: 800 + rand(w) * 800,
     };
   }
 }
@@ -286,7 +294,8 @@ type HitOpts = {
 
 // Одно попадание по врагу: урон, отлёт, контроль, шкалы героя, событие
 function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: SimEvent[], opts: HitOpts, allAround = false) {
-  if (e.hp <= 0 || (e.invulnMs ?? 0) > 0) return;
+  if (!combatReady(w, e) || e.hp <= 0 || (e.invulnMs ?? 0) > 0) return;
+  if (w.enc.lock) e.entered = true;
   const heavy = opts.down || opts.launch || opts.slam || opts.pin || opts.stunMs || e.frozenMs;
   const blocked = KIND[e.kind].guard && e.phase !== 'windup' && e.phase !== 'recover'
     && (p.x - e.x) * e.facing > 0 && !heavy && !allAround && !opts.noCharge && !opts.flash;
@@ -316,9 +325,9 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
     const kb = airborne || opts.launch ? 0 : (opts.kb ?? (allAround ? 30 : 8));
     if ((opts.pin || opts.down) && kb !== 0) {
       e.pin = { ms: PIN_MS, speed: kb / PIN_MS, dir, by: p.id, hit: [] };
-    } else e.x = clampEnemyX(w, e.x + dir * kb);
+    } else e.x = clampEnemyX(w, e.x + dir * kb, e);
   }
-  if (e.boss && !e.frozenMs) { e.x = clampEnemyX(w, e.x + dir * (opts.kb ?? 8) * 0.25); e.anim = 'hurt'; e.animMs = 120; }
+  if (e.boss && !e.frozenMs) { e.x = clampEnemyX(w, e.x + dir * (opts.kb ?? 8) * 0.25, e); e.anim = 'hurt'; e.animMs = 120; }
   if (opts.slowMs) { e.slowMs = opts.slowMs; e.slow = opts.slow ?? 0.5; }
   if (opts.stunMs && !e.boss) { e.stunMs = opts.stunMs; e.anim = 'hurt'; e.animMs = Math.max(e.animMs, opts.stunMs); }
   if (opts.silent) return;
@@ -330,7 +339,19 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
   ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, word: opts.word, by: p.id });
 }
 
-const clampEnemyX = (w: World, x: number) => clamp(x, Math.max(-40, focusX(w) - 300), Math.min(levelW(w) + 40, focusX(w) + 300));
+const combatReady = (w: World, e: Enemy) => !w.enc.lock || !e.enterMs && (e.entered || e.x >= w.enc.lock[0] && e.x <= w.enc.lock[1]);
+const clampEnemyX = (w: World, x: number, e: Enemy) => w.enc.lock
+  ? e.entered ? clamp(x, w.enc.lock[0] + 12, w.enc.lock[1] - 12) : x
+  : clamp(x, Math.max(-40, focusX(w) - 300), Math.min(levelW(w) + 40, focusX(w) + 300));
+
+function introduce(w: World, ev: SimEvent[]): boolean {
+  const e = Object.values(w.enemies).find(e => e.hp > 0 && combatReady(w, e) && !w.introduced.includes(e.boss ?? e.kind));
+  if (!w.enc.lock || !e) return false;
+  const kind = e.boss ?? e.kind;
+  w.introduced.push(kind); w.cine = { id: e.id, kind, ms: CINE_MS };
+  ev.push({ t: 'cine', id: e.id, kind });
+  return true;
+}
 function setAir(e: Enemy, ms: number, peak: number, bounce: boolean) {
   e.air = ms; e.airSpan = ms; e.airPeak = peak; e.airStartH = bounce ? 0 : (e.height ?? 0); e.bouncing = bounce;
   e.height = e.airStartH; e.pin = undefined;
@@ -342,7 +363,7 @@ function hitEnemies(w: World, p: Player, range: number, dmg: number, ev: SimEven
     const krisSweep = p.form === 'kris' && ['a1-back', 'a2'].includes(p.move);
     const inFront = krisSweep ? dx * p.facing >= 0 : allAround || Math.sign(dx) === p.facing || Math.abs(dx) < 6;
     const inLane = (p.char === HERO_ID || krisSweep) ? Math.abs(e.y - p.y) <= ATTACK_BAND : Math.abs(e.y - p.y) < (allAround ? 60 : LANE_TOLERANCE);
-    return e.hp > 0 && (opts.everyone || (inFront && (krisSweep ? Math.abs(dx) <= range : Math.abs(dx) < range) && inLane));
+    return combatReady(w, e) && e.hp > 0 && (opts.everyone || (inFront && (krisSweep ? Math.abs(dx) <= range : Math.abs(dx) < range) && inLane));
   });
   if (opts.single && list.length > 1) list = [list.reduce((a, b) => (Math.abs(a.x - p.x) < Math.abs(b.x - p.x) ? a : b))];
   for (const e of list) applyHit(w, p, e, dmg, Math.sign(e.x - p.x || p.facing), ev, opts, allAround);
@@ -365,7 +386,7 @@ function startMove(p: Player, move: string) {
 function approach(w: World, p: Player) {
   const s = STRIKES[p.form][p.move];
   if (p.char !== HERO_ID || !s) return;
-  const front = Object.values(w.enemies).filter(e => e.hp > 0 && (e.x - p.x) * p.facing > 0 && Math.abs(e.y - p.y) <= ATTACK_BAND);
+  const front = Object.values(w.enemies).filter(e => combatReady(w, e) && e.hp > 0 && (e.x - p.x) * p.facing > 0 && Math.abs(e.y - p.y) <= ATTACK_BAND);
   const e = front.sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x))[0];
   if (!e) return;
   const dist = Math.abs(e.x - p.x), range = s.range * RANGE_MULT;
@@ -395,7 +416,7 @@ function special(w: World, p: Player, s: Strike, ev: SimEvent[]) {
   if (s.kind === 'flash') {
     // Летит до первого врага на дорожке перед Kris, урон, когда долетела
     const sx = p.x + p.facing * 20, sy = p.y - 70;
-    const front = Object.values(w.enemies).filter(e => Math.sign(e.x - p.x) === p.facing && Math.abs(e.x - p.x) < s.range && Math.abs(e.y - p.y) < LANE_TOLERANCE);
+    const front = Object.values(w.enemies).filter(e => combatReady(w, e) && Math.sign(e.x - p.x) === p.facing && Math.abs(e.x - p.x) < s.range && Math.abs(e.y - p.y) < LANE_TOLERANCE);
     const t = front.length ? front.reduce((a, b) => (Math.abs(a.x - p.x) < Math.abs(b.x - p.x) ? a : b)) : undefined;
     const tx = t ? t.x : sx + p.facing * s.range;
     ev.push({ t: 'shot', id: p.id, x: sx, y: sy, tx, ty: t ? t.y - 60 : sy });
@@ -418,7 +439,7 @@ function special(w: World, p: Player, s: Strike, ev: SimEvent[]) {
 // Куда упадёт шар Kris. Кандидаты: позиции врагов; вес = сколько врагов в круге взрыва вокруг
 const inBlast = (e: Enemy, x: number, y: number) => Math.abs(e.x - x) <= BALL_RADIUS && Math.abs(e.y - y) <= BALL_RADIUS * 0.6;
 function ballTarget(w: World, p: Player): { x: number; y: number } {
-  const foes = Object.values(w.enemies).filter(e => e.hp > 0);
+  const foes = Object.values(w.enemies).filter(e => combatReady(w, e) && e.hp > 0);
   const best = (cands: Enemy[], from: { x: number; y: number }) => {
     let pick: { x: number; y: number; n: number; d: number } | undefined;
     for (const c of cands) {
@@ -468,7 +489,7 @@ function stepKiss(w: World, d: Pending, dtMs: number, ev: SimEvent[]): boolean {
   const lo = Math.min(x0, x1) - KISS_HALF_W, hi = Math.max(x0, x1) + KISS_HALF_W;
   const hit = d.ids!;
   for (const e of Object.values(w.enemies)) {
-    if (hit.includes(e.id) || e.x < lo || e.x > hi || Math.abs(e.y - d.y!) > KISS_BAND) continue;
+    if (!combatReady(w, e) || hit.includes(e.id) || e.x < lo || e.x > hi || Math.abs(e.y - d.y!) > KISS_BAND) continue;
     hit.push(e.id);
     if (e.boss) {
       const line = BOSS[e.boss].kissLine;
@@ -544,7 +565,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
     if (p.stormTickMs <= 0) {
       p.stormTickMs += STORM_TICK_MS;
       for (const e of Object.values(w.enemies)) {
-        if (Math.hypot(e.x - p.x, e.y - p.y) > STORM_RADIUS) continue;
+        if (!combatReady(w, e) || Math.hypot(e.x - p.x, e.y - p.y) > STORM_RADIUS) continue;
         e.frozenMs = FREEZE_MS / (e.boss ? 2 : 1);
         applyHit(w, p, e, STORM_DMG, p.facing, ev, { noCharge: true });
       }
@@ -745,7 +766,7 @@ function stepPin(w: World, e: Enemy, dtMs: number, ev: SimEvent[]) {
   const pin = e.pin;
   if (!pin || e.frozenMs) return;
   const x0 = e.x;
-  e.x = clampEnemyX(w, e.x + pin.dir * pin.speed * Math.min(pin.ms, dtMs));
+  e.x = clampEnemyX(w, e.x + pin.dir * pin.speed * Math.min(pin.ms, dtMs), e);
   pin.ms -= dtMs;
   const p = w.players[pin.by];
   if (p) for (const o of Object.values(w.enemies)) {
@@ -778,17 +799,19 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
   }
   if (!enc.lock || !next) return;
   const alive = () => Object.values(w.enemies).filter(e => e.hp > 0).length;
-  if (!enc.queue.length && alive() <= 1 && enc.wave + 1 < next.waves.length) {
+  if (!enc.queue.length && alive() <= 2 && enc.wave + 1 < next.waves.length) {
     enc.queue = [...next.waves[++enc.wave]];
   }
-  const cap = livePlayers(w).length >= 2 ? MAX_ALIVE.duo : MAX_ALIVE.solo;
+  const cap = MAX_ALIVE;
   while (enc.queue.length && alive() < cap) {
     const spawn = enc.queue.shift()!, info = KIND[spawn.kind], stats = ROLE[info.role];
-    const id = 'e' + w.nextEnemyId++, x = spawn.side === 'L' ? enc.lock[0] - 30 : enc.lock[1] + 30;
-    const hp = Math.round(stats.hp * (info.hpMult ?? 1) * (livePlayers(w).length >= 2 ? DUO_HP_MULT : 1));
-    w.enemies[id] = { id, kind: spawn.kind, phase: 'none', phaseMs: 0, x,
-      y: laneTop(w, x) + rand(w) * (laneBottom(w) - laneTop(w, x)),
-      hp, maxHp: hp, facing: spawn.side === 'L' ? 1 : -1, anim: 'walk', animMs: 0, cdMs: 0 };
+    const door = spawn.door !== undefined && spawn.door >= enc.lock[0] && spawn.door <= enc.lock[1] ? spawn.door : undefined;
+    const id = 'e' + w.nextEnemyId++, x = door ?? enc.lock[1] + ENTER_OFF;
+    const hp = Math.round(stats.hp * (info.hpMult ?? 1));
+    w.enemies[id] = { id, bornTick: w.tick, kind: spawn.kind, phase: 'none', phaseMs: 0, x,
+      y: door !== undefined ? laneTop(w, x) + 2 : laneTop(w, x) + rand(w) * (laneBottom(w) - laneTop(w, x)),
+      enterMs: door !== undefined ? 500 : undefined,
+      hp, maxHp: hp, facing: -1, anim: door !== undefined ? 'enter' : 'walk', animMs: 0, cdMs: 0 };
   }
   if (!enc.queue.length && enc.wave === next.waves.length - 1) {
     if (next.bosses) {
@@ -797,9 +820,9 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
       const boss = next.bosses[enc.bossIndex ?? 0];
       if (boss) {
         const id = 'e' + w.nextEnemyId++, info = BOSS[boss];
-        const hp = info.hp * (livePlayers(w).length >= 2 ? DUO_HP_MULT : 1);
-        w.enemies[id] = { id, kind: 'vatnik', boss, bossPhase: 1, hp, maxHp: hp,
-          x: enc.lock[1] + 30, y: laneBottom(w) - 20, facing: -1,
+        const hp = info.hp;
+        w.enemies[id] = { id, bornTick: w.tick, kind: 'vatnik', boss, bossPhase: 1, hp, maxHp: hp,
+          x: enc.lock[1] + ENTER_OFF, y: laneBottom(w) - 20, facing: -1,
           phase: 'none', phaseMs: 0, anim: 'walk', animMs: 0, cdMs: 0 };
         enc.bossStarted = true; ev.push({ t: 'boss', id }); return;
       }
@@ -816,7 +839,7 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
 function prepareTokens(w: World, dtMs: number) {
   const targets = livePlayers(w), enemies = Object.values(w.enemies);
   for (const e of enemies) {
-    const disabled = e.hp <= 0 || (e.invulnMs ?? 0) > 0 || e.dummy || e.frozenMs || e.stunMs || e.air || e.pin || e.charmMs || !e.boss && (e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0;
+    const disabled = !combatReady(w, e) || e.hp <= 0 || (e.invulnMs ?? 0) > 0 || e.dummy || e.frozenMs || e.stunMs || e.air || e.pin || e.charmMs || !e.boss && (e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0;
     if (disabled || e.token && !targets.some(p => p.id === e.token)) cancelAttack(w, e);
     e.targetMs = Math.max(0, (e.targetMs ?? 0) - dtMs);
     if (!e.token && !e.targetMs && targets.length) {
@@ -825,7 +848,7 @@ function prepareTokens(w: World, dtMs: number) {
     }
     if (!disabled && e.phase === 'none' && !e.token && e.cdMs <= 0) e.waitMs = (e.waitMs ?? 0) + dtMs;
   }
-  const candidates = enemies.filter(e => e.waitMs && !e.token && e.phase === 'none' && e.cdMs <= 0);
+  const candidates = enemies.filter(e => combatReady(w, e) && e.waitMs && !e.token && e.phase === 'none' && e.cdMs <= 0);
   candidates.sort((a, b) => b.waitMs! - a.waitMs!);
   for (const e of candidates) {
     if (!targets.some(p => p.id === e.target)) continue;
@@ -884,7 +907,11 @@ function stepEnemyAttack(w: World, e: Enemy, targets: Player[], speed: number, d
   const side = e.token ? (e.x < t.x ? -1 : 1) : (idx % 2 ? -1 : 1);
   // У рывка нулевая дальность: стартует с кольца ожидания.
   const gap = e.token ? stats.dash ? WAIT_RING[0] : stats.reach - 6 : WAIT_RING[0] + (idx % 3) * (WAIT_RING[1] - WAIT_RING[0]) / 2;
-  const gx = t.x + side * gap;
+  let gx = t.x + side * gap;
+  if (w.enc.lock) {
+    if (!e.token && gx > w.enc.lock[1] - 12) gx = t.x - gap;
+    gx = clamp(gx, w.enc.lock[0] + 12, w.enc.lock[1] - 12);
+  }
   const gy = e.token ? t.y : clamp(t.y + ((idx % 5) - 2) * 18, laneTop(w, gx), laneBottom(w));
   const dx = gx - e.x, dy = gy - e.y, len = Math.hypot(dx, dy);
   e.facing = t.x > e.x ? 1 : -1;
@@ -979,10 +1006,10 @@ function stepBoss(w: World, e: Enemy, targets: Player[], dtMs: number, ev: SimEv
     }
     if (a.kind === 'zones') for (const p of e.zonePoints ?? []) w.zones.push({ ...p, r: a.zoneR!, ms: a.zoneMs!, tickMs: 500, dmg: a.dmg });
     if (a.kind === 'summon') for (const group of a.summon ?? []) for (let n = 0; n < group.n; n++) {
-      if (Object.values(w.enemies).filter(o => o.hp > 0).length >= (targets.length >= 2 ? MAX_ALIVE.duo : MAX_ALIVE.solo)) break;
+      if (Object.values(w.enemies).filter(o => o.hp > 0).length >= MAX_ALIVE) break;
       const kind = group.kind as EnemyKind, stats = ROLE[KIND[kind].role], bounds = w.enc.lock ?? [0, levelW(w)];
-      const id = 'e' + w.nextEnemyId++, hp = Math.round(stats.hp * (KIND[kind].hpMult ?? 1) * (targets.length >= 2 ? DUO_HP_MULT : 1));
-      w.enemies[id] = { id, kind, hp, maxHp: hp, x: bounds[n % 2] + (n % 2 ? 30 : -30), y: e.y, facing: n % 2 ? -1 : 1, phase: 'none', phaseMs: 0, anim: 'walk', animMs: 0, cdMs: 0 };
+      const id = 'e' + w.nextEnemyId++, hp = Math.round(stats.hp * (KIND[kind].hpMult ?? 1));
+      w.enemies[id] = { id, kind, hp, maxHp: hp, x: bounds[1] + ENTER_OFF, y: e.y, facing: -1, phase: 'none', phaseMs: 0, anim: 'walk', animMs: 0, cdMs: 0 };
     }
   } else if (e.phase === 'active' && e.phaseMs <= 0) {
     releaseToken(w, e); e.phase = 'recover'; e.phaseMs = a.recoverMs;
@@ -1006,7 +1033,7 @@ export function nextStage(w: World) {
 }
 
 function finishTransition(w: World, ev: SimEvent[]) {
-  w.stage = w.trans!.to;
+  w.stage = w.trans!.to; w.halt = -1; w.cine = undefined;
   w.enc = { stage: w.stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 };
   w.tokenReleased = {}; w.won = false;
   w.trans = undefined;
@@ -1032,6 +1059,14 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
 
   // Никого нет за экраном: мир стоит, пока хост шлёт ссылку в мессенджер
   if (active.length === 0) return ev;
+  if (w.cine) {
+    const skip = active.some(p => { const i = inputs[p.id]; return i && (i.skip || i.attack || i.heavy || i.ult || i.ult2); });
+    w.cine.ms = Math.max(0, Math.min(w.cine.ms, skip ? 300 : Infinity) - dtMs);
+    if (!w.cine.ms) w.cine = undefined;
+    return ev;
+  }
+  for (const e of Object.values(w.enemies)) if (combatReady(w, e) && w.enc.lock) e.entered = true;
+  if (introduce(w, ev)) return ev;
   w.tick++; w.timeMs += dtMs;
 
   if (w.trans) {
@@ -1101,6 +1136,13 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   // Враги: к ближайшему живому игроку на его дорожку, удар, пауза
   const targets = active.filter(p => p.hp > 0);
   for (const e of Object.values(w.enemies)) {
+    if (e.hp > 0 && w.enc.lock && !e.entered) {
+      if (e.bornTick === w.tick) continue;
+      if (e.enterMs) { e.enterMs = Math.max(0, e.enterMs - dtMs); e.anim = 'enter'; }
+      else { e.x = Math.max(w.enc.lock[1], e.x - (e.boss ? BOSS[e.boss].speed : ROLE[KIND[e.kind].role].speed) * dt); e.anim = 'walk'; }
+      if (combatReady(w, e)) e.entered = true;
+      continue;
+    }
     if (e.boss) {
       if (e.hp <= 0) {
         cancelAttack(w, e); e.anim = 'down';
@@ -1156,7 +1198,7 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     const speed = ROLE[KIND[e.kind].role].speed * (e.slowMs ? 1 - (e.slow ?? 0) : 1);
     // Ревность: бьёт ближайшего другого врага; если некого, стоит и любуется Надей
     if (e.charmMs) {
-      const rivals = Object.values(w.enemies).filter(o => o !== e && o.hp > 0);
+      const rivals = Object.values(w.enemies).filter(o => combatReady(w, o) && o !== e && o.hp > 0);
       if (rivals.length === 0) { e.anim = 'idle'; continue; }
       const r = rivals.reduce((a, b) => (Math.abs(a.x - e.x) + Math.abs(a.y - e.y) < Math.abs(b.x - e.x) + Math.abs(b.y - e.y) ? a : b));
       const rx = r.x + (e.x < r.x ? -30 : 30) - e.x, ry = r.y - e.y;
@@ -1203,14 +1245,18 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     if (w.enc.lock) p.x = clamp(p.x, w.enc.lock[0] + 20, w.enc.lock[1] - 20);
   }
   for (const e of Object.values(w.enemies)) {
-    e.x = clampEnemyX(w, e.x);
+    e.x = clampEnemyX(w, e.x, e);
     e.y = clamp(e.y, laneTop(w, clamp(e.x, 0, levelW(w))), laneBottom(w));
   }
+  if (stageOf(w).tunnel && w.enc.cleared === encountersOf(w).length && !w.enc.lock) {
+    w.halt = w.halt < 0 ? 0 : Math.min(HALT_MS, w.halt + dtMs);
+  }
   const exit = stageOf(w).exit;
-  if ((w.level !== 'route' || w.enc.cleared === encountersOf(w).length) && exit && w.stage + 1 < LEVELS[w.level].stages.length && active.some(p => p.hp > 0 && p.x >= exit.x0 && p.x <= exit.x1 && p.y <= exit.y1)) {
+  if ((!stageOf(w).tunnel || w.halt >= HALT_MS) && (w.level !== 'route' || w.enc.cleared === encountersOf(w).length) && exit && w.stage + 1 < LEVELS[w.level].stages.length && active.some(p => p.hp > 0 && p.x >= exit.x0 && p.x <= exit.x1 && p.y <= exit.y1)) {
     w.trans = { ms: 900, to: w.stage + 1 };
     ev.push({ t: 'exit', to: w.trans.to });
   }
 
+  introduce(w, ev);
   return ev;
 }

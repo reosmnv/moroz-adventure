@@ -51,7 +51,7 @@ const NADYA_HEAVY_ICON: Record<string, string> = { b1: 'heavy-slap', b2: 'heavy-
 const heroIcon = (char: string, name: string) => `ui-${HERO_UI[char].dir}-${name}`;
 
 interface BtnView { base: Phaser.GameObjects.Image; icon: Phaser.GameObjects.Image; color: number; held: number }
-interface Panel { frame: Phaser.GameObjects.Image; root: Phaser.GameObjects.Container; portrait: Phaser.GameObjects.Image; badge: Phaser.GameObjects.Rectangle; name: Phaser.GameObjects.Text; bars: Phaser.GameObjects.Graphics }
+interface Panel { frame: Phaser.GameObjects.Image; root: Phaser.GameObjects.Container; portrait: Phaser.GameObjects.Image; badge: Phaser.GameObjects.Rectangle; name: Phaser.GameObjects.Text; health: Phaser.GameObjects.Text; bars: Phaser.GameObjects.Graphics }
 
 
 // Иконки временно из существующего набора, без новых ассетов.
@@ -100,8 +100,8 @@ export class UIScene extends Phaser.Scene {
   create() {
     this.shownHits = 0;
     this.hitText = this.add.text(0, HITS_Y, '', { ...textStyle(), fontSize: HITS_FONT }).setOrigin(1, 0).setScrollFactor(0);
-    this.waveText = this.add.text(0, 8, '', textStyle()).setOrigin(0.5, 0);
-    for (let i = 0; i < 2; i++) this.panels.push(this.makePanel(PANEL_X + i * (PANEL_W + PANEL_GAP), PANEL_Y));
+    this.waveText = this.add.text(0, 44, '', textStyle()).setOrigin(0.5, 0);
+    for (let i = 0; i < 4; i++) this.panels.push(this.makePanel(PANEL_X + i * (PANEL_W + PANEL_GAP), PANEL_Y));
 
     this.joyBase = this.add.image(JOY_REST.x, JOY_REST.y, 'ui-stick').setScale(JOY_SCALE).setAlpha(JOY_IDLE_ALPHA);
     this.joyKnob = this.add.image(JOY_REST.x, JOY_REST.y, 'ui-btn').setScale(0.5 * JOY_SCALE).setTint(LAV).setAlpha(JOY_IDLE_ALPHA);
@@ -149,8 +149,9 @@ export class UIScene extends Phaser.Scene {
     const portrait = this.add.image(fw / 2, fh / 2, 'ui-face-prime');
     const name = this.add.text(fw + 4, 4, '', textStyle());
     const bars = this.add.graphics();
-    const root = this.add.container(x, y, [badge, portrait, frame, name, bars]).setVisible(false);
-    return { root, frame, portrait, badge, name, bars };
+    const health = this.add.text(fw + 4, 9, '', textStyle(6));
+    const root = this.add.container(x, y, [badge, portrait, frame, name, health, bars]).setScrollFactor(0).setVisible(false);
+    return { root, frame, portrait, badge, name, health, bars };
   }
 
   private layout() {
@@ -184,6 +185,7 @@ export class UIScene extends Phaser.Scene {
 
   // Плавающий стик в левой части экрана, кнопки справа; каждый палец сам по себе
   private onDown(p: Phaser.Input.Pointer) {
+    if (this.session.snapshots.at(-1)?.cineId) { this.session.press('skip'); return; }
     const panel = this.panels[0];
     if (this.session.hasMe() && panel.root.visible &&
         p.x >= panel.root.x - PORTRAIT_PAD && p.x <= panel.root.x + panel.frame.width + PORTRAIT_PAD &&
@@ -285,7 +287,7 @@ export class UIScene extends Phaser.Scene {
     }
   }
 
-  private drawPanel(p: Panel, sb: EntitySnap, me: boolean) {
+  private drawPanel(p: Panel, sb: EntitySnap, me: boolean, width: number, index: number) {
     p.root.setVisible(true);
     const ch = CHARACTERS.find(c => c.id === sb.char);
     const hero = sb.char === HERO_ID || !!HERO_UI[sb.char ?? ''];
@@ -294,15 +296,17 @@ export class UIScene extends Phaser.Scene {
     p.badge.setFillStyle(hero ? NAVY : ch?.color ?? PLUM);
     const face = sb.char === HERO_ID ? (ultimate ? 'ui-face-ultimate' : 'ui-face-prime') : HERO_UI[sb.char ?? ''] ? heroIcon(sb.char!, 'face') : '';
     if (face && p.portrait.texture.key !== face) p.portrait.setTexture(face);
-    p.name.setText((ch?.name ?? '?') + (me ? '' : ' 2P')).setColor(colorHex(heroColor(sb.char)));
+    p.health.setText(`${Math.ceil(Math.max(0, sb.hp))} HP`).setVisible(width < PANEL_W);
+    p.name.setFontSize(width < PANEL_W ? 5 : 8).setText((ch?.name ?? '?') + (me || width < PANEL_W ? '' : ` ${index + 1}P`)).setColor(colorHex(heroColor(sb.char)));
     const pressed = me && this.time.now < this.portraitUntil;
     p.frame.setTint(pressed ? 0xaaaaaa : 0xffffff).setY(pressed ? PORTRAIT_DROP : 0);
     const g = p.bars.clear();
     const x = p.name.x;
-    this.bar(g, x, 16, BAR_W, 6, Math.max(0, sb.hp) / (sb.maxHp ?? PLAYER_HP), HP_COLOR);
+    const barW = Math.min(BAR_W, width - x - 4);
+    this.bar(g, x, 16, barW, 6, Math.max(0, sb.hp) / (sb.maxHp ?? PLAYER_HP), HP_COLOR);
     const full = !ultimate && (sb.ult ?? 0) >= 100;
     const flash = full && Math.floor(this.time.now / 160) % 2 === 0;
-    this.bar(g, x, 26, BAR_W, 3, ultimate ? (sb.formMs ?? 0) / ULT_MS : (sb.ult ?? 0) / 100, ultimate ? ULTIMATE_COLOR : flash ? CREAM : heroColor(sb.char));
+    this.bar(g, x, 26, barW, 3, ultimate ? (sb.formMs ?? 0) / ULT_MS : (sb.ult ?? 0) / 100, ultimate ? ULTIMATE_COLOR : flash ? CREAM : heroColor(sb.char));
     p.root.setAlpha(sb.connected === false || sb.away ? 0.4 : 1);
   }
 
@@ -317,7 +321,11 @@ export class UIScene extends Phaser.Scene {
     const me = last.players.get(s.me);
     const others = [...last.players].filter(([id]) => id !== s.me).map(([, p]) => p);
     const list = me ? [me, ...others] : others;
-    this.panels.forEach((p, i) => list[i] ? this.drawPanel(p, list[i], list[i] === me) : p.root.setVisible(false));
+    const width = Math.min(PANEL_W, (this.scale.width - 180 - PANEL_X) / Math.max(1, list.length) - PANEL_GAP);
+    this.panels.forEach((p, i) => {
+      p.root.setX(PANEL_X + i * (width + PANEL_GAP));
+      if (list[i]) this.drawPanel(p, list[i], list[i] === me, width, i); else p.root.setVisible(false);
+    });
 
     // U: копится кольцом вокруг кнопки, полная шкала пульсирует, в Ultimate кольцо показывает остаток
     if (me?.char) this.setHeroIcons(me.char);

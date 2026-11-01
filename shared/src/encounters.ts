@@ -1,33 +1,33 @@
 import type { BossId } from './boss-data.ts';
 import type { EnemyKind } from './enemy-data.ts';
-export interface Spawn { kind: EnemyKind; side: 'L' | 'R' }
+export interface Spawn { kind: EnemyKind; door?: number }
 export interface Encounter { trigger: number; arena: [number, number]; waves: Spawn[][]; bosses?: BossId[] }
 export const ENCOUNTERS: Record<string, Encounter[]> = {
   street: [
-    { trigger: 300, arena: [240, 720], waves: [[{ kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'R' }], [{ kind: 'vatnik', side: 'R' }, { kind: 'omon', side: 'L' }]] },
-    { trigger: 1240, arena: [1180, 1660], waves: [[{ kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'L' }], [{ kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'L' }, { kind: 'omon', side: 'R' }]] },
-    { trigger: 2220, arena: [2160, 2640], waves: [[{ kind: 'omon', side: 'R' }, { kind: 'omon', side: 'R' }], [{ kind: 'omon', side: 'R' }, { kind: 'omon', side: 'L' }, { kind: 'vatnik', side: 'R' }]] }
+    { trigger: 300, arena: [240, 720], waves: [[{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik', door: 630 }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'omon' }, { kind: 'omon' }]] },
+    { trigger: 1240, arena: [1180, 1660], waves: [[{ kind: 'vatnik', door: 1302 }, { kind: 'vatnik', door: 1302 }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'omon' }, { kind: 'omon' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'omon' }, { kind: 'omon' }]] },
+    { trigger: 2220, arena: [2160, 2640], waves: [[{ kind: 'omon' }, { kind: 'omon' }, { kind: 'omon' }], [{ kind: 'omon' }, { kind: 'omon' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'omon' }, { kind: 'omon' }, { kind: 'omon' }, { kind: 'vatnik' }]] },
   ],
   yard: [
-    { trigger: 360, arena: [300, 780], waves: [[{ kind: 'zek', side: 'R' }, { kind: 'vatnik', side: 'R' }], [{ kind: 'zek', side: 'R' }, { kind: 'zek', side: 'L' }, { kind: 'omon', side: 'R' }]] }
+    { trigger: 360, arena: [300, 780], waves: [[{ kind: 'zek' }, { kind: 'zek' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'zek' }, { kind: 'zek' }, { kind: 'omon' }, { kind: 'omon' }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'zek' }, { kind: 'zek' }]] },
   ],
   vestibule: [
-    { trigger: 700, arena: [640, 1120], waves: [[{ kind: 'omon_shield', side: 'R' }, { kind: 'omon', side: 'R' }], [{ kind: 'omon', side: 'R' }, { kind: 'omon', side: 'L' }, { kind: 'omon_shield', side: 'R' }]] }
+    { trigger: 700, arena: [640, 1120], waves: [[{ kind: 'omon_shield' }, { kind: 'omon' }, { kind: 'omon' }], [{ kind: 'omon' }, { kind: 'omon' }, { kind: 'omon' }, { kind: 'omon_shield' }], [{ kind: 'omon_shield' }, { kind: 'omon_shield' }, { kind: 'omon' }, { kind: 'omon' }]] },
   ],
   wagon: [
-    { trigger: 960, arena: [900, 1380], waves: [[{ kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'L' }, { kind: 'zek', side: 'R' }], [{ kind: 'zek', side: 'R' }, { kind: 'zek', side: 'L' }, { kind: 'vatnik', side: 'R' }]] }
+    { trigger: 960, arena: [900, 1380], waves: [[{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'zek' }, { kind: 'zek' }], [{ kind: 'zek' }, { kind: 'zek' }, { kind: 'zek' }, { kind: 'vatnik' }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'zek' }, { kind: 'omon' }]] },
   ],
   mayak: [
-    { trigger: 260, arena: [200, 680], waves: [[{ kind: 'clerk', side: 'R' }, { kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'L' }], [{ kind: 'clerk', side: 'R' }, { kind: 'zek', side: 'R' }, { kind: 'zek', side: 'L' }, { kind: 'vatnik', side: 'R' }]] },
-    { trigger: 1000, arena: [940, 1420], waves: [[{ kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'L' }]], bosses: ['shaman', 'pizdulina'] }
+    { trigger: 260, arena: [200, 680], waves: [[{ kind: 'clerk' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'clerk' }, { kind: 'zek' }, { kind: 'zek' }, { kind: 'vatnik' }], [{ kind: 'clerk' }, { kind: 'clerk' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'zek' }]] },
+    { trigger: 1000, arena: [940, 1420], waves: [[{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }]], bosses: ['shaman', 'pizdulina'] },
   ],
   city: [
-    { trigger: 560, arena: [500, 980], waves: [[{ kind: 'info_m', side: 'R' }, { kind: 'info_m', side: 'R' }, { kind: 'info_f', side: 'R' }], [{ kind: 'info_f', side: 'R' }, { kind: 'info_f', side: 'L' }, { kind: 'omon', side: 'R' }]] },
-    { trigger: 1660, arena: [1600, 2080], waves: [[{ kind: 'omon', side: 'R' }, { kind: 'omon', side: 'R' }, { kind: 'info_m', side: 'L' }, { kind: 'info_m', side: 'R' }], [{ kind: 'omon_shield', side: 'R' }, { kind: 'omon', side: 'R' }, { kind: 'omon', side: 'L' }]] }
+    { trigger: 560, arena: [500, 980], waves: [[{ kind: 'info_m' }, { kind: 'info_m' }, { kind: 'info_f' }, { kind: 'info_f' }], [{ kind: 'info_m' }, { kind: 'info_f' }, { kind: 'omon' }, { kind: 'omon' }], [{ kind: 'info_m' }, { kind: 'info_m' }, { kind: 'info_f' }, { kind: 'info_f' }, { kind: 'omon' }]] },
+    { trigger: 1660, arena: [1600, 2080], waves: [[{ kind: 'omon' }, { kind: 'omon' }, { kind: 'info_m' }, { kind: 'info_m' }], [{ kind: 'omon_shield' }, { kind: 'omon' }, { kind: 'omon' }, { kind: 'info_f' }], [{ kind: 'omon_shield' }, { kind: 'omon_shield' }, { kind: 'omon' }, { kind: 'omon' }, { kind: 'info_m' }]] },
   ],
   mfc: [
-    { trigger: 660, arena: [600, 1080], waves: [[{ kind: 'info_f', side: 'R' }, { kind: 'info_f', side: 'R' }, { kind: 'clerk', side: 'R' }], [{ kind: 'info_m', side: 'R' }, { kind: 'info_m', side: 'L' }, { kind: 'vatnik', side: 'R' }, { kind: 'vatnik', side: 'R' }]] },
-    { trigger: 2060, arena: [2000, 2480], waves: [[{ kind: 'clerk', side: 'R' }, { kind: 'clerk', side: 'R' }, { kind: 'zek', side: 'R' }, { kind: 'zek', side: 'L' }], [{ kind: 'info_m', side: 'R' }, { kind: 'info_f', side: 'R' }, { kind: 'clerk', side: 'L' }, { kind: 'vatnik', side: 'R' }]] },
-    { trigger: 3660, arena: [3600, 4080], waves: [[{ kind: 'omon', side: 'R' }, { kind: 'omon', side: 'R' }, { kind: 'omon_shield', side: 'R' }], [{ kind: 'omon', side: 'R' }, { kind: 'omon', side: 'L' }, { kind: 'omon', side: 'R' }, { kind: 'omon_shield', side: 'R' }]] }
+    { trigger: 660, arena: [600, 1080], waves: [[{ kind: 'info_f' }, { kind: 'info_f' }, { kind: 'clerk' }, { kind: 'clerk' }], [{ kind: 'info_m' }, { kind: 'info_m' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'clerk' }], [{ kind: 'info_f' }, { kind: 'info_f' }, { kind: 'info_m' }, { kind: 'info_m' }, { kind: 'clerk' }]] },
+    { trigger: 2060, arena: [2000, 2480], waves: [[{ kind: 'clerk' }, { kind: 'clerk' }, { kind: 'zek' }, { kind: 'zek' }], [{ kind: 'info_m' }, { kind: 'info_f' }, { kind: 'clerk' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'clerk' }, { kind: 'clerk' }, { kind: 'clerk' }, { kind: 'zek' }, { kind: 'zek' }]] },
+    { trigger: 3660, arena: [3600, 4080], waves: [[{ kind: 'omon' }, { kind: 'omon' }, { kind: 'omon_shield' }], [{ kind: 'omon' }, { kind: 'omon' }, { kind: 'omon' }, { kind: 'omon_shield' }], [{ kind: 'omon_shield' }, { kind: 'omon_shield' }, { kind: 'omon' }, { kind: 'omon' }, { kind: 'omon' }, { kind: 'omon' }]] },
   ],
 };

@@ -39,7 +39,10 @@ let session: GameSession | null = null;
 let game: any = null;
 let introSeen = false;
 function maybeIntro() {
-  if (!introSeen && session?.needsIntro()) { introSeen = true; void showIntro(() => session?.finishIntro()); }
+  if (!introSeen && session?.needsIntro()) {
+    const current = session; introSeen = true; current.introOpen = true;
+    void showIntro(() => { current.introOpen = false; current.finishIntro(); });
+  }
 }
 
 startBtn.onclick = () => begin(roomCode);

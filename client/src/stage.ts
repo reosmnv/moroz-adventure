@@ -1,9 +1,9 @@
 import * as Phaser from 'phaser';
-import { LEVELS, VIEW_H, type Stage } from '@bc/shared';
+import { HALT_MS, LEVELS, VIEW_H, type Stage } from '@bc/shared';
 import { FONT } from './ui.ts';
 
 const BG_SCALE = 1.5;
-const CARD_MS = 1800;
+const CARD_MS = 1730;
 const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
 const key = (file: string) => 'stage:' + file;
 
@@ -41,8 +41,9 @@ export class StageView {
   private elapsed = 0;
   private card?: Phaser.GameObjects.Container;
   private cardIndex = -1;
+  private cardElapsed = 0;
 
-  constructor(private scene: Phaser.Scene, private stage: Stage) {
+  constructor(private scene: Phaser.Scene, private stage: Stage, deferCard = false) {
     const own = <T extends Phaser.GameObjects.GameObject>(o: T): T => { this.objects.push(o); return o; };
     stage.layers.forEach((layer, i) => {
       const depth = -1000 + i;
@@ -60,20 +61,21 @@ export class StageView {
     for (const p of stage.props) own(scene.add.image(p.x, p.y, key(p.file)).setOrigin(0.5, 1).setScale(p.scale ?? BG_SCALE).setFlipX(!!p.flip).setDepth(p.depth ?? p.y));
     for (const s of stage.signs) own(scene.add.text(s.x, s.y, s.text, { fontFamily: FONT, fontSize: `${s.size}px`, color: s.color, backgroundColor: s.bg, padding: s.bg ? { x: 2, y: 2 } : undefined }).setOrigin(0.5).setDepth(-900));
     this.objects.push(...debugLane(scene, stage));
-    this.update(0);
+    this.update(0, -1, deferCard);
   }
 
-  update(dt: number) {
+  update(dt: number, halt = -1, deferCard = false) {
     this.elapsed += dt;
     if (this.tunnel && this.stage.tunnel) {
       const fx = this.stage.tunnel;
-      this.tunnel.tilePositionX += fx.speed * dt / 1000;
-      if (this.elapsed >= this.glintAt) {
+      const speed = fx.speed * (halt < 0 ? 1 : Math.max(0, 1 - halt / HALT_MS) ** 2);
+      this.tunnel.tilePositionX += speed * dt / 1000;
+      if (halt < HALT_MS && this.elapsed >= this.glintAt) {
         this.glintX = this.stage.width;
         this.glint!.setAlpha(Phaser.Math.FloatBetween(0.25, 0.5)).setVisible(true);
         this.glintAt = this.elapsed + Phaser.Math.Between(400, 1200);
       }
-      this.glintX -= fx.speed * dt / 1000;
+      this.glintX -= speed * dt / 1000;
       this.glint!.setX(this.glintX);
       if (this.glintX < -14) this.glint!.setVisible(false);
     }
@@ -87,21 +89,22 @@ export class StageView {
       else x = -w;
       this.train.setX(x).setVisible(x > -w);
     }
-    const index = Math.floor(this.elapsed / CARD_MS);
+    if (deferCard) return;
+    this.cardElapsed += dt;
+    const index = Math.floor(this.cardElapsed / CARD_MS);
     if (index !== this.cardIndex) {
       this.card?.destroy(); this.card = undefined; this.cardIndex = index;
       const text = this.stage.cards[index];
       if (text) {
-        this.card = this.scene.add.container(0, 0).setScrollFactor(0).setDepth(5000);
-        this.card.add(this.scene.add.rectangle(0, 0, 1, 68, 0x120c19, 0.88));
-        this.card.add(this.scene.add.text(0, -17, text[0], { fontFamily: FONT, fontSize: '8px', color: '#f2a541' }).setOrigin(0.5));
-        this.card.add(this.scene.add.text(0, 8, text[1], { fontFamily: FONT, fontSize: '12px', color: '#ffffff' }).setOrigin(0.5));
+        const small = this.scene.add.text(0, -22, text[0], { fontFamily: FONT, fontSize: '8px', color: '#ffffff', backgroundColor: '#120c19', padding: { x: 6, y: 5 } }).setOrigin(0.5);
+        const big = this.scene.add.text(0, 4, text[1], { fontFamily: FONT, fontSize: '16px', color: '#120c19', backgroundColor: '#ffe45c', padding: { x: 8, y: 7 } }).setOrigin(0.5);
+        this.card = this.scene.add.container(-300, VIEW_H + 80, [small, big]).setScrollFactor(0).setDepth(5000).setAngle(-4);
+        const card = this.card;
+        this.scene.tweens.add({ targets: card, x: this.scene.scale.width / 2, y: VIEW_H / 2, duration: 180, ease: 'Back.easeOut' });
+        this.scene.tweens.add({ targets: card, x: this.scene.scale.width + 300, y: -80, delay: 1580, duration: 150 });
       }
     }
-    if (this.card) {
-      this.card.setPosition(this.scene.scale.width / 2, VIEW_H / 2);
-      (this.card.list[0] as Phaser.GameObjects.Rectangle).setSize(this.scene.scale.width, 68);
-    }
+
   }
 
   destroy() { this.card?.destroy(); this.objects.forEach(o => o.destroy()); }

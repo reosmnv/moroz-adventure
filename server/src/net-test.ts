@@ -68,10 +68,24 @@ async function main() {
   await sleep(300);
   check('кнопка +3 врага работает', (a.state as any).enemies.size === before + 3, `${before} → ${(a.state as any).enemies.size}`);
 
-  // 5. Третий не влезает
-  let third = 'вошёл';
-  try { const c = await new Client(URL).joinById(a.roomId); await c.leave(); } catch (e: any) { third = e.message ?? 'ошибка'; }
-  check('третий игрок не входит', third !== 'вошёл', third);
+  // 5. Третий и четвёртый входят, пятый — нет.
+  const extra: Room[] = [];
+  for (const char of ['kris', 'd']) {
+    const r = await new Client(URL).joinById(a.roomId);
+    r.reconnection.enabled = false; r.onMessage('ev', () => {});
+    r.send('pick', char); await sleep(400);
+    check(`${char}: вход`, players(a).has(r.sessionId));
+    const x = players(a).get(r.sessionId)?.x;
+    r.send('move', { mx: 1, my: 0 }); await sleep(500);
+    r.send('move', { mx: 0, my: 0 }); await sleep(150);
+    check(`${char}: движение`, players(a).get(r.sessionId)?.x > x + 20);
+    extra.push(r);
+  }
+  let rejected = false;
+  try { const fifth = await new Client(URL).joinById(a.roomId); await fifth.leave(true); } catch { rejected = true; }
+  check('пятый игрок не входит', rejected);
+  for (const r of extra) await r.leave(true);
+  await sleep(300);
 
   // 5a. Пауза кнопкой: мир стоит у обоих, снимает любой
   a.send('pause', true);

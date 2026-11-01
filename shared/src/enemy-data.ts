@@ -12,9 +12,9 @@ export interface RoleStats {
   dash?: { dist: number; speed: number }; // быстрый: удар = рывок по x
 }
 export const ROLE: Record<EnemyRole, RoleStats> = {
-  grunt: { hp: 40, speed: 45, dmg: 7,  windupMs: 450, activeMs: 100, recoverMs: 350, reach: 40, depth: 14, cdMs: 900 },
-  tank:  { hp: 90, speed: 32, dmg: 14, windupMs: 750, activeMs: 120, recoverMs: 550, reach: 46, depth: 16, cdMs: 1300, armor: true },
-  fast:  { hp: 28, speed: 75, dmg: 6,  windupMs: 550, activeMs: 340, recoverMs: 450, reach: 0,  depth: 14, cdMs: 1100, dash: { dist: 130, speed: 380 } },
+  grunt: { hp: 60, speed: 45, dmg: 7,  windupMs: 450, activeMs: 100, recoverMs: 350, reach: 40, depth: 14, cdMs: 900 },
+  tank:  { hp: 140, speed: 32, dmg: 14, windupMs: 750, activeMs: 120, recoverMs: 550, reach: 46, depth: 16, cdMs: 1300, armor: true },
+  fast:  { hp: 42, speed: 75, dmg: 6,  windupMs: 550, activeMs: 340, recoverMs: 450, reach: 0,  depth: 14, cdMs: 1100, dash: { dist: 130, speed: 380 } },
 };
 export interface KindInfo { role: EnemyRole; hpMult?: number; guard?: boolean; name: string }
 export const KIND: Record<EnemyKind, KindInfo> = {
@@ -26,10 +26,9 @@ export const KIND: Record<EnemyKind, KindInfo> = {
   info_m:      { role: 'fast', hpMult: 0.9, name: 'Инфоцыган' },
   info_f:      { role: 'grunt', hpMult: 0.9, name: 'Инфоцыганка' },
 };
-export const DUO_HP_MULT = 1.3;        // два и больше живых игрока на связи
-export const MAX_ALIVE = { solo: 3, duo: 4 };
-export const TOKENS_PER_TARGET = 1;     // одновременно замахивается/бьёт одну героиню не больше 1 врага
-export const TOKENS_TOTAL = 2;          // и не больше 2 на всю команду
+export const MAX_ALIVE = 6;
+export const TOKENS_PER_TARGET = 2;
+export const TOKENS_TOTAL = 4;
 export const TOKEN_GAP_MS = 250;        // после освобождения следующий по той же цели не раньше
 export const WAIT_RING: [number, number] = [70, 100]; // ожидающие держатся на таком расстоянии по x
 export const GUARD_FRONT_MULT = 0.3;    // щит спереди: доля урона от обычных ударов

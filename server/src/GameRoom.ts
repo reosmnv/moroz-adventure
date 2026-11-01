@@ -51,6 +51,7 @@ export type EnemyState = SchemaType<typeof EnemyState>;
 export const ShotState = schema({ x: t.number(), y: t.number(), dir: t.number() }, 'ShotState');
 export const ZoneState = schema({ x: t.number(), y: t.number(), r: t.number(), ms: t.number() }, 'ZoneState');
 export const GameState = schema({
+  halt: t.number(), cineId: t.string(), cineKind: t.string(), cineMs: t.number(),
   intro: t.boolean(), introHost: t.string(),
   shots: t.array(ShotState), zones: t.array(ZoneState),
   lockX0: t.number(), lockX1: t.number(),
@@ -71,7 +72,7 @@ const RECONNECT_SECONDS = 60;
 const round = (v: number) => Math.round(v * 10) / 10;
 
 export class GameRoom extends Room<{ state: GameState }> {
-  maxClients = 2;
+  maxClients = 4;
   state = new GameState();
   world: World = createWorld(Date.now() & 0xffff, TEST_TOOLS);
   playerInputs: Record<string, Input> = {};
@@ -109,7 +110,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     // Кнопки копятся до ближайшего тика, чтобы короткое нажатие не терялось
     this.onMessage('btn', (client: Client, b: string) => {
       const inp = this.playerInputs[client.sessionId];
-      if (inp && (b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult' || b === 'ult2')) inp[b] = true;
+      if (inp && (b === 'skip' || b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult' || b === 'ult2')) inp[b] = true;
     });
 
     // Тестовая кнопка «+3 врага»; в релизе TEST_TOOLS = false
@@ -147,7 +148,7 @@ export class GameRoom extends Room<{ state: GameState }> {
   tick() {
     if (this.state.paused || this.state.intro) { this.sync(); return; }
     const events = step(this.world, this.playerInputs);
-    for (const inp of Object.values(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.ult2 = false; }
+    for (const inp of Object.values(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.ult2 = inp.skip = false; }
     this.sync();
     if (events.length) this.broadcast('ev', events);
   }
@@ -157,6 +158,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     const s = this.state, w = this.world;
     s.shots.clear(); for (const shot of w.shots) s.shots.push(new ShotState({ x: shot.x, y: shot.y, dir: shot.dir }));
     s.zones.clear(); for (const zone of w.zones) s.zones.push(new ZoneState({ x: zone.x, y: zone.y, r: zone.r, ms: zone.ms }));
+    s.halt = w.halt; s.cineId = w.cine?.id ?? ''; s.cineKind = w.cine?.kind ?? ''; s.cineMs = w.cine?.ms ?? 0;
     s.level = w.level; s.stage = w.stage; s.trans = w.trans?.ms ?? 0;
     s.tick = w.tick;
     s.wave = w.wave;
