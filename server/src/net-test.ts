@@ -13,7 +13,7 @@ const players = (r: Room) => (r.state as any).players as Map<string, any>;
 
 async function main() {
   // 1. Хост создаёт комнату и выбирает персонажа
-  const a = await new Client(URL).create('game');
+  const a = await new Client(URL).create('game', { level: 'old' });
   a.reconnection.enabled = false;
   a.onMessage('ev', () => {});
   check('комната создана, короткий код', /^[A-Z0-9]{5}$/.test(a.roomId), a.roomId);
@@ -24,6 +24,9 @@ async function main() {
   await sleep(500);
   check('сервер тикает', (a.state as any).tick > tick0, `tick ${(a.state as any).tick}`);
   check('манекен на месте', (a.state as any).enemies.size > 0, `врагов ${(a.state as any).enemies.size}`);
+
+  check('поля встреч в Schema', typeof (a.state as any).lockX0 === 'number' && typeof (a.state as any).encTotal === 'number');
+  check('вид и фаза врагов в Schema', [...(a.state as any).enemies.values()].every((e: any) => typeof e.kind === 'string' && typeof e.phase === 'string'));
 
   // 2. Движение считает сервер
   const x0 = players(a).get(a.sessionId).x;

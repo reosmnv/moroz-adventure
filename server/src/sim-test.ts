@@ -1,5 +1,5 @@
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
+import { ROLE, ENCOUNTERS, LEVELS, stageOf, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -16,7 +16,7 @@ function setup(withBuddy = false, char = HERO_ID) {
 }
 function dummy(w: World, id: string, dx: number, hp = 1000) {
   const p = w.players.h;
-  w.enemies[id] = { id, x: p.x + dx, y: p.y, hp, maxHp: hp, facing: -1, anim: 'idle', animMs: 0, cdMs: 1e9 };
+  w.enemies[id] = { kind: 'omon', phase: 'none', phaseMs: 0, id, x: p.x + dx, y: p.y, hp, maxHp: hp, facing: -1, anim: 'idle', animMs: 0, cdMs: 1e9 };
 }
 // n тиков, input() вызывается на каждом тике (кнопки одноразовые, как в GameRoom)
 function run(w: World, ms: number, input: (t: number) => Partial<Input> = () => ({})) {
@@ -98,15 +98,15 @@ for (const form of ['prime', 'ultimate'] as const) {
 // 7. Урон по героине: hurt, неуязвимость после удара, падение, подъём
 {
   const { w, p } = setup(true);
-  w.enemies.e1 = { id: 'e1', x: p.x + 24, y: p.y, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 0 };
-  const { log } = run(w, 400);
+  w.enemies.e1 = { kind: 'omon', phase: 'none', phaseMs: 0, id: 'e1', x: p.x + 24, y: p.y, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 0 };
+  const { log } = run(w, 900);
   check('удар врага: hurt', log.includes('hurt') && p.hp === 143, `${log.join('>')} hp ${p.hp}`);
   check('после удара неуязвима', p.invulnMs > 0);
-  w.enemies.e1.cdMs = 0; w.enemies.e1.anim = 'idle'; w.enemies.e1.animMs = 0;
+  w.enemies.e1.cdMs = 0; w.enemies.e1.anim = 'idle'; w.enemies.e1.animMs = 0; w.enemies.e1.phase = 'none'; w.enemies.e1.token = undefined;
   p.hp = 5; p.invulnMs = 0;
   const r = run(w, 800);
   check('hp 0: fall', p.hp === 0 && r.log.includes('fall'), r.log.join('>'));
-  delete w.enemies.e1; w.enemies.e9 = { id: 'e9', x: 900, y: 200, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 1e9 };
+  delete w.enemies.e1; w.enemies.e9 = { kind: 'omon', phase: 'none', phaseMs: 0, id: 'e9', x: 900, y: 200, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 1e9 };
   const r2 = run(w, 6000);
   check('друг жив: подъём getup', p.hp > 0 && r2.log.includes('getup'), `hp ${p.hp} ${r2.log.join('>')}`);
 }
@@ -124,14 +124,14 @@ for (const form of ['prime', 'ultimate'] as const) {
   const { w, p } = setup(); dummy(w, 'e1', 24);
   for (const k of ['attack', 'attack', 'attack'] as const) { run(w, 200, press([0], k)); run(w, 500); p.comboMs = 700; }
   check('удары серии A не сбивают с ног', w.enemies.e1.anim !== 'down', w.enemies.e1.anim);
-  w.enemies.e1.anim = 'idle'; w.enemies.e1.animMs = 0; p.combo = 0; p.bCombo = 2; p.bComboMs = 700; run(w, 100);
+  w.enemies.e1.anim = 'idle'; w.enemies.e1.animMs = 0; w.enemies.e1.phase = 'none'; w.enemies.e1.token = undefined; p.combo = 0; p.bCombo = 2; p.bComboMs = 700; run(w, 100);
   w.enemies.e1.x = p.x + 30;
   run(w, 400, press([0], 'heavy'));
   check('B сбивает с ног', (w.enemies.e1.anim as string) === 'down');
 }
 {
   const { w, p } = setup();
-  w.enemies.e1 = { id: 'e1', x: p.x + 34, y: p.y, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 0 };
+  w.enemies.e1 = { kind: 'omon', phase: 'none', phaseMs: 0, id: 'e1', x: p.x + 34, y: p.y, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 0 };
   p.form = 'ultimate'; p.formMs = ULT_MS;
   const r = run(w, 600);
   check('Ultimate: урон идёт, но без hurt', p.hp < 150 && !r.log.includes('hurt'), `hp ${p.hp} ${r.log.join('>')}`);
@@ -167,8 +167,8 @@ for (const form of ['prime', 'ultimate'] as const) {
 }
 {
   const { w, p } = setup();
-  w.enemies.a = { id: 'a', x: 20, y: 160, hp: 100, maxHp: 100, facing: 1, anim: 'idle', animMs: 0, cdMs: 1e9 };
-  w.enemies.b = { id: 'b', x: 460, y: 250, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 1e9 };
+  w.enemies.a = { kind: 'omon', phase: 'none', phaseMs: 0, id: 'a', x: 20, y: 160, hp: 100, maxHp: 100, facing: 1, anim: 'idle', animMs: 0, cdMs: 1e9 };
+  w.enemies.b = { kind: 'omon', phase: 'none', phaseMs: 0, id: 'b', x: 460, y: 250, hp: 100, maxHp: 100, facing: -1, anim: 'idle', animMs: 0, cdMs: 1e9 };
   p.ult = 100;
   run(w, 50, press([0], 'ult'));
   check('ульта отбрасывает всех врагов', w.enemies.a.x < 20 && w.enemies.b.x > 460 && (w.enemies.a.anim as string) === 'down', `${Math.round(w.enemies.a.x)} ${Math.round(w.enemies.b.x)}`);
@@ -200,8 +200,8 @@ for (const form of ['prime', 'ultimate'] as const) {
 // 10. Снежная буря
 {
   const { w, p } = setup();
-  w.enemies.a = { id: 'a', x: 200 + 100, y: 200, hp: 50, maxHp: 50, facing: -1, anim: 'walk', animMs: 0, cdMs: 0 };
-  w.enemies.b = { id: 'b', x: 200 + 420, y: 200, hp: 50, maxHp: 50, facing: -1, anim: 'walk', animMs: 0, cdMs: 0 };
+  w.enemies.a = { kind: 'omon', phase: 'none', phaseMs: 0, id: 'a', x: 200 + 100, y: 200, hp: 50, maxHp: 50, facing: -1, anim: 'walk', animMs: 0, cdMs: 0 };
+  w.enemies.b = { kind: 'omon', phase: 'none', phaseMs: 0, id: 'b', x: 200 + 420, y: 200, hp: 50, maxHp: 50, facing: -1, anim: 'walk', animMs: 0, cdMs: 0 };
   p.ult = 100;
   run(w, 100, press([0], 'ult2'));
   check('буря тратит заряд и замораживает врага в зоне', p.ult === 0 && (w.enemies.a.frozenMs ?? 0) > 0 && !w.enemies.b.frozenMs, `a=${w.enemies.a.frozenMs} b=${w.enemies.b.frozenMs}`);
@@ -480,6 +480,161 @@ for (const [x, facing] of [[200, 1], [15, 1], [1905, -1]] as const) {
   check('Kris hop: не за левую границу стандартной камеры', p.x >= 800 - 480 * 0.33 && Math.abs(p.x - 680) < 0.01);
 }
 check('длительности из данных (x1.4)', moveDurMs('prime', 'jab', 1) > 300 && moveDurMs('prime', 'jab', 1) < 400);
+
+// ТЗ-05: реальные тики общей симуляции, без сервера.
+function arenaSetup(kind: 'omon' | 'clerk' | 'omon_shield' | 'zek' = 'omon') {
+  const w = createWorld(19, true, 'route');
+  const p = addPlayer(w, 'h', HERO_ID); p.x = 200; p.y = 200;
+  spawnEnemies(w, 1);
+  const e = Object.values(w.enemies)[0];
+  Object.assign(e, { kind, x: 234, y: 200, hp: 1000, maxHp: 1000, cdMs: 0 });
+  return { w, p, e };
+}
+{
+  const w = createWorld(7, true); const p = addPlayer(w, 'h', HERO_ID);
+  p.x = 300;
+  const ev = step(w, {});
+  check('R2: trigger и lock, без манекена', w.enc.lock?.join() === '240,720' && ev.some(e => e.t === 'lock') && !Object.values(w.enemies).some(e => e.dummy));
+  p.x = 1000; step(w, {});
+  check('R2: правый край арены', p.x === 700);
+  p.x = 0; step(w, {});
+  check('R2: левый край арены', p.x === 260);
+  w.enc.lock = null; p.x = 2640; p.y = 160; step(w, {});
+  check('R2: exit закрыт до зачистки', !w.trans && w.stage === 0);
+}
+for (const dodge of [false, true]) {
+  const { w, p, e } = arenaSetup();
+  step(w, {});
+  check('R3: grunt начинает с замаха', e.phase === 'windup' && p.hp === 150);
+  const start = w.timeMs; let hitAt = 0;
+  if (dodge) p.y += ROLE.grunt.depth + 5;
+  for (let i = 0; i < 40; i++) {
+    const ev = step(w, {});
+    if (ev.some(e => e.t === 'hit' && e.target === p.id) && !hitAt) hitAt = w.timeMs;
+  }
+  check(dodge ? 'R3: уход по y спасает' : 'R3: урон после windupMs', dodge ? !hitAt && p.hp === 150 : hitAt - start >= ROLE.grunt.windupMs && p.hp === 143, String(hitAt - start));
+}
+for (const count of [1, 2]) {
+  const { w, p } = arenaSetup(); w.enemies = {}; spawnEnemies(w, 4);
+  if (count === 2) { const b = addPlayer(w, 'b', NADYA_ID); b.x = 100; b.y = 240; }
+  Object.values(w.enemies).forEach((e, i) => { e.x = 140 + i * 40; e.y = 190 + i * 10; e.cdMs = 0; });
+  let valid = true, attacks = 0;
+  for (let i = 0; i < 600; i++) {
+    p.hp = 150; if (w.players.b) w.players.b.hp = 150;
+    step(w, {});
+    const attacking = Object.values(w.enemies).filter(e => e.phase === 'windup' || e.phase === 'active');
+    attacks += attacking.length;
+    valid &&= attacking.length <= 2 && Object.values(w.players).every(p => attacking.filter(e => e.token === p.id).length <= 1);
+  }
+  check(`R5: лимиты разрешений, игроков ${count}, 10 с`, valid && attacks > 0);
+}
+for (const status of ['stunMs', 'frozenMs'] as const) {
+  const { w, e } = arenaSetup(); step(w, {}); e[status] = 1000; step(w, {});
+  check(`R4: ${status} прерывает замах`, e.phase === 'none' && !e.token);
+  spawnEnemies(w, 1); const other = Object.values(w.enemies).find(o => o !== e)!;
+  Object.assign(other, { cdMs: 0, x: 166, y: 200 });
+  for (let i = 0; i < 17; i++) step(w, {});
+  check(`R5: после ${status} разрешение получает следующий`, other.token === 'h');
+}
+for (const heavy of [false, true]) {
+  const { w, p, e } = arenaSetup('clerk');
+  // Джеб — существующий клип; B — штатный uppercut.
+  if (!heavy) { p.move = 'jab'; p.moveT = 0; }
+  else { p.move = HEAVY.prime[0]; p.moveT = 0; }
+  e.phase = 'windup'; e.phaseMs = 750; e.token = p.id;
+  run(w, 300);
+  check(heavy ? 'R4: tank прерывается B' : 'R4: tank не прерывается джебом',
+    e.hp < 1000 && (heavy ? String(e.phase) === 'none' && !e.token && !!e.air : e.phase === 'windup' && e.anim === 'windup'),
+    `hp=${e.hp} phase=${e.phase}`);
+}
+for (const front of [true, false]) {
+  const { w, p, e } = arenaSetup('omon_shield');
+  e.facing = front ? -1 : 1; e.cdMs = 1e9;
+  p.move = 'jab'; p.moveT = 0;
+  const dmg = STRIKES.prime.jab.dmg;
+  const ev = step(w, {}, hitTimesMs('prime', 'jab', 1)[0] + 1);
+  check(front ? 'R6: щит спереди 30%' : 'R6: щит сзади 100%',
+    Math.abs(1000 - e.hp - dmg * (front ? 0.3 : 1)) < 0.001 && (front ? ev.some(e => e.t === 'block') : !ev.some(e => e.t === 'block')), String(1000 - e.hp));
+}
+{
+  const w = createWorld(9, true), p = addPlayer(w, 'h', HERO_ID);
+  p.x = 1240; w.enc.index = 1; w.enc.cleared = 1; step(w, {});
+  w.enc.wave = 1; w.enc.queue = []; p.hp = 0;
+  w.pending.push({ ms: 2000, kind: 'beam', owner: 'h', strike: STRIKES.prime.jab });
+  const ev = step(w, {});
+  check('R7: рестарт сохраняет пройденные встречи', w.enc.index === 1 && w.enc.cleared === 1 && w.enc.wave === 0 && w.enc.queue.length === 3 && !Object.keys(w.enemies).length && !w.pending.length && p.hp === 150 && p.x === 1240 && ev.some(e => e.t === 'restart'));
+  step(w, {});
+  check('R7: первая волна появляется снова', Object.keys(w.enemies).length === 3);
+}
+{
+  const w = createWorld(11, true), p = addPlayer(w, 'h', HERO_ID);
+  let ticks = 0, locks = 0, clears = 0, ordered = true, lastStage = 0;
+  const done: number[] = [];
+  while (!w.won && ticks++ < 20000) {
+    for (const e of Object.values(w.enemies)) e.hp = 0;
+    p.hp = 150; p.invulnMs = 1000;
+    const exit = stageOf(w).exit;
+    let inp = { ...emptyInput(), mx: 1, run: true };
+    if (w.enc.cleared === encountersOf(w).length && exit) {
+      inp.mx = p.x < exit.x0 + 3 ? 1 : p.x > exit.x1 - 3 ? -1 : 0;
+      inp.my = p.y > exit.y1 ? -1 : 0;
+    }
+    const ev = step(w, { h: inp });
+    locks += ev.filter(e => e.t === 'lock').length; clears += ev.filter(e => e.t === 'clear').length;
+    if (w.stage !== lastStage) {
+      ordered &&= done[lastStage] === ENCOUNTERS[LEVELS.route.stages[lastStage].id].length;
+      lastStage = w.stage;
+    }
+    ordered &&= w.enc.cleared >= (done[w.stage] ?? 0);
+    done[w.stage] = w.enc.cleared;
+  }
+  check('R2: бот проходит весь маршрут по порядку', w.won && ordered && locks === 13 && clears === 13 && done.join() === '3,1,1,1,2,2,3', `ticks=${ticks} locks=${locks} clears=${clears} done=${done}`);
+  const n = w.nextEnemyId; spawnEnemies(w, 3); step(w, {});
+  check('R2: после победы нет новых врагов', w.nextEnemyId === n && !w.enc.lock);
+}
+for (const dodge of [false, true]) {
+  const { w, p, e } = arenaSetup('zek'); e.x = 130;
+  step(w, {}); if (dodge) p.y += ROLE.fast.depth + 5;
+  run(w, 1000);
+  check(dodge ? 'R3: fast не задевает другую y' : 'R3: fast задевает свою линию', p.hp === (dodge ? 150 : 144), String(p.hp));
+}
+{
+  const { w, e } = arenaSetup(); const buddy = addPlayer(w, 'b', NADYA_ID);
+  spawnEnemies(w, 1);
+  check('R1: duo HP при появлении', Object.values(w.enemies).find(o => o !== e)!.maxHp === 52);
+  buddy.connected = false; spawnEnemies(w, 1);
+  check('R1: отключённый не увеличивает HP', Object.values(w.enemies).at(-1)!.maxHp === 40);
+}
+
+{
+  const { w, p, e } = arenaSetup();
+  step(w, {});
+  p.connected = false;
+  const b = addPlayer(w, 'b', NADYA_ID);
+  step(w, {});
+  check('R5: отключение цели освобождает разрешение', !e.token && e.phase === 'none');
+  b.x = 300; step(w, {});
+  const late = addPlayer(w, 'late', KRIS_ID); late.x = -100; step(w, {});
+  check('R2: отставший новичок подтянут в арену', late.x === 260);
+}
+{
+  const { w, e } = arenaSetup();
+  spawnEnemies(w, 2);
+  const others = Object.values(w.enemies).filter(o => o !== e);
+  others.forEach(o => { o.cdMs = 0; o.x = 280; o.y = 240; });
+  others[0].waitMs = 50; others[1].waitMs = 500;
+  e.cdMs = 10000;
+  step(w, {});
+  check('R5: первым получает разрешение ожидающий дольше', others[1].token === 'h' && !others[0].token);
+}
+{
+  const w = createWorld(9, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
+  w.enc.index = 1; w.enc.cleared = 1; p.x = 1000; step(w, {});
+  check('R2: solo очередь ограничена тремя врагами', Object.values(w.enemies).length === 3);
+  const b = addPlayer(w, 'b', NADYA_ID); step(w, {});
+  check('R2: duo очередь дополняется до четырёх', Object.values(w.enemies).length === 4);
+  check('R1: масштаб HP только при появлении', Object.values(w.enemies).at(-1)!.maxHp === 117);
+}
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');
 process.exit(failed ? 1 : 0);

@@ -1,7 +1,7 @@
 import { Room, type Client } from 'colyseus';
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
-  CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars,
+  encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars,
   type Input, type World,
 } from '@bc/shared';
 
@@ -29,6 +29,8 @@ export const PlayerState = schema({
 export type PlayerState = SchemaType<typeof PlayerState>;
 
 export const EnemyState = schema({
+  kind: t.string(),
+  phase: t.string(),
   x: t.number(),
   y: t.number(),
   hp: t.number(),
@@ -46,6 +48,8 @@ export const EnemyState = schema({
 export type EnemyState = SchemaType<typeof EnemyState>;
 
 export const GameState = schema({
+  lockX0: t.number(), lockX1: t.number(),
+  encDone: t.number(), encTotal: t.number(), won: t.boolean(),
   level: t.string(),
   stage: t.number(),
   trans: t.number(),
@@ -138,6 +142,8 @@ export class GameRoom extends Room<{ state: GameState }> {
     s.level = w.level; s.stage = w.stage; s.trans = w.trans?.ms ?? 0;
     s.tick = w.tick;
     s.wave = w.wave;
+    s.lockX0 = w.enc.lock?.[0] ?? -1; s.lockX1 = w.enc.lock?.[1] ?? -1;
+    s.encDone = w.enc.cleared; s.encTotal = encountersOf(w).length; s.won = w.won;
     for (const id of [...s.players.keys()]) if (!w.players[id]) s.players.delete(id);
     for (const p of Object.values(w.players)) {
       let ps = s.players.get(p.id);
@@ -151,6 +157,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
+      es.kind = e.kind; es.phase = e.phase;
       es.x = round(e.x); es.y = round(e.y); es.hp = e.hp; es.maxHp = e.maxHp; es.dummy = !!e.dummy; es.air = Math.round(e.air ?? 0); es.height = round(e.height ?? 0); es.frozen = (e.frozenMs ?? 0) > 0; es.slow = (e.slowMs ?? 0) > 0; es.stun = (e.stunMs ?? 0) > 0; es.charm = (e.charmMs ?? 0) > 0; es.facing = e.facing; es.anim = e.anim;
     }
   }

@@ -2,16 +2,17 @@
 // Сцена знает только снимки и события, режим ей не важен.
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  TEST_TOOLS, TICK_MS, nextStage, addPlayer, chargeUlt, createWorld, emptyInput, spawnEnemies, step, takenChars,
+  encountersOf, TEST_TOOLS, TICK_MS, nextStage, addPlayer, chargeUlt, createWorld, emptyInput, spawnEnemies, step, takenChars,
   type Anim, type Form, type Input, type SimEvent, type World,
 } from '@bc/shared';
 
 export interface EntitySnap {
   x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean; air?: number; height?: number; frozen?: boolean; storm?: number;
   form?: Form; move?: string; moveT?: number; formMs?: number; combo?: number; hitCount?: number; bCombo?: number; charge2?: number; invuln?: boolean;
+  kind?: string; phase?: string;
   slow?: boolean; stun?: boolean; charm?: boolean;
 }
-export interface Snapshot { level: 'route' | 'old'; stage: number; trans: number; t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
+export interface Snapshot { lockX0: number; lockX1: number; encDone: number; encTotal: number; won: boolean; level: 'route' | 'old'; stage: number; trans: number; t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
 export type Button = 'attack' | 'heavy' | 'taunt' | 'ult' | 'ult2';
 
 export interface GameSession {
@@ -67,7 +68,7 @@ export class LocalSession implements GameSession {
     for (const p of Object.values(this.world.players)) players.set(p.id, { ...p, storm: p.stormMs, invuln: p.invulnMs > 0 });
     const enemies = new Map<string, EntitySnap>();
     for (const e of Object.values(this.world.enemies)) enemies.set(e.id, { ...e, frozen: (e.frozenMs ?? 0) > 0, slow: (e.slowMs ?? 0) > 0, stun: (e.stunMs ?? 0) > 0, charm: (e.charmMs ?? 0) > 0 });
-    pushSnap(this.snapshots, { t: performance.now(), players, enemies, level: this.world.level, stage: this.world.stage, trans: this.world.trans?.ms ?? 0, wave: this.world.wave, tick: this.world.tick });
+    pushSnap(this.snapshots, { t: performance.now(), players, enemies, lockX0: this.world.enc.lock?.[0] ?? -1, lockX1: this.world.enc.lock?.[1] ?? -1, encDone: this.world.enc.cleared, encTotal: encountersOf(this.world).length, won: this.world.won, level: this.world.level, stage: this.world.stage, trans: this.world.trans?.ms ?? 0, wave: this.world.wave, tick: this.world.tick });
     if (evs.length) this.onEvents(evs);
   }
 
@@ -142,8 +143,8 @@ export class OnlineSession implements GameSession {
       const players = new Map<string, EntitySnap>();
       state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
-      state.enemies.forEach((e: any, id: string) => enemies.set(id, { x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
-      pushSnap(this.snapshots, { t: performance.now(), players, enemies, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
+      state.enemies.forEach((e: any, id: string) => enemies.set(id, { kind: e.kind, phase: e.phase, x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
+      pushSnap(this.snapshots, { t: performance.now(), players, enemies, lockX0: state.lockX0, lockX1: state.lockX1, encDone: state.encDone, encTotal: state.encTotal, won: state.won, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;
       sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ roomId: room.roomId, token: room.reconnectionToken }));

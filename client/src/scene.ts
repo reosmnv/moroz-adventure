@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
@@ -14,20 +14,30 @@ const FEET_Y = 112; // ступни в кадре
 const SCALE = 1.5; // героиня крупнее исходных 128 px по просьбе mr.R
 const HEAD = 62 * SCALE; // высота над ступнями для полоски жизни и имени
 const FLAKES = 90; // снежинок в буре
+const ENEMY_LOOK: Record<string, [number, number, number]> = {
+  omon: [0x3b4a66, 30, 78], omon_shield: [0x2c3850, 38, 84], vatnik: [0x6b6b3a, 32, 74],
+  zek: [0x2b2b2b, 24, 72], clerk: [0x777777, 40, 76], info_m: [0x6a3fc4, 26, 76], info_f: [0xd9b98c, 26, 74],
+};
 const ICE = 0x66b8ff; // цвет замороженного врага
 
 interface Storm { zone: Phaser.GameObjects.Ellipse; flakes: Phaser.GameObjects.Rectangle[]; seed: number[] }
-interface View { status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
+interface View { enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
   private stageView?: StageView;
   private locationKey = '';
   private worldWidth = 1920;
+  private prompt?: Phaser.GameObjects.Text;
+  private lockNoticeUntil = 0;
+  private forwardFrom?: number;
   private views = new Map<string, View>();
   constructor() { super('game'); }
 
   preload() {
+    for (const [kind, clips] of Object.entries(ENEMY_ANIMS)) for (const clip of Object.keys(clips!)) {
+      this.load.spritesheet(`enemy/${kind}/${clip}`, `sprites/enemies/${kind}/${clip}-east.png`, { frameWidth: CELL, frameHeight: CELL });
+    }
     preloadLevel(this);
     preloadStages(this);
     for (const [k, v] of Object.entries(VFX)) this.load.spritesheet('fx-' + k, `vfx/${k}.png`, { frameWidth: v.w, frameHeight: v.h });
@@ -60,7 +70,14 @@ export class GameScene extends Phaser.Scene {
   private camX?: number;
   private follow(x: number) {
     const cam = this.cameras.main;
-    const target = Math.max(0, Math.min(this.worldWidth - this.scale.width, x - this.scale.width * CAM_LEAD));
+    let target = Math.max(0, Math.min(this.worldWidth - this.scale.width, x - this.scale.width * CAM_LEAD));
+    const snap = this.session.snapshots[this.session.snapshots.length - 1];
+    if (snap?.lockX0 >= 0) {
+      const lo = snap.lockX0, hi = snap.lockX1 - this.scale.width;
+      target = hi < lo ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, target));
+      // Не выпускаем камеру за арену даже во время плавного следования.
+      this.camX = hi < lo ? target : Math.max(lo, Math.min(hi, this.camX ?? target));
+    }
     // T1: здесь можно ограничить target сверху границей незачищенной волны.
     // Мягкое следование без дрожи пикселей
     this.camX = this.camX === undefined ? target : this.camX + (target - this.camX) * 0.15;
@@ -136,6 +153,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onEvents(evs: SimEvent[]) {
+    for (const e of evs) {
+      if (e.t === 'lock') { this.lockNoticeUntil = this.time.now + 1200; this.forwardFrom = undefined; }
+      if (e.t === 'clear') {
+        const last = this.session.snapshots[this.session.snapshots.length - 1];
+        this.forwardFrom = last?.players.get(this.session.me)?.x;
+      }
+    }
     for (const e of evs) {
       if (e.t === 'exit') {
         this.cameras.main.fadeOut(350);
@@ -249,6 +273,18 @@ export class GameScene extends Phaser.Scene {
         fist: this.add.rectangle(0, 0, 10, 5, 0xffffff).setVisible(false),
         hp: this.add.rectangle(0, 0, 40, 3, isPlayer ? 0x4cd964 : 0xff3b30).setOrigin(0, 0.5),
       };
+      if (!isPlayer) {
+        const look = ENEMY_LOOK[snap.kind ?? 'omon'];
+        v.body.setSize(look[1], look[2]).setFillStyle(look[0]);
+        v.warning = this.add.text(0, 0, '!', textStyle(16, '#ffe45c')).setOrigin(0.5, 1).setVisible(false);
+        if (snap.kind === 'omon_shield') v.shield = this.add.rectangle(0, 0, 5, look[2] - 8, 0xbac9da).setOrigin(0.5, 1);
+        const clips = ENEMY_ANIMS[snap.kind ?? ''];
+        if (clips) {
+          const clip = clips.idle ? 'idle' : Object.keys(clips)[0];
+          v.body.setVisible(false);
+          v.sprite = this.add.image(0, 0, `enemy/${snap.kind}/${clip}`, 0).setOrigin(0.5, FEET_Y / CELL).setScale(SCALE);
+        }
+      }
       if (!isPlayer) v.shadow = this.add.ellipse(0, 0, 34, 8, 0x000000, 0.3);
       if (isPlayer && isSpriteHero(snap.char ?? '')) {
         v.body.setVisible(false);
@@ -335,7 +371,7 @@ export class GameScene extends Phaser.Scene {
       const first = !this.locationKey;
       this.stageView?.destroy();
       this.tweens.killAll(); this.time.removeAllEvents();
-      this.children.removeAll(true); this.views.clear();
+      this.children.removeAll(true); this.views.clear(); this.prompt = undefined; this.forwardFrom = undefined;
       this.locationKey = locationKey;
       const stage = LEVELS[b.level].stages[b.stage];
       this.worldWidth = stage.width;
@@ -359,13 +395,33 @@ export class GameScene extends Phaser.Scene {
       if (!isPlayer && v.shadow) v.shadow.setPosition(x, y).setDepth(y - 0.1).setScale(1 - lift / 200);
       v.body.setPosition(x, y - lift).setDepth(y).setAngle(down ? 90 * sb.facing : 0);
       const away = sb.connected === false || sb.away;
-      v.body.setAlpha(away ? 0.35 : 1);
-      if (v.sprite) {
+      v.body.setAlpha(away ? 0.35 : sb.phase === 'recover' ? 0.7 : 1);
+      if (!isPlayer) {
+        if (!v.sprite && v.enemyClip !== sb.phase) { v.enemyClip = sb.phase; v.enemySince = this.time.now; }
+        const windup = sb.phase === 'windup';
+        v.body.setY(y - lift - (windup ? 4 : 0)).setAngle(down ? 90 * sb.facing : windup ? -sb.facing * 8 : 0);
+        v.warning?.setVisible(windup).setPosition(x, y - lift - 90).setDepth(y + 1);
+        v.shield?.setVisible(!v.sprite).setPosition(x + sb.facing * 18, y - lift - 4).setDepth(y + 0.1);
+      }
+      if (v.sprite && !isPlayer) {
+        const clips = ENEMY_ANIMS[sb.kind ?? '']!;
+        let clip = sb.anim === 'down' ? 'fall' : sb.anim;
+        if (clip === 'dash' && !clips.dash) clip = 'strike';
+        if (!clips[clip]) clip = 'idle';
+        const def = clips[clip];
+        if (def) {
+          if (v.enemyClip !== clip) { v.enemyClip = clip; v.enemySince = this.time.now; }
+          const raw = Math.floor((this.time.now - (v.enemySince ?? this.time.now)) * def.fps / 1000);
+          const frame = def.loop && clip !== 'windup' ? raw % def.frames : Math.min(def.frames - 1, raw);
+          v.sprite.setTexture(`enemy/${sb.kind}/${clip}`, frame).setFlipX(sb.facing < 0).setPosition(x, y - lift).setDepth(y).setAlpha(sb.phase === 'recover' ? 0.7 : 1);
+        }
+      }
+      if (v.sprite && isPlayer) {
         const lead = live ? Math.min(TICK_MS, performance.now() - this.session.snapshots[this.session.snapshots.length - 1].t) : 0;
         this.drawHero(v, sb, x, y, live ? 1 : f, !!away, lead);
       }
       // Замороженный враг синий с ледяной окантовкой
-      v.body.setFillStyle(sb.frozen ? ICE : sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : sb.dummy ? 0xb08d57 : 0x8a8f98));
+      v.body.setFillStyle(sb.frozen ? ICE : sb.anim === 'hurt' ? 0xffffff : (isPlayer ? (CHARACTERS.find(c => c.id === sb.char)?.color ?? 0xffffff) : sb.phase === 'active' && this.time.now - (v.enemySince ?? this.time.now) < 65 ? 0xffffff : sb.dummy ? 0xb08d57 : ENEMY_LOOK[sb.kind ?? 'omon'][0]));
       if (sb.frozen) v.body.setStrokeStyle(2, 0xe8f8ff); else v.body.setStrokeStyle();
       if (isPlayer) this.drawStorm(v, sb, x, y);
       else this.drawStatus(v, sb, x, y - lift);
@@ -384,11 +440,18 @@ export class GameScene extends Phaser.Scene {
       if (mine) { draw('p:' + id, true, undefined, mine, true); this.follow(mine.x); }
       else draw('p:' + id, true, a.players.get(id), sb);
     }
+    if (!this.prompt) this.prompt = this.add.text(0, 82, '', textStyle(12)).setScrollFactor(0).setOrigin(0.5).setDepth(2100);
+    const mineX = latest.players.get(this.session.me)?.x ?? 0;
+    if (this.forwardFrom !== undefined && mineX >= this.forwardFrom + 200) this.forwardFrom = undefined;
+    const forward = this.forwardFrom !== undefined && !latest.won && latest.lockX0 < 0;
+    this.prompt.setX(forward ? this.scale.width - 70 : this.scale.width / 2)
+      .setText(latest.won ? 'МАРШРУТ ПРОЙДЕН' : this.time.now < this.lockNoticeUntil ? 'РАЗБЕРИТЕСЬ С НИМИ!' : forward ? 'ВПЕРЁД →' : '')
+      .setAlpha(forward ? (Math.floor(this.time.now / 350) % 2 ? 1 : 0.35) : 1);
     for (const [id, sb] of b.enemies) draw('e:' + id, false, a.enemies.get(id), sb);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
       v.storm?.zone.destroy(); v.storm?.flakes.forEach(f => f.destroy()); v.status?.destroy();
-      v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
+      v.warning?.destroy(); v.shield?.destroy(); v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
       this.views.delete(key);
     }
   }

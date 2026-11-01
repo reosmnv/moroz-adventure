@@ -311,7 +311,7 @@ export class UIScene extends Phaser.Scene {
     if (s.hasMe()) s.move(...this.readMove());
     const last = s.snapshots[s.snapshots.length - 1];
     if (!last) return;
-    this.waveText.setText(TEST_TOOLS ? 'ТЕСТ: МАНЕКЕН' : `ВОЛНА ${last.wave}`);
+    this.waveText.setText(last.level === 'route' ? (last.encDone >= last.encTotal ? 'ВПЕРЁД' : `БОЙ ${last.encDone}/${last.encTotal}`) : TEST_TOOLS ? 'ТЕСТ: МАНЕКЕН' : `ВОЛНА ${last.wave}`);
 
     // Своя панель первая, напарник рядом
     const me = last.players.get(s.me);
