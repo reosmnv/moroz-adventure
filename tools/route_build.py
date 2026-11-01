@@ -453,7 +453,7 @@ def final_mayak():
     # оси симметрии M: центры арок x=67, 161, 255. Куски стыкуются зеркалом по центру арки
     a = np.array(m)
     mid = [a[:, 67:255][:, ::-1], a[:, 67:255]] * MAYAK_PAIRS  # длина: пары «зеркало + прямо» по 188
-    img = oval_fix(Image.fromarray(np.concatenate([a[:, 0:255]] + mid, axis=1)))
+    img = calm_floor(oval_fix(Image.fromarray(np.concatenate([a[:, 0:255]] + mid, axis=1))))
     return {"mayak-back": img, "mayak": arch_cut(img)}, [WALL] * img.width
 
 
@@ -477,6 +477,19 @@ def arch_cut(img):
 
 
 MAYAK_PAIRS = 2
+FLOOR_CALM = (0.55, 0.65)  # пол «Маяковской»: доля контраста и насыщенности (ресерч 01.11: узор спорил с ногами и красными телеграфами боссов)
+
+
+def calm_floor(img, y0=100):
+    """Приглушает пол ниже линии стены: контраст к среднему по строке, насыщенность к серому. Стена и арки не меняются."""
+    a = np.array(img).astype(float)
+    k, s = FLOOR_CALM
+    f = a[y0:, :, :3]
+    mean = f.mean(axis=1, keepdims=True)
+    f = mean + (f - mean) * k
+    grey = f.mean(axis=2, keepdims=True)
+    a[y0:, :, :3] = grey + (f - grey) * s
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
 ARCH_ROWS = (36, 92)  # строки src, где ищем проёмы арок
 
 
