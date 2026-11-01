@@ -1,7 +1,7 @@
 import { Room, type Client } from 'colyseus';
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
-  CHARACTERS, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars,
+  CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars,
   type Input, type World,
 } from '@bc/shared';
 
@@ -46,6 +46,9 @@ export const EnemyState = schema({
 export type EnemyState = SchemaType<typeof EnemyState>;
 
 export const GameState = schema({
+  level: t.string(),
+  stage: t.number(),
+  trans: t.number(),
   tick: t.number(),
   wave: t.number(),
   paused: t.boolean(),
@@ -64,7 +67,14 @@ export class GameRoom extends Room<{ state: GameState }> {
   world: World = createWorld(Date.now() & 0xffff, TEST_TOOLS);
   playerInputs: Record<string, Input> = {};
 
-  onCreate() {
+  onCreate(options: { level?: unknown; stage?: unknown } = {}) {
+    const level = options.level === 'old' ? 'old' : 'route';
+    const stage = typeof options.stage === 'number' && Number.isInteger(options.stage) && options.stage >= 0 && options.stage < LEVELS[level].stages.length ? options.stage : 0;
+    this.world = createWorld(Date.now() & 0xffff, TEST_TOOLS, level, stage);
+    this.sync();
+    this.onMessage('next', (client: Client) => {
+      if (TEST_TOOLS && this.world.players[client.sessionId]) nextStage(this.world);
+    });
     // Короткий код комнаты для ссылки вместо стандартного длинного id
     this.roomId = Math.random().toString(36).slice(2, 7).toUpperCase();
 
@@ -125,6 +135,7 @@ export class GameRoom extends Room<{ state: GameState }> {
   // Копия мира в Schema: Colyseus сам отправит только изменившиеся поля
   sync() {
     const s = this.state, w = this.world;
+    s.level = w.level; s.stage = w.stage; s.trans = w.trans?.ms ?? 0;
     s.tick = w.tick;
     s.wave = w.wave;
     for (const id of [...s.players.keys()]) if (!w.players[id]) s.players.delete(id);

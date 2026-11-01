@@ -1,0 +1,56 @@
+[
+ {
+  "name": "rt_s_start_v0",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the building facade with NO perspective and no vanishing point, no text, no people, no cars in the walkable area. Overcast bright summer daylight, muted realistic colors matched to the reference photo. Top 62%: base of a tall Moscow residential tower: lower floors clad in white and light grey metal panels with black horizontal stripes and dark glass strip windows, beige and mustard-yellow tile bands on the tower above; at the left a steel ramp with tube railings rising along the facade to a glass entrance door of an apartment entrance under a flat steel canopy, a round red-and-white no-stopping road sign on a pole, a row of white concrete street bollards along the curb. Bottom 38% of the image: grey asphalt floor seen slightly from above with a wide red and white diagonal-striped painted zone in the middle of the floor, the wall meets the floor at 63% of the image height, empty and clean.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 301,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/route6-lane-red-stripes.jpg",
+     "usage": "real place photo: copy the ramp, railings, bollards, red-white zone, materials and colors, but draw it flat"
+    },
+    {
+     "base64": "@assets/source/begovaya/route1-podezd-12k1.jpg",
+     "usage": "real place photo: facade materials and entrance canopy"
+    }
+   ]
+  }
+ },
+ {
+  "name": "rt_s_start_v1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the building facade with NO perspective and no vanishing point, no text, no people, no cars in the walkable area. Overcast bright summer daylight, muted realistic colors matched to the reference photo. Top 62%: base of a tall Moscow residential tower: lower floors clad in white and light grey metal panels with black horizontal stripes and dark glass strip windows, beige and mustard-yellow tile bands on the tower above; at the left a steel ramp with tube railings rising along the facade to a glass entrance door of an apartment entrance under a flat steel canopy, a round red-and-white no-stopping road sign on a pole, a row of white concrete street bollards along the curb. Bottom 38% of the image: grey asphalt floor seen slightly from above with a wide red and white diagonal-striped painted zone in the middle of the floor, the wall meets the floor at 63% of the image height, empty and clean.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 302,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/route6-lane-red-stripes.jpg",
+     "usage": "real place photo: copy the ramp, railings, bollards, red-white zone, materials and colors, but draw it flat"
+    },
+    {
+     "base64": "@assets/source/begovaya/route1-podezd-12k1.jpg",
+     "usage": "real place photo: facade materials and entrance canopy"
+    }
+   ]
+  }
+ }
+]

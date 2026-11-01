@@ -1,0 +1,8 @@
+{
+ "rt_s_start_v0": {
+  "out": "id: 9243d391-d1ca-4882-a5aa-c3a76a1d7b32\njob_id: 9243d391-d1ca-4882-a5aa-c3a76a1d7b32\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the building facade with NO perspective and no vanishing point, no text, no people, no cars in the walkable area. Overcast bright summer daylight, muted realistic colors matched to the reference photo. Top 62%: base of a tall Moscow residential tower: lower floors clad in white and light grey metal panels with black horizontal stripes and dark glass"
+ },
+ "rt_s_start_v1": {
+  "out": "id: 5b94d290-0d00-457d-a8b4-a60bb02398f6\njob_id: 5b94d290-0d00-457d-a8b4-a60bb02398f6\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the building facade with NO perspective and no vanishing point, no text, no people, no cars in the walkable area. Overcast bright summer daylight, muted realistic colors matched to the reference photo. Top 62%: base of a tall Moscow residential tower: lower floors clad in white and light grey metal panels with black horizontal stripes and dark glass"
+ }
+}

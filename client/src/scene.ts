@@ -1,9 +1,10 @@
 import * as Phaser from 'phaser';
-import { HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LANE_BOTTOM, LANE_TOP, LEVEL_W, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { beep } from './audio.ts';
 import { FONT, UIScene, textStyle } from './ui.ts';
+import { StageView, preloadStages, debugLane } from './stage.ts';
 import { buildLevel, preloadLevel, showCard } from './level.ts';
 
 const CAM_LEAD = 0.33;
@@ -20,11 +21,15 @@ interface View { status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Pha
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
+  private stageView?: StageView;
+  private locationKey = '';
+  private worldWidth = 1920;
   private views = new Map<string, View>();
   constructor() { super('game'); }
 
   preload() {
     preloadLevel(this);
+    preloadStages(this);
     for (const [k, v] of Object.entries(VFX)) this.load.spritesheet('fx-' + k, `vfx/${k}.png`, { frameWidth: v.w, frameHeight: v.h });
     for (const k of VFX_IMAGES) this.load.image('fx-' + k, `vfx/${k}.png`);
     for (const form of Object.keys(HERO_ANIMS) as Form[]) {
@@ -42,8 +47,6 @@ export class GameScene extends Phaser.Scene {
     for (const [k, v] of Object.entries(VFX)) {
       this.anims.create({ key: 'fx-' + k, frames: this.anims.generateFrameNumbers('fx-' + k, { start: 0, end: v.n - 1 }), frameRate: v.fps, repeat: v.loop ? -1 : 0 });
     }
-    buildLevel(this);
-    showCard(this);
     this.layout();
     this.scale.on('resize', () => this.layout());
     this.session.onEvents = evs => this.onEvents(evs);
@@ -51,13 +54,13 @@ export class GameScene extends Phaser.Scene {
 
   // Камера ездит по уровню за своей героиней; интерфейс в отдельной сцене ui.ts
   private layout() {
-    this.cameras.main.setBounds(0, 0, LEVEL_W, VIEW_H);
+    this.cameras.main.setBounds(0, 0, this.worldWidth, VIEW_H);
   }
 
   private camX?: number;
   private follow(x: number) {
     const cam = this.cameras.main;
-    const target = Math.max(0, Math.min(LEVEL_W - this.scale.width, x - this.scale.width * CAM_LEAD));
+    const target = Math.max(0, Math.min(this.worldWidth - this.scale.width, x - this.scale.width * CAM_LEAD));
     // T1: здесь можно ограничить target сверху границей незачищенной волны.
     // Мягкое следование без дрожи пикселей
     this.camX = this.camX === undefined ? target : this.camX + (target - this.camX) * 0.15;
@@ -134,7 +137,11 @@ export class GameScene extends Phaser.Scene {
 
   private onEvents(evs: SimEvent[]) {
     for (const e of evs) {
-      if (e.t === 'hit') {
+      if (e.t === 'exit') {
+        this.cameras.main.fadeOut(350);
+      } else if (e.t === 'stage') {
+        if (this.locationKey === 'old:0') this.cameras.main.fadeIn(350);
+      } else if (e.t === 'hit') {
         const t = this.add.text(e.x, e.y - 70, '-' + e.dmg, textStyle(8, '#ffd84a')).setOrigin(0.5).setDepth(1500);
         this.tweens.add({ targets: t, y: t.y - 16, alpha: 0, duration: 500, onComplete: () => t.destroy() });
         // Искры по герою: розовые у Нади, салатовые у Kris
@@ -225,6 +232,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = s.length - 1; i > 0; i--) {
       if (s[i - 1].t <= rt) {
         const a = s[i - 1], b = s[i];
+        if (a.stage !== b.stage || a.level !== b.level) return { a: b, b, f: 1 };
         return { a, b, f: Math.min(1, Math.max(0, (rt - a.t) / (b.t - a.t || 1))) };
       }
     }
@@ -316,10 +324,29 @@ export class GameScene extends Phaser.Scene {
     v.shadow!.setPosition(x, y).setDepth(y - 0.1).setAlpha(away ? 0.1 : 0.3);
   }
 
-  update() {
+  update(_time: number, delta: number) {
     const smp = this.sample();
     if (!smp) return;
-    const { a, b, f } = smp;
+    let { a, b, f } = smp;
+    const latestStage = this.session.snapshots[this.session.snapshots.length - 1];
+    if (latestStage.stage !== b.stage || latestStage.level !== b.level) { a = b = latestStage; f = 1; }
+    const locationKey = b.level + ':' + b.stage;
+    if (locationKey !== this.locationKey) {
+      const first = !this.locationKey;
+      this.stageView?.destroy();
+      this.tweens.killAll(); this.time.removeAllEvents();
+      this.children.removeAll(true); this.views.clear();
+      this.locationKey = locationKey;
+      const stage = LEVELS[b.level].stages[b.stage];
+      this.worldWidth = stage.width;
+      if (b.level === 'old') { buildLevel(this); showCard(this); debugLane(this, stage); }
+      else this.stageView = new StageView(this, stage);
+      this.camX = undefined; this.layout();
+      const me = b.players.get(this.session.me);
+      if (me) this.follow(me.x);
+      if (!first) this.cameras.main.fadeIn(350);
+    }
+    this.stageView?.update(delta);
     const seen = new Set<string>();
     const draw = (key: string, isPlayer: boolean, sa: EntitySnap | undefined, sb: EntitySnap, live = false) => {
       seen.add(key);

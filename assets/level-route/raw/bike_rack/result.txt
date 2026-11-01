@@ -1,0 +1,10 @@
+status: completed
+id: 088bbc23-2d10-4da2-8b05-8a78d2249936
+description: street bicycle parking rack of steel loops with two parked bicycles, flat side view
+size: 96x48px
+view: side
+background: transparent
+created: 2026-11-01 01:42
+download: https://api.pixellab.ai/mcp/map-objects/088bbc23-2d10-4da2-8b05-8a78d2249936/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="088bbc23-2d10-4da2-8b05-8a78d2249936")

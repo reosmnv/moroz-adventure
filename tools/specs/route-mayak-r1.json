@@ -1,0 +1,22 @@
+[
+ {
+  "name": "my_floor1",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "polished light cream marble platform floor with red and dark square inlays, continue the floor pattern, no objects",
+   "image_base64": "@assets/level-route/win/my_floor1/in.png",
+   "mask_image_base64": "@assets/level-route/win/my_floor1/mask.png",
+   "no_background": false
+  }
+ },
+ {
+  "name": "my_floor2",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "polished light cream marble platform floor with red and dark square inlays, continue the floor pattern, no objects",
+   "image_base64": "@assets/level-route/win/my_floor2/in.png",
+   "mask_image_base64": "@assets/level-route/win/my_floor2/mask.png",
+   "no_background": false
+  }
+ }
+]

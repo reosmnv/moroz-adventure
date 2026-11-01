@@ -1,0 +1,17 @@
+{
+ "rt_a_podezd": {
+  "out": "id: c4bd97f1-f05f-4adb-8c15-0181ec19b253\njob_id: c4bd97f1-f05f-4adb-8c15-0181ec19b253\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: base of a tall Moscow residential tower: lower floors clad in white and light grey metal panels with black horizontal stripes and dark glass strip windows, beige and mustard-yellow tile bands on the tower above; a recessed apartment"
+ },
+ "rt_b_lane": {
+  "out": "id: 3a0cccca-d942-4df1-b9ff-f5272073ae5a\njob_id: 3a0cccca-d942-4df1-b9ff-f5272073ae5a\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: pedestrian lane along the base of the complex: glass and white-grey panel office base, tall beige tower with yellow tile bands above, steel railings along a ramp, a row of white concrete bollards, a round red-and-white no-stopping r"
+ },
+ "rt_c_column": {
+  "out": "id: 3a7c4dc1-6a8c-43cd-aad7-d2b8bc50bf67\njob_id: 3a7c4dc1-6a8c-43cd-aad7-d2b8bc50bf67\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: corner of the building base: massive square pillars clad in white panels with thin dark joints, a white panel overhang ceiling above, a dark glass bay with grey horizontal stripes on the left. Floor: dark grey asphalt. Bottom 38% of"
+ },
+ "rt_d_passage": {
+  "out": "id: 19781b10-f2b5-4365-b675-73bac3b54ba7\njob_id: 19781b10-f2b5-4365-b675-73bac3b54ba7\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: a tall drive-through passage cutting through the base of the complex seen straight on: huge white and grey panel-clad pillars on both sides, flat ceiling of white square panels, a bright opening at the far end with a sunlit yard, a "
+ },
+ "rt_e_metro": {
+  "out": "id: c0d28542-c7f1-4af3-8708-e575c5f2fc93\njob_id: c0d28542-c7f1-4af3-8708-e575c5f2fc93\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: Moscow metro station entrance built into the base of a tall tower: a large round curved grey aluminium canopy (rotunda) on slim steel columns, a red letter M on a white disc, dark red-brown granite tile pillars and glass doors with "
+ }
+}

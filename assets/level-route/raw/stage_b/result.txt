@@ -1,0 +1,10 @@
+status: completed
+id: d69ffcd5-1ecc-4048-b558-75adf633f86b
+description: temporary concert stage set up in a metro hall: low black platform with a steel truss arch and colored spotlights, wide steps in front leading down to the floor, flat side view, no people
+size: 192x128px
+view: side
+background: transparent
+created: 2026-11-01 01:42
+download: https://api.pixellab.ai/mcp/map-objects/d69ffcd5-1ecc-4048-b558-75adf633f86b/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="d69ffcd5-1ecc-4048-b558-75adf633f86b")

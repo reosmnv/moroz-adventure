@@ -16,6 +16,9 @@ document.addEventListener('dblclick', e => e.preventDefault(), { passive: false 
 document.addEventListener('gesturestart', e => e.preventDefault());
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? `${location.protocol}//${location.hostname}:2567`;
+const params = new URLSearchParams(location.search);
+const level = params.get('level') === 'old' ? 'old' : 'route';
+const stage = Number(params.get('stage') ?? 0);
 const roomCode = location.hash.slice(1).toUpperCase() || undefined;
 
 const onlineBox = $('online') as HTMLInputElement;
@@ -47,13 +50,13 @@ async function begin(code?: string) {
   try {
     if (onlineBox.checked) {
       $('menuNote').textContent = 'Подключаюсь…';
-      const s = await OnlineSession.open(SERVER_URL, code);
+      const s = await OnlineSession.open(SERVER_URL, code, level, stage);
       s.onPickError = m => { $('pickNote').textContent = m; };
       session = s;
       history.replaceState(null, '', '#' + s.roomId);
       $('share').classList.remove('hidden');
     } else {
-      session = new LocalSession();
+      session = new LocalSession(level, stage);
     }
   } catch (e: any) {
     $('menuNote').textContent = 'Не удалось: ' + (e?.message ?? e);
@@ -62,6 +65,7 @@ async function begin(code?: string) {
   }
   $('menu').classList.add('hidden');
   $('topbar').classList.remove('hidden');
+  $('nextBtn').classList.toggle('hidden', !TEST_TOOLS);
   $('spawnBtn').classList.toggle('hidden', !TEST_TOOLS);
   $('chargeBtn').classList.toggle('hidden', !TEST_TOOLS);
   // Пиксельный шрифт нужен canvas до первого кадра, иначе Phaser нарисует текст системным
@@ -72,6 +76,7 @@ async function begin(code?: string) {
 }
 
 // Тестовая кнопка: три настоящих врага
+$('nextBtn').onclick = () => session?.next();
 $('spawnBtn').onclick = () => session?.spawn();
 $('chargeBtn').onclick = () => session?.charge();
 

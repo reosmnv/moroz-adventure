@@ -8,7 +8,7 @@ function check(name: string, ok: boolean, info = '') {
 }
 
 function setup(withBuddy = false, char = HERO_ID) {
-  const w = createWorld(7);
+  const w = createWorld(7, false, 'old');
   const p = addPlayer(w, 'h', char);
   p.x = 200; p.y = 200;
   if (withBuddy) { const b = addPlayer(w, 'b', 'b'); b.x = 300; b.y = 200; }
@@ -155,7 +155,7 @@ for (const form of ['prime', 'ultimate'] as const) {
 }
 // 9. Тестовый режим: манекен, кнопка «+3 врага», ульта отбрасывает всех
 {
-  const w = createWorld(3, true);
+  const w = createWorld(3, true, 'old');
   const p = addPlayer(w, 'h', HERO_ID); p.x = 300; p.y = 205;
   step(w, { h: emptyInput() });
   const d = Object.values(w.enemies);
@@ -432,7 +432,7 @@ const ballAt = (w: World) => {
   dummy(w, 'n1', -220); dummy(w, 'c1', 200); dummy(w, 'c2', 220); dummy(w, 'c3', 230);
   p.charge2 = 100;
   const b = ballAt(w);
-  check('Kris: шар в врагов рядом с Анастасией', b && Math.abs(b.tx - (p.x - 220)) < 15, b ? `${b.tx - p.x}` : 'нет броска');
+  check('Kris: шар в врагов рядом с Анастасией', b && Math.abs(b.tx - Math.max(20, p.x - 220)) < 15, b ? `${b.tx - p.x}` : 'нет броска');
 }
 {
   // Анастасия далеко, рядом с ней врагов нет: шар всё равно к ней, а не в скопление у Kris
@@ -471,8 +471,8 @@ for (const [x, facing] of [[200, 1], [15, 1], [1905, -1]] as const) {
   run(w, 170, () => ({ mx: -facing, heavy: true, ult: true }));
   check(`Kris hop x=${x}: неуязвимость и взгляд`, p.hp === hp && p.invulnMs > 0 && p.move === 'hop' && p.facing === facing);
   run(w, 187);
-  const expected = Math.max(10, Math.min(1910, x - facing * 120));
-  check(`Kris hop x=${x}: приземление и край`, Math.abs(p.x - expected) < 0.01 && p.x >= 10 && p.x <= 1910, `${p.x}`);
+  const expected = Math.max(20, Math.min(1900, x - facing * 120));
+  check(`Kris hop x=${x}: приземление и край`, Math.abs(p.x - expected) < 0.01 && p.x >= 20 && p.x <= 1900, `${p.x}`);
 }
 {
   const { w, p } = setup(false, KRIS_ID); p.x = 800; p.combo = 2; p.comboMs = 1000;

@@ -1,0 +1,11 @@
+{
+ "vs_seam": {
+  "out": "id: 7b3ea30f-367b-45aa-a356-96ba9248a46c\njob_id: 7b3ea30f-367b-45aa-a356-96ba9248a46c\nsize: 256x180px\nmask: custom mask\nfill: metro vestibule: dark red granite wall, light panel ceiling, grey granite floor slabs, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: e4018b61-705d-5bdf-a8a8-99630cd2358d\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"7b3ea30f-367b-45aa-a356-96ba9248a46c\")\nwithout get_image: GET https:"
+ },
+ "wg_seam": {
+  "out": "id: bb387183-76c2-425f-93ac-1aa18cc53482\njob_id: bb387183-76c2-425f-93ac-1aa18cc53482\nsize: 256x180px\nmask: custom mask\nfill: interior of a modern Moscow metro car seen from the side: sliding door, light grey panels, handrail pole, blue-grey rubber floor, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: ee62253d-d11c-548e-8fc4-bd2159e91c0f\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"bb387183-76c2-425f-93ac-1"
+ },
+ "my_seam": {
+  "out": "id: 848eb15f-f217-4e9d-8519-cdcdbe32f46f\njob_id: 848eb15f-f217-4e9d-8519-cdcdbe32f46f\nsize: 256x180px\nmask: custom mask\nfill: Mayakovskaya metro hall: steel arches with pink stone trim, ceiling oval niches with sky mosaics, cream marble floor with red inlays, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: cf5ff8e4-5c53-56c7-b643-28d9f2f75fb6\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"848eb15f-f217-4e9d-85"
+ }
+}

@@ -1,0 +1,12 @@
+[
+ {
+  "name": "yd_seam1",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "courtyard with green hedge and black metal fence joining the dark red brick and glass metro exit pavilion, residential towers behind, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
+   "image_base64": "@assets/level-route/win/yd_seam1/in.png",
+   "mask_image_base64": "@assets/level-route/win/yd_seam1/mask.png",
+   "no_background": false
+  }
+ }
+]

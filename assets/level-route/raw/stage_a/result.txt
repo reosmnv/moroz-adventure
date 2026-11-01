@@ -1,0 +1,10 @@
+status: completed
+id: a0fbd413-808d-4034-9ab4-c88059803486
+description: small concert stage platform for a singer, black steel truss frame with spotlights on top, dark wooden stage floor, a wide stair of 4 steps in the front center going down, red carpet on the steps, flat side view, no people
+size: 192x128px
+view: side
+background: transparent
+created: 2026-11-01 01:41
+download: https://api.pixellab.ai/mcp/map-objects/a0fbd413-808d-4034-9ab4-c88059803486/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="a0fbd413-808d-4034-9ab4-c88059803486")

@@ -1,0 +1,32 @@
+[
+ {
+  "name": "st_seam1",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "base of a modern Moscow residential building, white and grey striped panels, sidewalk with white bollards, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
+   "image_base64": "@assets/level-route/win/st_seam1/in.png",
+   "mask_image_base64": "@assets/level-route/win/st_seam1/mask.png",
+   "no_background": false
+  }
+ },
+ {
+  "name": "st_seam2",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "base of a modern building, white and grey panels turning into massive white tiled pillars under an overhang, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
+   "image_base64": "@assets/level-route/win/st_seam2/in.png",
+   "mask_image_base64": "@assets/level-route/win/st_seam2/mask.png",
+   "no_background": false
+  }
+ },
+ {
+  "name": "st_seam3",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "massive white tiled pillars and grey wall of a passage under a building, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
+   "image_base64": "@assets/level-route/win/st_seam3/in.png",
+   "mask_image_base64": "@assets/level-route/win/st_seam3/mask.png",
+   "no_background": false
+  }
+ }
+]

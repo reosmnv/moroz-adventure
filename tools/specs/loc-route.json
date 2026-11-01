@@ -1,0 +1,121 @@
+[
+ {
+  "name": "rt_a_podezd",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: base of a tall Moscow residential tower: lower floors clad in white and light grey metal panels with black horizontal stripes and dark glass strip windows, beige and mustard-yellow tile bands on the tower above; a recessed apartment entrance with a flat steel canopy, a short concrete stair of 3 steps next to a ramp with steel tube railings, white concrete street bollards. Floor: grey asphalt with a concrete curb. Bottom 38% of the image: empty walkable floor seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people, no cars in the walkable area.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 101,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/route1-podezd-12k1.jpg",
+     "usage": "real place photo: copy the architecture, materials and colors, ignore people and cars"
+    }
+   ]
+  }
+ },
+ {
+  "name": "rt_b_lane",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: pedestrian lane along the base of the complex: glass and white-grey panel office base, tall beige tower with yellow tile bands above, steel railings along a ramp, a row of white concrete bollards, a round red-and-white no-stopping road sign. Floor: grey asphalt with a wide red and white diagonal-striped painted zone. Bottom 38% of the image: empty walkable floor seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people, no cars in the walkable area.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 102,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/route6-lane-red-stripes.jpg",
+     "usage": "real place photo: copy the architecture, materials and colors, ignore people and cars"
+    }
+   ]
+  }
+ },
+ {
+  "name": "rt_c_column",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: corner of the building base: massive square pillars clad in white panels with thin dark joints, a white panel overhang ceiling above, a dark glass bay with grey horizontal stripes on the left. Floor: dark grey asphalt. Bottom 38% of the image: empty walkable floor seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people, no cars in the walkable area.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 103,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/route4-corner-column.jpg",
+     "usage": "real place photo: copy the architecture, materials and colors, ignore people and cars"
+    }
+   ]
+  }
+ },
+ {
+  "name": "rt_d_passage",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: a tall drive-through passage cutting through the base of the complex seen straight on: huge white and grey panel-clad pillars on both sides, flat ceiling of white square panels, a bright opening at the far end with a sunlit yard, a motorcycle parked by a pillar. Floor: grey asphalt roadway with a raised curb. Bottom 38% of the image: empty walkable floor seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people, no cars in the walkable area.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 104,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/route5-passage.jpg",
+     "usage": "real place photo: copy the architecture, materials and colors, ignore people and cars"
+    }
+   ]
+  }
+ },
+ {
+  "name": "rt_e_metro",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text. Overcast bright summer daylight, muted realistic colors matched to the reference photo (not the style image palette). Top 62%: Moscow metro station entrance built into the base of a tall tower: a large round curved grey aluminium canopy (rotunda) on slim steel columns, a red letter M on a white disc, dark red-brown granite tile pillars and glass doors with an info board, curved yellow safety line on the asphalt, a thick green ivy hedge with a steel fence beside it, beige tower with yellow tile bands above, overhead wires. Floor: grey asphalt. Bottom 38% of the image: empty walkable floor seen slightly from above, the wall meets the floor at 63% of the image height, clean open floor, no people, no cars in the walkable area.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 105,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/route2-metro-rotunda.jpg",
+     "usage": "real place photo: copy the architecture, materials and colors, ignore people and cars"
+    },
+    {
+     "base64": "@assets/source/begovaya/route3-view-to-passage.jpg",
+     "usage": "real place photo: copy the architecture, materials and colors, ignore people and cars"
+    }
+   ]
+  }
+ }
+]

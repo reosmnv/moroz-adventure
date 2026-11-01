@@ -1,0 +1,11 @@
+{
+ "rt_f_wagon": {
+  "out": "id: 762ab8b6-23c6-42cd-878b-63e224b157a8\njob_id: 762ab8b6-23c6-42cd-878b-63e224b157a8\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text, no people. Interior of a Moscow metro train car (model 81-765 Moskva): along the wall wide windows filled with plain flat black (dark tunnel), under them blue upholstered seats, light grey-white wall panels, silver handrails, white ceiling with light strips, sliding doors with a blue-grey frame. Floor: dark blue-grey rubber floor. Bottom 38% of the image: e"
+ },
+ "rt_g_mayak_a": {
+  "out": "id: db3597d5-7bde-42b2-8aca-5808c1267189\njob_id: db3597d5-7bde-42b2-8aca-5808c1267189\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text, no people. Mayakovskaya metro station central hall, art deco: a row of wide arches clad in polished stainless steel with a pink stone trim, between arches slim steel pillars, oval ceiling niches with blue sky mosaics lit by warm hidden lights, a glimpse of a train and platform through the arches. Floor: polished light stone with red squares and dark borders"
+ },
+ "rt_h_mayak_b": {
+  "out": "id: 418c2ca4-8655-4841-b9ab-ac9a09817a8e\njob_id: 418c2ca4-8655-4841-b9ab-ac9a09817a8e\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text, no people. Mayakovskaya metro station platform seen from the side: steel-clad pillars and arches along the wall, ceiling niches with blue sky mosaics, soft warm cove lighting, a modern blue metro train waiting behind the arches with lit windows. Floor: polished stone floor, red and cream pattern. Bottom 38% of the image: empty walkable floor seen slightly f"
+ }
+}

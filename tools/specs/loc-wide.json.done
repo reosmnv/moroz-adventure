@@ -1,0 +1,23 @@
+{
+ "mayak_w0": {
+  "out": "id: 5bf57590-2dfe-44f4-9f22-b04888755353\njob_id: 5bf57590-2dfe-44f4-9f22-b04888755353\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Mayakovskaya metro station platform hall, art deco: a row of round arches clad in fluted polished stainless steel with pink rhodonite stone trim, on square columns with dark red stone bases; above the arches the ceiling vault with oval niches holding blue sky mosaic"
+ },
+ "mayak_w1": {
+  "out": "id: ca7f3c2a-a8d1-470d-a8a9-747f7784a5c6\njob_id: ca7f3c2a-a8d1-470d-a8a9-747f7784a5c6\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Mayakovskaya metro station platform hall, art deco: a row of round arches clad in fluted polished stainless steel with pink rhodonite stone trim, on square columns with dark red stone bases; above the arches the ceiling vault with oval niches holding blue sky mosaic"
+ },
+ "wagon_w0": {
+  "out": "id: 2bd3538b-4049-48f3-b3df-a7066a5264d1\njob_id: 2bd3538b-4049-48f3-b3df-a7066a5264d1\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Interior of a modern Moscow metro car (81-765 Moskva) seen from the side: wide windows filled with plain flat pure black, under the windows a long row of blue upholstered seats, light grey-white wall panels, vertical silver handrails, a white ceiling strip with ligh"
+ },
+ "wagon_w1": {
+  "out": "id: e06b2ae8-8d34-4e47-a881-1c73b2804d0c\njob_id: e06b2ae8-8d34-4e47-a881-1c73b2804d0c\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Interior of a modern Moscow metro car (81-765 Moskva) seen from the side: wide windows filled with plain flat pure black, under the windows a long row of blue upholstered seats, light grey-white wall panels, vertical silver handrails, a white ceiling strip with ligh"
+ },
+ "vest_a": {
+  "out": "id: 2db44f1a-1a63-4546-a5dd-0acfbdeecb06\njob_id: 2db44f1a-1a63-4546-a5dd-0acfbdeecb06\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Inside the small ground vestibule of a Moscow metro exit pavilion (conditional, generic design): on the left glass entrance doors with steel frames, then grey ticket machines and a row of steel turnstiles with small green lights, walls of dark red polished granite, "
+ },
+ "vest_b": {
+  "out": "id: cc53df00-576d-48d9-a1f7-ff4570e64429\njob_id: cc53df00-576d-48d9-a1f7-ff4570e64429\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Inside a Moscow metro vestibule at the top of the escalators (conditional, generic design): walls of dark red polished granite and light marble, on the right the start of three escalators going down to the right with steel balustrades and round lamps on poles, on th"
+ },
+ "yard_a": {
+  "out": "id: c674e2fe-4342-4165-9eff-373468e9b458\njob_id: c674e2fe-4342-4165-9eff-373468e9b458\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Moscow residential courtyard in summer: a low black metal fence and a long trimmed green hedge along the back, a few birch trees, behind them the white and beige base of tall residential towers with yellow tile bands, a parked bicycle rack against the fence. Overcas"
+ }
+}

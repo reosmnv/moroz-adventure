@@ -1,0 +1,12 @@
+[
+ {
+  "name": "wg_seam",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "interior of a modern Moscow metro car seen from the side: sliding door, light grey panels, handrail pole, blue-grey rubber floor, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
+   "image_base64": "@assets/level-route/win/wg_seam/in.png",
+   "mask_image_base64": "@assets/level-route/win/wg_seam/mask.png",
+   "no_background": false
+  }
+ }
+]

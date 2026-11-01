@@ -1,0 +1,26 @@
+{
+ "train_car": {
+  "out": "id: ffb0c7de-9320-4e9c-a1ba-bcf30791f406\njob_id: ffb0c7de-9320-4e9c-a1ba-bcf30791f406\nmodel: pro\ndescription: pixel art, strictly flat orthographic side view of one complete Moscow metro car (classic 81-717), long blue body with a thin light grey stripe, four pairs of sliding doors, rows of windows with warm lit interior, black rubber gangway at both ends, full car from end to end fills the width, no text, no people, transparent background\nsize: 256x56px\ntransparent: True\ncandidates: 1\nstyle_image: yes (outline, detail, shading)\nseed: 501\nasset_id: fcc0ba66-79c1-5915-93e8-b6888973bcad\nasset_st"
+ },
+ "stage_a": {
+  "out": "id: a0fbd413-808d-4034-9ab4-c88059803486\ndescription: small concert stage platform for a singer, black steel truss frame with spotlights on top, dark wooden stage floor, a wide stair of 4 steps in the front center going down, red carpet on the steps, flat side view, no people\nsize: 192x128px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"a0fbd413-808d-4034-9ab4-c88059803486\")"
+ },
+ "stage_b": {
+  "out": "id: d69ffcd5-1ecc-4048-b558-75adf633f86b\ndescription: temporary concert stage set up in a metro hall: low black platform with a steel truss arch and colored spotlights, wide steps in front leading down to the floor, flat side view, no people\nsize: 192x128px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"d69ffcd5-1ecc-4048-b558-75adf633f86b\")"
+ },
+ "metro_bench": {
+  "out": "id: c946c38f-03e0-4344-ab0f-ea4de9201dbf\ndescription: long Soviet metro station bench of polished dark wood on a light marble base, flat side view\nsize: 96x40px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"c946c38f-03e0-4344-ab0f-ea4de9201dbf\")"
+ },
+ "street_bench": {
+  "out": "id: 221f5fec-a8ac-48b6-a639-b52ce2cd5237\ndescription: modern city bench with wooden slats and a black metal frame, flat side view\nsize: 64x40px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"221f5fec-a8ac-48b6-a639-b52ce2cd5237\")"
+ },
+ "bin": {
+  "out": "id: 23694ef8-2394-4b1d-84e6-1cb7c8241073\ndescription: grey metal street trash bin with a lid, flat side view\nsize: 32x48px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"23694ef8-2394-4b1d-84e6-1cb7c8241073\")"
+ },
+ "bike_rack": {
+  "out": "id: 088bbc23-2d10-4da2-8b05-8a78d2249936\ndescription: street bicycle parking rack of steel loops with two parked bicycles, flat side view\nsize: 96x48px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"088bbc23-2d10-4da2-8b05-8a78d2249936\")"
+ },
+ "manhole": {
+  "out": "id: a176bc6d-4293-4e7d-bf6f-d0073164a76c\ndescription: round cast iron manhole cover lying on grey asphalt, seen from a low angle as a flat ellipse, only the cover\nsize: 48x32px\nview: side\nmode: basic\nstatus: processing (~30-90s)\n\nthe object is permanent — place it with place_map_object once ready\nhint: get_map_object(object_id=\"a176bc6d-4293-4e7d-bf6f-d0073164a76c\")"
+ }
+}

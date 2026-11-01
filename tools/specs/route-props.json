@@ -1,0 +1,110 @@
+[
+ {
+  "name": "train_car",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "pixel art, strictly flat orthographic side view of one complete Moscow metro car (classic 81-717), long blue body with a thin light grey stripe, four pairs of sliding doors, rows of windows with warm lit interior, black rubber gangway at both ends, full car from end to end fills the width, no text, no people, transparent background",
+   "width": 256,
+   "height": 56,
+   "no_background": true,
+   "seed": 501,
+   "style_image_base64": "@assets/level-route/raw/mayak_w1/0.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ]
+  }
+ },
+ {
+  "name": "stage_a",
+  "tool": "create_map_object",
+  "args": {
+   "description": "small concert stage platform for a singer, black steel truss frame with spotlights on top, dark wooden stage floor, a wide stair of 4 steps in the front center going down, red carpet on the steps, flat side view, no people",
+   "width": 192,
+   "height": 128,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "stage_b",
+  "tool": "create_map_object",
+  "args": {
+   "description": "temporary concert stage set up in a metro hall: low black platform with a steel truss arch and colored spotlights, wide steps in front leading down to the floor, flat side view, no people",
+   "width": 192,
+   "height": 128,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "metro_bench",
+  "tool": "create_map_object",
+  "args": {
+   "description": "long Soviet metro station bench of polished dark wood on a light marble base, flat side view",
+   "width": 96,
+   "height": 40,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "street_bench",
+  "tool": "create_map_object",
+  "args": {
+   "description": "modern city bench with wooden slats and a black metal frame, flat side view",
+   "width": 64,
+   "height": 40,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "bin",
+  "tool": "create_map_object",
+  "args": {
+   "description": "grey metal street trash bin with a lid, flat side view",
+   "width": 32,
+   "height": 48,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "bike_rack",
+  "tool": "create_map_object",
+  "args": {
+   "description": "street bicycle parking rack of steel loops with two parked bicycles, flat side view",
+   "width": 96,
+   "height": 48,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ },
+ {
+  "name": "manhole",
+  "tool": "create_map_object",
+  "args": {
+   "description": "round cast iron manhole cover lying on grey asphalt, seen from a low angle as a flat ellipse, only the cover",
+   "width": 48,
+   "height": 32,
+   "view": "side",
+   "outline": "single color outline",
+   "shading": "medium shading",
+   "detail": "medium detail"
+  }
+ }
+]

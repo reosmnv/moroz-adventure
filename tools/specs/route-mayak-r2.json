@@ -1,0 +1,12 @@
+[
+ {
+  "name": "my_seam",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "Mayakovskaya metro hall: steel arches with pink stone trim, ceiling oval niches with sky mosaics, cream marble floor with red inlays, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
+   "image_base64": "@assets/level-route/win/my_seam/in.png",
+   "mask_image_base64": "@assets/level-route/win/my_seam/mask.png",
+   "no_background": false
+  }
+ }
+]

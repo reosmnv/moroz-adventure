@@ -1,0 +1,22 @@
+[
+ {
+  "name": "vs_floor1",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "grey polished granite floor slabs, continue the floor pattern and perspective lines, flat side view, no objects",
+   "image_base64": "@assets/level-route/win/vs_floor1/in.png",
+   "mask_image_base64": "@assets/level-route/win/vs_floor1/mask.png",
+   "no_background": false
+  }
+ },
+ {
+  "name": "vs_floor2",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "grey polished granite floor slabs, continue the floor pattern and perspective lines, flat side view, no objects",
+   "image_base64": "@assets/level-route/win/vs_floor2/in.png",
+   "mask_image_base64": "@assets/level-route/win/vs_floor2/mask.png",
+   "no_background": false
+  }
+ }
+]

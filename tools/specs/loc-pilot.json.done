@@ -1,0 +1,26 @@
+{
+ "stairs_v0": {
+  "out": "id: bace2951-8413-444d-b99d-94be5e8f94cd\njob_id: bace2951-8413-444d-b99d-94be5e8f94cd\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style as the style image. Warm late afternoon. Top 62%: cream-beige tiled tower facade of a Moscow residential complex; in the center a recessed glass entrance door of an apartment building entrance with a small flat canopy and a numbered intercom panel, in front of the door a porch landing and a wide flight of concrete steps with a metal handrail going DOWN to the courtyard le"
+ },
+ "stairs_v1": {
+  "out": "id: 02663f84-98a3-4565-be80-2140b2aade97\njob_id: 02663f84-98a3-4565-be80-2140b2aade97\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style as the style image. Warm late afternoon. Top 62%: cream-beige tiled tower facade of a Moscow residential complex; entrance of an apartment building raised on a podium: a broad stair of 8 concrete steps with steel railings climbing UP to a glass double door under a concrete canopy, flower planters on the sides. Bottom: paved ground at the foot of the stairs. Bottom 38% of "
+ },
+ "passage_v0": {
+  "out": "id: d08fe2c2-994e-4a16-9bc3-61299938d112\njob_id: d08fe2c2-994e-4a16-9bc3-61299938d112\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style as the style image. Warm late afternoon. Top 62%: a tall cream-beige tiled residential building with a wide high covered passage straight through the middle of its ground floor, a tunnel-like opening with a concrete ceiling and square pillars, daylight and a distant street visible at the far end, glass shop fronts on the sides of the passage entrance. Bottom: paved walkwa"
+ },
+ "descent_v0": {
+  "out": "id: efca9cc1-5982-481e-8101-18e0fb0ca9e9\njob_id: efca9cc1-5982-481e-8101-18e0fb0ca9e9\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style as the style image. Early evening. Top 62%: a city street side of a Moscow metro station: a white stone pavilion with a red letter M sign and a wide stairway going DOWN into the underground, glass doors, handrails, commuters' bicycle rack, neutral overcast light. Bottom: grey paved pavement. Bottom 38% of the image is an empty walkable floor seen slightly from above, the "
+ },
+ "wagon_v0": {
+  "out": "id: 63807a22-1272-466a-8489-5036ccd921f4\njob_id: 63807a22-1272-466a-8489-5036ccd921f4\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style as the style image. Interior of a Moscow metro train car seen from the inside, side view: along the back wall a row of windows whose glass is a flat solid very dark blue-black (a dark tunnel, nothing visible in them), below the windows blue-grey bench seats along the wall, vertical steel handrails, ceiling light strips, grey linoleum floor, doors at both ends. Fluorescent"
+ },
+ "wagon_v1": {
+  "out": "id: 85745a39-9d4f-4754-93b5-2c9871457bca\njob_id: 85745a39-9d4f-4754-93b5-2c9871457bca\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style as the style image. Interior of a Moscow metro train car, flat side view: big rectangular windows along the wall filled with plain flat black, orange and gray fabric seats under them, chrome handrails, ceiling panels with lamps, route map above the windows, linoleum floor. Cool fluorescent light. Bottom 38% of the image is an empty walkable floor seen slightly from above,"
+ },
+ "mayak_v0": {
+  "out": "id: 763da830-f881-4f78-81c8-77f40e66c390\njob_id: 763da830-f881-4f78-81c8-77f40e66c390\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style as the style image. Grand underground Moscow metro station Mayakovskaya in art deco style: a long hall, a row of wide arches faced with polished stainless steel framed with pink rhodonite stripes, white ceiling with oval niches of blue sky mosaics, soft warm hidden lighting, between the arches on the far side a dark train tunnel. Floor of polished red-brown and grey stone"
+ },
+ "mayak_v1": {
+  "out": "id: 45c0fb05-3bcb-42ad-ad7b-670c0a2819ef\njob_id: 45c0fb05-3bcb-42ad-ad7b-670c0a2819ef\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view, same art style as the style image. Underground metro station hall, art deco: gleaming stainless steel arches with rose-pink stone trim, ceiling of oval mosaic panels showing a deep blue sky, warm cove lights, spacious central hall with a long platform floor of dark red and grey polished stone, glimpse of a train tunnel with a passing train behind the arches. Bottom 38% of the image is a"
+ }
+}

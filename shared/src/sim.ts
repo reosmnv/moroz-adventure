@@ -1,5 +1,6 @@
 // Общая симуляция боя: одна и та же для сервера (онлайн) и браузера (офлайн).
 // Чистые данные и функции, без Phaser и Colyseus.
+import { LEVELS, stageOf, laneTop, laneBottom, levelW, walkBounds, clampToLane } from './levels.ts';
 import type { Form } from './anims-data.ts';
 import {
   HOP_MS, HOP_DIST, ATTACK_BAND, MAGNET_GAP, MAGNET_DIST, RUSH_DIST, LAUNCH_H, JUGGLE_REFRESH_MS, JUGGLE_MULT, JUGGLE_STEP, JUGGLE_MULT_MAX, JUGGLE_MAX_MS, SLAM_MULT, BOUNCE_MS, BOUNCE_H, HIT_CHAIN_MS, PIN_MS, PIN_KB_MIN, PIN_SIZE, PIN_DMG, PIN_KB, KILL_EXTEND_MS, AIR_CHARGE_MULT,
@@ -113,6 +114,10 @@ export interface Enemy {
 }
 
 export interface World {
+  level: 'route' | 'old';
+  stage: number;
+  trans?: { ms: number; to: number };
+  exitEvent?: boolean;
   tick: number;
   seed: number;
   wave: number;
@@ -141,6 +146,8 @@ export interface Input {
 export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: false, taunt: false, ult: false, ult2: false, run: false });
 
 export type SimEvent =
+  | { t: 'exit'; to: number }
+  | { t: 'stage'; stage: number }
   | { t: 'hit'; target: string; dmg: number; x: number; y: number; word?: string; by?: string }
   | { t: 'shot'; id: string; x: number; y: number; tx: number; ty: number } // вспышка Kris летит
   | { t: 'ball'; id: string; x: number; y: number; tx: number; ty: number } // шар Kris летит
@@ -175,8 +182,9 @@ function focusX(w: World): number {
   return ps.length ? ps.reduce((s, p) => s + p.x, 0) / ps.length : VIEW_W / 2;
 }
 
-export function createWorld(seed = 1, testTools = false): World {
-  return { tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
+export function createWorld(seed = 1, testTools = false, level: 'route' | 'old' = 'route', stage = 0): World {
+  stage = Number.isInteger(stage) && stage >= 0 && stage < LEVELS[level].stages.length ? stage : 0;
+  return { level, stage, tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
 }
 
 export function takenChars(w: World): string[] {
@@ -188,8 +196,7 @@ export function addPlayer(w: World, id: string, char: string): Player {
   const buddy = Object.values(w.players).find(p => p.connected && p.hp > 0);
   const p: Player = {
     id, char,
-    x: buddy ? clamp(buddy.x - 30, 20, LEVEL_W - 20) : 80,
-    y: buddy ? clamp(buddy.y + 20, LANE_TOP, LANE_BOTTOM) : 200,
+    ...clampToLane(w, buddy ? buddy.x - 30 : stageOf(w).spawn[0], buddy ? buddy.y + 20 : stageOf(w).spawn[1]),
     hp: PLAYER_HP, facing: 1, anim: 'idle', animMs: 0, cdMs: 0, tauntCdMs: 0, ult: 0, downMs: 0,
     connected: true, away: false,
     form: HERO_FORM[char] ?? 'prime', move: 'idle', moveT: 0, combo: 0, comboMs: 0, queued: null, formMs: 0, invulnMs: 0, hitstopMs: 0, stormMs: 0, stormTickMs: 0,
@@ -206,7 +213,9 @@ export function removePlayer(w: World, id: string) {
 function ensureDummy(w: World) {
   if (Object.values(w.enemies).some(e => e.dummy)) return;
   const id = 'e' + w.nextEnemyId++;
-  w.enemies[id] = { id, x: 330, y: 205, hp: 200, maxHp: 200, facing: -1, anim: 'idle', animMs: 0, cdMs: 0, dummy: true, homeX: 330, homeY: 205 };
+  const x = Math.min(stageOf(w).spawn[0] + 250, levelW(w) - 40);
+  const y = (laneTop(w, x) + laneBottom(w)) / 2;
+  w.enemies[id] = { id, x, y, hp: 200, maxHp: 200, facing: -1, anim: 'idle', animMs: 0, cdMs: 0, dummy: true, homeX: x, homeY: y };
 }
 
 export function chargeUlt(w: World, id: string) {
@@ -220,10 +229,11 @@ export function spawnEnemies(w: World, count: number) {
     const id = 'e' + w.nextEnemyId++;
     const fromRight = rand(w) < 0.7;
     const hp = 40;
+    const x = clamp(cx + (fromRight ? 280 + i * 25 : -280 - i * 25), ...walkBounds(w));
     w.enemies[id] = {
       id,
-      x: fromRight ? Math.min(cx + 280, LEVEL_W + 20) + i * 25 : Math.max(cx - 280, -20) - i * 25,
-      y: LANE_TOP + rand(w) * (LANE_BOTTOM - LANE_TOP),
+      x,
+      y: laneTop(w, x) + rand(w) * (laneBottom(w) - laneTop(w, x)),
       hp, maxHp: hp, facing: fromRight ? -1 : 1, anim: 'walk', animMs: 0, cdMs: 800 + rand(w) * 800,
     };
   }
@@ -279,7 +289,7 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
   ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, word: opts.word, by: p.id });
 }
 
-const clampEnemyX = (w: World, x: number) => clamp(x, Math.max(-40, focusX(w) - 300), Math.min(LEVEL_W + 40, focusX(w) + 300));
+const clampEnemyX = (w: World, x: number) => clamp(x, Math.max(-40, focusX(w) - 300), Math.min(levelW(w) + 40, focusX(w) + 300));
 function setAir(e: Enemy, ms: number, peak: number, bounce: boolean) {
   e.air = ms; e.airSpan = ms; e.airPeak = peak; e.airStartH = bounce ? 0 : (e.height ?? 0); e.bouncing = bounce;
   e.height = e.airStartH; e.pin = undefined;
@@ -320,7 +330,7 @@ function approach(w: World, p: Player) {
   const dist = Math.abs(e.x - p.x), range = s.range * RANGE_MULT;
   if (!s.rush && (dist <= range || dist > range + MAGNET_DIST)) return;
   const ms = Math.max(1, hitTimesMs(p.form, p.move, p.facing)[0] ?? 1);
-  p.approach = { x: p.x, y: p.y, tx: clamp(p.x + p.facing * (s.rush ? RUSH_DIST : dist - range + MAGNET_GAP), 10, LEVEL_W - 10), ty: e.y, ms, rush: !!s.rush, target: e.id };
+  p.approach = { x: p.x, y: p.y, tx: clamp(p.x + p.facing * (s.rush ? RUSH_DIST : dist - range + MAGNET_GAP), ...walkBounds(w)), ty: e.y, ms, rush: !!s.rush, target: e.id };
   if (s.rush) p.invulnMs = Math.max(p.invulnMs, ms + TICK_MS);
 }
 
@@ -359,7 +369,7 @@ function special(w: World, p: Player, s: Strike, ev: SimEvent[]) {
     // Воздушный поцелуй: сердце летит от Нади до края уровня, ревнуют все, кого задело по пути
     const x = p.x + p.facing * 30;
     p.charmSaid = false;
-    ev.push({ t: 'kiss', id: p.id, x, y: p.y, tx: p.facing > 0 ? LEVEL_W : 0 });
+    ev.push({ t: 'kiss', id: p.id, x, y: p.y, tx: p.facing > 0 ? levelW(w) : 0 });
     w.pending.push({ ms: 0, kind: 'kiss', owner: p.id, strike: s, x, y: p.y, dir: p.facing, ids: [] });
   }
 }
@@ -384,11 +394,11 @@ function ballTarget(w: World, p: Player): { x: number; y: number } {
   const nastya = Object.values(w.players).find(o => o.char === HERO_ID && o.hp > 0 && o.connected);
   if (nastya) {
     const t = best(foes.filter(e => Math.hypot(e.x - nastya.x, e.y - nastya.y) <= BALL_NEAR_NASTYA), nastya);
-    return t ? { x: t.x, y: clamp(t.y, LANE_TOP, LANE_BOTTOM) } : { x: nastya.x + nastya.facing * 40, y: nastya.y };
+    return t ? clampToLane(w, t.x, t.y) : clampToLane(w, nastya.x + nastya.facing * 40, nastya.y);
   }
   // Без Анастасии: самое плотное скопление в пределах броска, иначе перед собой
   const t = best(foes.filter(e => Math.abs(e.x - p.x) <= BALL_THROW), p);
-  return t ? { x: t.x, y: clamp(t.y, LANE_TOP, LANE_BOTTOM) } : { x: p.x + p.facing * 80, y: p.y };
+  return t ? clampToLane(w, t.x, t.y) : clampToLane(w, p.x + p.facing * 80, p.y);
 }
 
 // Начало и конец звеньев цепочек: рывок Нади, прицел Kris
@@ -412,7 +422,7 @@ function leaveMove(w: World, p: Player, move: string, ev: SimEvent[]) {
 // Летящий поцелуй: сдвигается каждый тик, задетые обычные враги ревнуют. false, когда долетел до края
 function stepKiss(w: World, d: Pending, dtMs: number, ev: SimEvent[]): boolean {
   const dir = d.dir ?? 1;
-  const x0 = d.x!, x1 = clamp(x0 + dir * KISS_SPEED * dtMs / 1000, 0, LEVEL_W);
+  const x0 = d.x!, x1 = clamp(x0 + dir * KISS_SPEED * dtMs / 1000, 0, levelW(w));
   d.x = x1;
   const lo = Math.min(x0, x1) - KISS_HALF_W, hi = Math.max(x0, x1) + KISS_HALF_W;
   const hit = d.ids!;
@@ -422,7 +432,7 @@ function stepKiss(w: World, d: Pending, dtMs: number, ev: SimEvent[]): boolean {
     e.charmMs = CHARM_MS; e.charmBy = d.owner;
     ev.push({ t: 'charm', target: e.id, x: e.x, y: e.y });
   }
-  return x1 > 0 && x1 < LEVEL_W;
+  return x1 > 0 && x1 < levelW(w);
 }
 
 // Отложенные удары: считаются каждый тик, срабатывают, когда время вышло
@@ -518,7 +528,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
     let tx = ap.tx;
     const target = w.enemies[ap.target];
     if (!ap.rush && target) tx = p.facing > 0 ? Math.min(tx, target.x - MAGNET_GAP) : Math.max(tx, target.x + MAGNET_GAP);
-    p.x = ap.x + (tx - ap.x) * k; p.y = clamp(ap.y + (ap.ty - ap.y) * k, LANE_TOP, LANE_BOTTOM);
+    p.x = ap.x + (tx - ap.x) * k; p.y = clamp(ap.y + (ap.ty - ap.y) * k, laneTop(w, p.x), laneBottom(w));
     if (ap.rush && k < 1) p.invulnMs = Math.max(p.invulnMs, dtMs * 2);
     if (k === 1) p.approach = undefined;
   }
@@ -557,7 +567,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
   // Рывок самурая: Надя пролетает DASH_DIST за время анимации рывка
   if (p.move === 'b3-dash') {
     const k = Math.min(1, Math.max(0, p.moveT) / Math.max(1, moveDurMs(p.form, p.move, p.facing)));
-    p.x = clamp(p.dashFrom + p.facing * DASH_DIST * k, 10, LEVEL_W - 10);
+    p.x = clamp(p.dashFrom + p.facing * DASH_DIST * k, ...walkBounds(w));
   }
 
   // Смена формы по окончании превращений
@@ -652,8 +662,8 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       startMove(p, CHAIN[p.form][step]); approach(w, p);
       if (hopping) {
         // Камера пока только на клиенте: граница по стандартной ширине обзора.
-        const left = Math.max(10, Math.min(LEVEL_W - VIEW_W, p.x - VIEW_W * 0.33));
-        p.hop = { from: p.x, to: clamp(p.x - p.facing * HOP_DIST, left, LEVEL_W - 10) };
+        const left = Math.max(walkBounds(w)[0], Math.min(levelW(w) - VIEW_W, p.x - VIEW_W * 0.33));
+        p.hop = { from: p.x, to: clamp(p.x - p.facing * HOP_DIST, left, walkBounds(w)[1]) };
         p.invulnMs = HOP_MS + TICK_MS;
       }
       p.combo = step === len - 1 ? 0 : step + 1;
@@ -667,8 +677,8 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       const moving = mx !== 0 || my !== 0;
       const run = moving && inp.run;
       const speed = PLAYER_SPEED * SPEED_MULT[p.form] * (run ? RUN_MULT : 1);
-      p.x = clamp(p.x + mx * speed * dt, 10, LEVEL_W - 10);
-      p.y = clamp(p.y + my * speed * 0.7 * dt, LANE_TOP, LANE_BOTTOM);
+      p.x = clamp(p.x + mx * speed * dt, ...walkBounds(w));
+      p.y = clamp(p.y + my * speed * 0.7 * dt, laneTop(w, p.x), laneBottom(w));
       if (mx !== 0) p.facing = mx > 0 ? 1 : -1;
       const want2 = run ? 'dash' : moving ? 'walk' : 'idle';
       if (p.move !== want2) startMove(p, want2);
@@ -700,6 +710,30 @@ function stepPin(w: World, e: Enemy, dtMs: number, ev: SimEvent[]) {
   if (pin.ms <= 0) e.pin = undefined;
 }
 
+// Запрос из тестовой кнопки; событие отдаётся ближайшим тиком.
+export function nextStage(w: World) {
+  if (!w.testTools || w.trans) return;
+  w.trans = { ms: 900, to: (w.stage + 1) % LEVELS[w.level].stages.length };
+  w.exitEvent = true;
+}
+
+function finishTransition(w: World, ev: SimEvent[]) {
+  w.stage = w.trans!.to;
+  w.trans = undefined;
+  w.enemies = {};
+  w.pending = [];
+  const [x, y] = stageOf(w).spawn;
+  Object.values(w.players).forEach((p, i) => {
+    Object.assign(p, clampToLane(w, x - i * 30, y + i * 20));
+    p.approach = undefined; p.hop = undefined; p.queued = null; p.wantBall = false;
+    p.stormMs = 0; p.hitstopMs = 0;
+    p.anim = p.hp > 0 ? 'idle' : 'down'; p.animMs = 0;
+    p.move = p.hp > 0 ? 'idle' : 'fall'; p.moveT = 0;
+  });
+  if (w.testTools) ensureDummy(w);
+  ev.push({ t: 'stage', stage: w.stage });
+}
+
 export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimEvent[] {
   const ev: SimEvent[] = [];
   const dt = dtMs / 1000;
@@ -709,6 +743,13 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   // Никого нет за экраном: мир стоит, пока хост шлёт ссылку в мессенджер
   if (active.length === 0) return ev;
   w.tick++;
+
+  if (w.trans) {
+    if (w.exitEvent) { ev.push({ t: 'exit', to: w.trans.to }); w.exitEvent = false; }
+    w.trans.ms -= dtMs;
+    if (w.trans.ms <= 0) finishTransition(w, ev);
+    return ev;
+  }
 
   if (w.testTools) ensureDummy(w);
   else if (Object.keys(w.enemies).length === 0) spawnWave(w, ev);
@@ -738,8 +779,8 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     const busy = p.animMs > 0 && (p.anim === 'attack' || p.anim === 'heavy' || p.anim === 'ult' || p.anim === 'hurt');
     if (!busy) {
       const mx = clamp(inp.mx, -1, 1), my = clamp(inp.my, -1, 1);
-      p.x = clamp(p.x + mx * PLAYER_SPEED * dt, 10, LEVEL_W - 10);
-      p.y = clamp(p.y + my * PLAYER_SPEED * 0.7 * dt, LANE_TOP, LANE_BOTTOM);
+      p.x = clamp(p.x + mx * PLAYER_SPEED * dt, ...walkBounds(w));
+      p.y = clamp(p.y + my * PLAYER_SPEED * 0.7 * dt, laneTop(w, p.x), laneBottom(w));
       if (mx !== 0) p.facing = mx > 0 ? 1 : -1;
       if (p.animMs === 0) p.anim = mx !== 0 || my !== 0 ? 'walk' : 'idle';
 
@@ -850,8 +891,19 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     w.enemies = {};
     w.pending = [];
     w.wave = 0;
-    for (const p of players) { p.hp = PLAYER_HP; p.anim = 'idle'; p.animMs = 0; p.ult = 0; p.charge2 = 0; p.x = 80; heroReset(p); }
+    for (const p of players) { p.hp = PLAYER_HP; p.anim = 'idle'; p.animMs = 0; p.ult = 0; p.charge2 = 0; Object.assign(p, clampToLane(w, stageOf(w).spawn[0], p.y)); heroReset(p); }
     ev.push({ t: 'restart' });
+  }
+
+  for (const p of players) Object.assign(p, clampToLane(w, p.x, p.y));
+  for (const e of Object.values(w.enemies)) {
+    e.x = clampEnemyX(w, e.x);
+    e.y = clamp(e.y, laneTop(w, clamp(e.x, 0, levelW(w))), laneBottom(w));
+  }
+  const exit = stageOf(w).exit;
+  if (exit && w.stage + 1 < LEVELS[w.level].stages.length && active.some(p => p.hp > 0 && p.x >= exit.x0 && p.x <= exit.x1 && p.y <= exit.y1)) {
+    w.trans = { ms: 900, to: w.stage + 1 };
+    ev.push({ t: 'exit', to: w.trans.to });
   }
 
   return ev;

@@ -1,0 +1,10 @@
+status: completed
+id: c946c38f-03e0-4344-ab0f-ea4de9201dbf
+description: long Soviet metro station bench of polished dark wood on a light marble base, flat side view
+size: 96x40px
+view: side
+background: transparent
+created: 2026-11-01 01:42
+download: https://api.pixellab.ai/mcp/map-objects/c946c38f-03e0-4344-ab0f-ea4de9201dbf/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="c946c38f-03e0-4344-ab0f-ea4de9201dbf")

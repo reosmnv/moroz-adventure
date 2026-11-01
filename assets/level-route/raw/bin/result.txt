@@ -1,0 +1,10 @@
+status: completed
+id: 23694ef8-2394-4b1d-84e6-1cb7c8241073
+description: grey metal street trash bin with a lid, flat side view
+size: 32x48px
+view: side
+background: transparent
+created: 2026-11-01 01:42
+download: https://api.pixellab.ai/mcp/map-objects/23694ef8-2394-4b1d-84e6-1cb7c8241073/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="23694ef8-2394-4b1d-84e6-1cb7c8241073")

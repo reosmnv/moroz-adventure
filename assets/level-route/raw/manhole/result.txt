@@ -1,0 +1,10 @@
+status: completed
+id: a176bc6d-4293-4e7d-bf6f-d0073164a76c
+description: round cast iron manhole cover lying on grey asphalt, seen from a low angle as a flat ellipse, only the cover
+size: 48x32px
+view: side
+background: transparent
+created: 2026-11-01 01:42
+download: https://api.pixellab.ai/mcp/map-objects/a176bc6d-4293-4e7d-bf6f-d0073164a76c/download
+
+hint: place_map_object(map_id="<map>", x=..., y=..., object_id="a176bc6d-4293-4e7d-bf6f-d0073164a76c")

@@ -1,0 +1,83 @@
+[
+ {
+  "name": "rt_f_wagon",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text, no people. Interior of a Moscow metro train car (model 81-765 Moskva): along the wall wide windows filled with plain flat black (dark tunnel), under them blue upholstered seats, light grey-white wall panels, silver handrails, white ceiling with light strips, sliding doors with a blue-grey frame. Floor: dark blue-grey rubber floor. Bottom 38% of the image: empty walkable floor seen slightly from above, the wall meets the floor at 63% of the image height.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 201,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/ref-wagon-back.jpg",
+     "usage": "real photo of the car interior: copy colors, seats, panels, handrails"
+    },
+    {
+     "base64": "@assets/source/begovaya/ref-wagon-door.jpg",
+     "usage": "real photo: doors and seats"
+    }
+   ]
+  }
+ },
+ {
+  "name": "rt_g_mayak_a",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text, no people. Mayakovskaya metro station central hall, art deco: a row of wide arches clad in polished stainless steel with a pink stone trim, between arches slim steel pillars, oval ceiling niches with blue sky mosaics lit by warm hidden lights, a glimpse of a train and platform through the arches. Floor: polished light stone with red squares and dark borders and a long red stripe. Bottom 38% of the image: empty walkable floor seen slightly from above, the wall meets the floor at 63% of the image height.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 202,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/ref-mayak-columns.jpg",
+     "usage": "real photo: copy arch shape, steel and pink trim, ceiling niches"
+    },
+    {
+     "base64": "@assets/source/begovaya/ref-mayak-ceiling.jpg",
+     "usage": "real photo: ceiling mosaic niches"
+    }
+   ]
+  }
+ },
+ {
+  "name": "rt_h_mayak_b",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, flat orthographic side view straight at the wall, no text, no people. Mayakovskaya metro station platform seen from the side: steel-clad pillars and arches along the wall, ceiling niches with blue sky mosaics, soft warm cove lighting, a modern blue metro train waiting behind the arches with lit windows. Floor: polished stone floor, red and cream pattern. Bottom 38% of the image: empty walkable floor seen slightly from above, the wall meets the floor at 63% of the image height.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 203,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/source/begovaya/ref-mayak-side.jpg",
+     "usage": "real photo: copy arches, pillars, platform and train"
+    },
+    {
+     "base64": "@assets/source/begovaya/ref-mayak-ceiling.jpg",
+     "usage": "real photo: ceiling mosaic niches"
+    }
+   ]
+  }
+ }
+]

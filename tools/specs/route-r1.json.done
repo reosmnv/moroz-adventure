@@ -1,0 +1,29 @@
+{
+ "st_seam1": {
+  "out": "id: 72ce5ece-45b4-4508-bba9-58b83edcabb4\njob_id: 72ce5ece-45b4-4508-bba9-58b83edcabb4\nsize: 256x180px\nmask: custom mask\nfill: base of a modern Moscow residential building, white and grey striped panels, sidewalk with white bollards, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: 1b8c12da-fe1d-5143-8eae-4565e698503e\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"72ce5ece-45b4-4508-bba9-58b83edcabb4\")\nwithout g"
+ },
+ "st_seam2": {
+  "out": "id: 09982081-1d24-46fb-a5dc-573ff4d387f2\njob_id: 09982081-1d24-46fb-a5dc-573ff4d387f2\nsize: 256x180px\nmask: custom mask\nfill: base of a modern building, white and grey panels turning into massive white tiled pillars under an overhang, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: 6dccdc4b-9c97-5c0c-bb03-6cf8acaaf450\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"09982081-1d24-46fb-a5dc-573ff4d387f2\")\nwithout"
+ },
+ "st_seam3": {
+  "out": "id: 89997cfa-abdb-453b-b0ad-24c1df32977f\njob_id: 89997cfa-abdb-453b-b0ad-24c1df32977f\nsize: 256x180px\nmask: custom mask\nfill: massive white tiled pillars and grey wall of a passage under a building, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: f6e8c5bc-fd00-5d8f-a0d0-8993242bac2d\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"89997cfa-abdb-453b-b0ad-24c1df32977f\")\nwithout get_image: GET https://api.pixellab"
+ },
+ "yd_seam1": {
+  "out": "id: c45de560-fcf0-4ef0-a535-5987858669e2\njob_id: c45de560-fcf0-4ef0-a535-5987858669e2\nsize: 256x180px\nmask: custom mask\nfill: courtyard with green hedge and black metal fence joining the dark red brick and glass metro exit pavilion, residential towers behind, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: 1dce0847-d14e-5959-94da-127c16342cd3\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"c45de560-fcf0-4ef0-a5"
+ },
+ "vs_floor1": {
+  "out": "id: 2b6e8a15-32e0-4505-9364-7a4ce0fcf69a\njob_id: 2b6e8a15-32e0-4505-9364-7a4ce0fcf69a\nsize: 256x180px\nmask: custom mask\nfill: grey polished granite floor slabs, continue the floor pattern and perspective lines, flat side view, no objects\ntransparent: False\nasset_id: 0e66595e-6fcb-5023-920a-8a2a8614be71\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"2b6e8a15-32e0-4505-9364-7a4ce0fcf69a\")\nwithout get_image: GET https://api.pixellab.ai/mcp/images/2b6e8a15-32e0-4505-9364-7a4ce0fcf69a/download (423 + Retry-After un"
+ },
+ "vs_floor2": {
+  "out": "id: 80938b70-4328-4d4f-b5ce-26c084f04f6e\njob_id: 80938b70-4328-4d4f-b5ce-26c084f04f6e\nsize: 256x180px\nmask: custom mask\nfill: grey polished granite floor slabs, continue the floor pattern and perspective lines, flat side view, no objects\ntransparent: False\nasset_id: 2e9cec0a-f49c-59bf-bc3e-09d990062081\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"80938b70-4328-4d4f-b5ce-26c084f04f6e\")\nwithout get_image: GET https://api.pixellab.ai/mcp/images/80938b70-4328-4d4f-b5ce-26c084f04f6e/download (423 + Retry-After un"
+ },
+ "wg_floor": {
+  "out": "id: e0e73b05-bf1b-4fb4-811d-faf8cf0d3794\njob_id: e0e73b05-bf1b-4fb4-811d-faf8cf0d3794\nsize: 256x180px\nmask: custom mask\nfill: dark blue-grey rubber floor of a metro car, plain, continue the floor, no objects\ntransparent: False\nasset_id: 0579dad4-ce00-57ab-819d-68b414f4d371\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"e0e73b05-bf1b-4fb4-811d-faf8cf0d3794\")\nwithout get_image: GET https://api.pixellab.ai/mcp/images/e0e73b05-bf1b-4fb4-811d-faf8cf0d3794/download (423 + Retry-After until ready; ?index=N for the Nt"
+ },
+ "my_floor1": {
+  "out": "id: 9f0547ec-4b88-45dd-81f5-3ce144ee0d37\njob_id: 9f0547ec-4b88-45dd-81f5-3ce144ee0d37\nsize: 256x180px\nmask: custom mask\nfill: polished light cream marble platform floor with red and dark square inlays, continue the floor pattern, no objects\ntransparent: False\nasset_id: 439d13ad-5987-5526-a6f5-fa90f397c686\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"9f0547ec-4b88-45dd-81f5-3ce144ee0d37\")\nwithout get_image: GET https://api.pixellab.ai/mcp/images/9f0547ec-4b88-45dd-81f5-3ce144ee0d37/download (423 + Retry-After"
+ },
+ "my_floor2": {
+  "out": "id: fde91809-9f1a-4fce-bdc6-6ede3d423125\njob_id: fde91809-9f1a-4fce-bdc6-6ede3d423125\nsize: 256x180px\nmask: custom mask\nfill: polished light cream marble platform floor with red and dark square inlays, continue the floor pattern, no objects\ntransparent: False\nasset_id: bceebd14-e97f-5af7-b3f3-273664e85f06\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"fde91809-9f1a-4fce-bdc6-6ede3d423125\")\nwithout get_image: GET https://api.pixellab.ai/mcp/images/fde91809-9f1a-4fce-bdc6-6ede3d423125/download (423 + Retry-After"
+ }
+}

@@ -1,0 +1,5 @@
+{
+ "my_ovals": {
+  "out": "id: 0df58585-62fe-4d36-a7c6-9a831565f443\njob_id: 0df58585-62fe-4d36-a7c6-9a831565f443\nsize: 256x180px\nmask: custom mask\nfill: Mayakovskaya metro ceiling: two oval niches, each with a blue sky mosaic inside a ring of small round lamps, cream vault, same as the other ovals\ntransparent: False\nasset_id: 25139b17-a5b9-5641-98d6-10028ae83d4f\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"0df58585-62fe-4d36-a7c6-9a831565f443\")\nwithout get_image: GET https://api.pixellab.ai/mcp/images/0df58585-62fe-4d36-a7c6-9a831565f"
+ }
+}

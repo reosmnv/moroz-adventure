@@ -1,0 +1,12 @@
+[
+ {
+  "name": "my_ovals",
+  "tool": "inpaint_image",
+  "args": {
+   "description": "Mayakovskaya metro ceiling: two oval niches, each with a blue sky mosaic inside a ring of small round lamps, cream vault, same as the other ovals",
+   "image_base64": "@assets/level-route/win/my_ovals/in.png",
+   "mask_image_base64": "@assets/level-route/win/my_ovals/mask.png",
+   "no_background": false
+  }
+ }
+]
