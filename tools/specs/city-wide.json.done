@@ -1,0 +1,8 @@
+{
+ "city_a": {
+  "out": "id: 94ae74c4-ec4f-4dbb-8e52-96444e97e3bc\njob_id: 94ae74c4-ec4f-4dbb-8e52-96444e97e3bc\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Moscow City embankment approach to a business district: a tall steel fence with barbed wire along the back, a concrete checkpoint booth with a barrier arm, surveillance cameras on tall poles, one giant blank propaganda screen glowing red, glass skyscrapers of Moscow"
+ },
+ "city_b": {
+  "out": "id: 72f46267-29bd-4268-852c-cb3d8344a7bd\njob_id: 72f46267-29bd-4268-852c-cb3d8344a7bd\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Moscow City plaza: the start of a long glass and steel vaulted arcade roof on slim steel columns, under it a row of metal detector frames and steel turnstiles of a security checkpoint, blank cyan glowing screens, glass skyscrapers behind rising to the top edge. Dyst"
+ }
+}

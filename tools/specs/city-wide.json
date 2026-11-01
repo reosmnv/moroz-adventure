@@ -1,0 +1,58 @@
+[
+ {
+  "name": "city_a",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Moscow City embankment approach to a business district: a tall steel fence with barbed wire along the back, a concrete checkpoint booth with a barrier arm, surveillance cameras on tall poles, one giant blank propaganda screen glowing red, glass skyscrapers of Moscow City behind rising to the top edge. Dystopian post-cyberpunk gulag mood: barbed wire coils on top of steel fences, surveillance cameras on poles, giant blank propaganda screens glowing red and cyan, concrete anti-ram blocks, grey smog, cold neon light, overcast evening. Bottom 40% of the image: empty walkable grey granite paving, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 611,
+   "style_image_base64": "@assets/level-route/raw/city_v0/0.png",
+   "style_copy": [
+    "color_palette",
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/city_v0/0.png",
+     "usage": "neighbouring screen of the same street: match colors, light, skyline and materials exactly"
+    },
+    {
+     "base64": "@assets/source/city/ref-city-evening.jpg",
+     "usage": "real place photo: Moscow City skyscrapers"
+    }
+   ]
+  }
+ },
+ {
+  "name": "city_b",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Moscow City plaza: the start of a long glass and steel vaulted arcade roof on slim steel columns, under it a row of metal detector frames and steel turnstiles of a security checkpoint, blank cyan glowing screens, glass skyscrapers behind rising to the top edge. Dystopian post-cyberpunk gulag mood: barbed wire coils on top of steel fences, surveillance cameras on poles, giant blank propaganda screens glowing red and cyan, concrete anti-ram blocks, grey smog, cold neon light, overcast evening. Bottom 40% of the image: empty walkable grey granite paving, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 612,
+   "style_image_base64": "@assets/level-route/raw/city_v0/0.png",
+   "style_copy": [
+    "color_palette",
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/city_v0/0.png",
+     "usage": "neighbouring screen of the same street: match colors, light, skyline and materials exactly"
+    },
+    {
+     "base64": "@assets/source/city/ref-city-evening.jpg",
+     "usage": "real place photo: Moscow City skyscrapers"
+    }
+   ]
+  }
+ }
+]

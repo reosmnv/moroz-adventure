@@ -1,0 +1,11 @@
+{
+ "city_v0": {
+  "out": "id: e1e9f704-94a8-4255-842c-fa4980e60cec\njob_id: e1e9f704-94a8-4255-842c-fa4980e60cec\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Moscow City business district plaza at Presnenskaya embankment: in front a long glass and steel vaulted arcade roof on slim steel columns, the glass entrance of a huge shopping mall, behind it glass skyscrapers of Moscow City rising to the top edge, overcast evening"
+ },
+ "city_v1": {
+  "out": "id: 3c717084-9611-4052-b758-eca4f2a4940e\njob_id: 3c717084-9611-4052-b758-eca4f2a4940e\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Night street in Moscow City business district: the wall of a giant shopping mall with tall glass doors and a dark steel canopy, glass skyscrapers with lit windows behind, wet reflections. Dystopian post-cyberpunk gulag mood: barbed wire coils on top of steel fences,"
+ },
+ "mfc_v0": {
+  "out": "id: cfb8181e-839e-4481-9440-ab270e366e91\njob_id: cfb8181e-839e-4481-9440-ab270e366e91\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no people. Inside a huge state services center hall in a shopping mall atrium: a long row of numbered service windows with glass counters, an electronic queue board glowing, rows of grey waiting chairs against the wall, a glass dome roof with steel ribs at the top edge. Dystop"
+ }
+}

@@ -124,7 +124,96 @@ def base_mayak():
     return img, [WALL] * img.width
 
 
-BASES = {"street": base_street, "yard": base_yard, "vestibule": base_vestibule, "wagon_tile": base_wagon_tile, "mayak": base_mayak}
+def floor_color(name, rows):
+    """Медианный цвет пола сырого экрана (строки rows)."""
+    a = np.array(load(name))[rows[0]:rows[1], :, :3].reshape(-1, 3)
+    return np.median(a, axis=0)
+
+
+def slabs(width, height, base, seed=1, sw=40, glows=()):
+    """Плитка без ИИ: сетка плит, поперечные швы реже к зрителю, продольные сходятся к центру (лёгкая перспектива).
+    glows: (x, (r,g,b)) — мокрые отсветы неона под экранами, мягкие по краям."""
+    rng = np.random.default_rng(seed)
+    a = np.zeros((height, width, 3), np.float32) + base
+    cx = width / 2
+    ys, y, j = [], 0, 0
+    while y < height:
+        ys.append(y)
+        y += 6 + 3 * j
+        j += 1
+    tone = rng.normal(0, 0.03, (len(ys) + 1, width // sw + 4))
+    for yy in range(height):
+        row = max(i for i, v in enumerate(ys) if v <= yy)
+        k = 0.88 + 0.3 * yy / height  # швы расходятся к зрителю
+        u = (np.arange(width) - cx) / k + cx  # координата «на плите»
+        col = np.floor(u / sw).astype(int) + 2
+        a[yy] *= (1 + tone[row, np.clip(col, 0, tone.shape[1] - 1)])[:, None]
+        joint = np.abs((u % sw)) < (0.7 + 0.5 * yy / height)
+        a[yy, joint] *= 0.78
+    for v in ys:
+        a[v] *= 0.74
+        if v + 1 < height:
+            a[v + 1] *= 1.06
+    a += rng.normal(0, 2.0, a.shape)
+    for gx, col in glows:
+        for yy in range(min(height, 50)):
+            for dx in range(-16, 17):
+                x = gx + dx
+                if 0 <= x < width:
+                    k = 0.30 * (1 - yy / 50) * (1 - abs(dx) / 17)
+                    a[yy, x] = a[yy, x] * (1 - k) + np.array(col) * k
+    out = np.zeros((height, width, 4), np.uint8)
+    out[..., :3] = np.clip(a, 0, 255)
+    out[..., 3] = 255
+    return out
+
+
+def gloss(img, rows=22, k=0.18):
+    """Глянец: под стеной слабое перевёрнутое отражение её низа."""
+    a = np.array(img).astype(np.float32)
+    ref = a[WALL - rows:WALL][::-1]
+    for i in range(rows):
+        f = k * (1 - i / rows)
+        a[WALL + i, :, :3] = a[WALL + i, :, :3] * (1 - f) + ref[i, :, :3] * f
+    return Image.fromarray(a.astype(np.uint8))
+
+
+def walls_with_floor(parts, floor):
+    """Стены (H x w, низ стены на WALL) подряд, ниже WALL готовый пол floor (H-WALL x ширина)."""
+    width = sum(p.shape[1] for p in parts)
+    a = np.zeros((H, width, 4), np.uint8)
+    a[WALL:] = floor[:, :width]
+    shade(a[WALL:], 0, 4, 0.3)
+    x = 0
+    for p in parts:
+        a[:WALL, x:x + p.shape[1]] = p[:WALL]
+        x += p.shape[1]
+    return Image.fromarray(a)
+
+
+def base_city():
+    parts = [cut(n, dy) for n, dy in CITY]
+    width = W * len(parts)
+    glows = [(x + i * W, c) for i, (n, _) in enumerate(CITY) for x, c in CITY_GLOWS.get(n, [])]
+    floor = slabs(width, H - WALL, floor_color("city_v0", (140, 178)), seed=3, glows=glows)
+    img = gloss(walls_with_floor(parts, floor), 16, 0.14)
+    return img, [WALL] * width
+
+
+CITY = [("city_b", 27), ("city_a", 29), ("city_v0", 22)]  # dy: низ стены -> WALL; b и v0 похожи, разнесены через a
+CITY_GLOWS = {"city_a": [(240, (255, 60, 90)), (312, (40, 230, 255))], "city_b": [(45, (255, 60, 90)), (95, (40, 230, 255)), (225, (40, 230, 255)), (272, (255, 60, 90))], "city_v0": [(45, (255, 60, 90)), (95, (40, 230, 255)), (225, (40, 230, 255)), (272, (255, 60, 90))]}
+
+
+def base_mfc():
+    m = cut("mfc_v0", 15, remove=(55, 90))  # убрали ярус балконов атриума
+    parts = [m, m[:, ::-1].copy()]  # второй экран зеркальный
+    floor = slabs(2 * W, H - WALL, floor_color("mfc_v0", (155, 178)), seed=5, sw=48,
+                  glows=[(50, (255, 70, 70)), (243, (255, 70, 70)), (397, (255, 70, 70)), (590, (255, 70, 70))])
+    img = gloss(walls_with_floor(parts, floor))
+    return img, [WALL] * img.width
+
+
+BASES = {"street": base_street, "yard": base_yard, "vestibule": base_vestibule, "wagon_tile": base_wagon_tile, "mayak": base_mayak, "city": base_city, "mfc": base_mfc}
 
 SEAM = "seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people"
 WINDOWS = {
@@ -146,6 +235,10 @@ WINDOWS = {
         {"name": "wg_seam", "round": 2, "src": lambda img: Image.fromarray(np.concatenate([np.array(img)[:, 192:320], np.array(img)[:, 0:128]], axis=1)),
          "targets": [(0, 128, 192), (128, 256, 0)], "mask": [(104, 0, 152, H), (64, 148, 128, H)],
          "desc": "interior of a modern Moscow metro car seen from the side: sliding door, light grey panels, handrail pole, blue-grey rubber floor, " + SEAM},
+    ],
+    "city": [
+        {"name": "ct_seam1", "round": 1, "x": 192, "mask": [(104, 0, 152, WALL + 2)], "desc": "Moscow City plaza at evening: glass and steel arcade, steel fence with barbed wire, surveillance cameras, glowing blank screens, skyscrapers behind, " + SEAM},
+        {"name": "ct_seam2", "round": 1, "x": 512, "mask": [(104, 0, 152, WALL + 2)], "desc": "Moscow City plaza at evening: security checkpoint fence with barbed wire joining a glass and steel vaulted arcade, glowing blank screens, skyscrapers behind, " + SEAM},
     ],
     "mayak": [
         {"name": "my_floor1", "round": 1, "x": 0, "mask": [(0, 144, 256, H)], "desc": "polished light cream marble platform floor with red and dark square inlays, continue the floor pattern, no objects"},
@@ -315,7 +408,15 @@ def oval_fix(img):
     return img
 
 
-FINALS = {"street": final_street, "yard": final_yard, "vestibule": final_vestibule, "wagon": final_wagon, "mayak": final_mayak}
+def final_simple(stage):
+    def f():
+        img, top = BASES[stage]()
+        apply_windows(img, stage)
+        return {stage: img}, top
+    return f
+
+
+FINALS = {"city": final_simple("city"), "mfc": final_simple("mfc"), "street": final_street, "yard": final_yard, "vestibule": final_vestibule, "wagon": final_wagon, "mayak": final_mayak}
 
 
 def floor_ts(tops):

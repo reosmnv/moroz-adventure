@@ -1,0 +1,8 @@
+{
+ "ct_seam1": {
+  "out": "id: ae7eb028-9528-4bdf-a656-c6b1a4d4cf94\njob_id: ae7eb028-9528-4bdf-a656-c6b1a4d4cf94\nsize: 256x180px\nmask: custom mask\nfill: Moscow City plaza at evening: glass and steel arcade, steel fence with barbed wire, surveillance cameras, glowing blank screens, skyscrapers behind, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: ddca7919-24cb-56db-a716-3dd287584a92\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"ae7eb0"
+ },
+ "ct_seam2": {
+  "out": "id: adab6db8-8e78-4397-88c1-2d24c600f760\njob_id: adab6db8-8e78-4397-88c1-2d24c600f760\nsize: 256x180px\nmask: custom mask\nfill: Moscow City plaza at evening: security checkpoint fence with barbed wire joining a glass and steel vaulted arcade, glowing blank screens, skyscrapers behind, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: 70e584cd-8a04-5fe2-af2b-1a86e2cebf02\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_i"
+ }
+}
