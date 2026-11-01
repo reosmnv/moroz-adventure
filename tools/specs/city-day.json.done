@@ -1,0 +1,14 @@
+{
+ "cityd_1": {
+  "out": "id: 197235f8-98f5-420a-8d7c-0b65ebc67a62\njob_id: 197235f8-98f5-420a-8d7c-0b65ebc67a62\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Street at the foot of Moscow City business district: wide sidewalk along the glass and grey stone base of an office tower with a cafe window, young linden trees in square granite planters, a street lamp, tall glass skyscrapers of Moscow City rising behind "
+ },
+ "cityd_2": {
+  "out": "id: 1fbe9e87-c3af-428d-b656-0a4002b6dc19\njob_id: 1fbe9e87-c3af-428d-b656-0a4002b6dc19\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Street at the foot of Moscow City business district: a glass bus stop shelter, a low steel railing with a strip of lawn and shrubs, the stone and glass base of an office tower, tall glass skyscrapers of Moscow City rising behind to the top edge. Floor: gre"
+ },
+ "mfc_ext": {
+  "out": "id: bebc66e1-18ff-4fab-965e-b2172137b3fb\njob_id: bebc66e1-18ff-4fab-965e-b2172137b3fb\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Entrance of a big modern state services center building near Moscow City: a wide two-storey glass facade with large glass sliding doors in the middle under a flat steel canopy, an empty white sign band above the doors, three flagpoles, square planters with"
+ },
+ "mfc_int": {
+  "out": "id: 3d5dd91d-1411-4e90-894e-19edcc3e2eba\njob_id: 3d5dd91d-1411-4e90-894e-19edcc3e2eba\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Inside a big bright modern state services center hall: a long row of service windows with glass counters and small blank number displays above them, a large blank electronic queue board, rows of grey waiting chairs, potted plants, white and light green wal"
+ }
+}

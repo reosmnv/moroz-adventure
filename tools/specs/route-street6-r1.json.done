@@ -1,0 +1,8 @@
+{
+ "st_seam4": {
+  "out": "id: 4517cb99-3ef1-4b15-88e9-43cadf87ace3\njob_id: 4517cb99-3ef1-4b15-88e9-43cadf87ace3\nsize: 256x180px\nmask: custom mask\nfill: base of a modern Moscow residential building, white and grey striped panels turning into massive white tiled pillars under an overhang, sidewalk with white bollards, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: 47771167-ef6c-5f01-b831-bb2873e6a898\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_ima"
+ },
+ "st_seam5": {
+  "out": "id: 5dde0e29-50dc-4a51-a137-d68bdf457ec1\njob_id: 5dde0e29-50dc-4a51-a137-d68bdf457ec1\nsize: 256x180px\nmask: custom mask\nfill: massive white tiled pillars and grey concrete wall of a passage under a building, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: e3681b66-c3de-5c94-816f-e54111da1dc2\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"5dde0e29-50dc-4a51-a137-d68bdf457ec1\")\nwithout get_image: GET https://api"
+ }
+}

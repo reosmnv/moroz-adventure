@@ -1,21 +1,21 @@
 [
  {
-  "name": "ct_seam1",
+  "name": "ct2_seam1",
   "tool": "inpaint_image",
   "args": {
-   "description": "Moscow City plaza at evening: glass and steel arcade, steel fence with barbed wire, surveillance cameras, glowing blank screens, skyscrapers behind, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
-   "image_base64": "@assets/level-route/win/ct_seam1/in.png",
-   "mask_image_base64": "@assets/level-route/win/ct_seam1/mask.png",
+   "description": "street at the foot of Moscow City: stone and glass office tower bases, trees, glass skyscrapers behind, overcast daylight, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
+   "image_base64": "@assets/level-route/win/ct2_seam1/in.png",
+   "mask_image_base64": "@assets/level-route/win/ct2_seam1/mask.png",
    "no_background": false
   }
  },
  {
-  "name": "ct_seam2",
+  "name": "ct2_seam2",
   "tool": "inpaint_image",
   "args": {
-   "description": "Moscow City plaza at evening: security checkpoint fence with barbed wire joining a glass and steel vaulted arcade, glowing blank screens, skyscrapers behind, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
-   "image_base64": "@assets/level-route/win/ct_seam2/in.png",
-   "mask_image_base64": "@assets/level-route/win/ct_seam2/mask.png",
+   "description": "street at the foot of Moscow City joining the glass facade of a big state services center building, planters, glass skyscrapers behind, overcast daylight, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people",
+   "image_base64": "@assets/level-route/win/ct2_seam2/in.png",
+   "mask_image_base64": "@assets/level-route/win/ct2_seam2/mask.png",
    "no_background": false
   }
  }

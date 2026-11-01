@@ -192,28 +192,66 @@ def walls_with_floor(parts, floor):
 
 
 def base_city():
-    parts = [cut(n, dy) for n, dy in CITY]
-    width = W * len(parts)
-    glows = [(x + i * W, c) for i, (n, _) in enumerate(CITY) for x, c in CITY_GLOWS.get(n, [])]
-    floor = slabs(width, H - WALL, floor_color("city_v0", (140, 178)), seed=3, glows=glows)
-    img = gloss(walls_with_floor(parts, floor), 16, 0.14)
-    return img, [WALL] * width
-
-
-CITY = [("city_b", 27), ("city_a", 29), ("city_v0", 22)]  # dy: низ стены -> WALL; b и v0 похожи, разнесены через a
-CITY_GLOWS = {"city_a": [(240, (255, 60, 90)), (312, (40, 230, 255))], "city_b": [(45, (255, 60, 90)), (95, (40, 230, 255)), (225, (40, 230, 255)), (272, (255, 60, 90))], "city_v0": [(45, (255, 60, 90)), (95, (40, 230, 255)), (225, (40, 230, 255)), (272, (255, 60, 90))]}
+    """Улица у Москва-Сити (день): c1, c2, зеркало c2, зеркало c1, вход в МФЦ. Шов c1|c2 повторяется зеркально на стыке зеркал."""
+    c1, c2, ext = cut("cityd_1", 41), cut("cityd_2", 28), cut("mfc_ext", 30)
+    parts = [c1, c2, c2[:, ::-1].copy(), c1[:, ::-1].copy(), ext]
+    floor = slabs(W * len(parts), H - WALL, floor_color("cityd_2", (150, 178)), seed=7, sw=44)
+    img = walls_with_floor(parts, floor)
+    return img, [WALL] * img.width
 
 
 def base_mfc():
-    m = cut("mfc_v0", 15, remove=(55, 90))  # убрали ярус балконов атриума
-    parts = [m, m[:, ::-1].copy()]  # второй экран зеркальный
-    floor = slabs(2 * W, H - WALL, floor_color("mfc_v0", (155, 178)), seed=5, sw=48,
-                  glows=[(50, (255, 70, 70)), (243, (255, 70, 70)), (397, (255, 70, 70)), (590, (255, 70, 70))])
+    """Зал главного МФЦ (день): экран, зеркало, экран. Пол плиткой с глянцем."""
+    m = cut("mfc_int", 15)
+    parts = [m, m[:, ::-1].copy(), m]
+    floor = slabs(W * 3, H - WALL, floor_color("mfc_int", (150, 178)), seed=5, sw=48)
     img = gloss(walls_with_floor(parts, floor))
     return img, [WALL] * img.width
 
 
-BASES = {"street": base_street, "yard": base_yard, "vestibule": base_vestibule, "wagon_tile": base_wagon_tile, "mayak": base_mayak, "city": base_city, "mfc": base_mfc}
+def final_city():
+    img, top = BASES["city"]()
+    apply_windows(img, "city")
+    # шов c1|c2 (окно ct2_seam1 на x 192..448) зеркально на стыке зеркал c2'|c1' (x 832..1088)
+    p = RAW / "ct2_seam1/0.png"
+    if p.exists():
+        res = Image.open(p).convert("RGBA").transpose(Image.FLIP_LEFT_RIGHT)
+        mask = Image.open(WIN / "ct2_seam1/mask.png").convert("L").transpose(Image.FLIP_LEFT_RIGHT)
+        img.paste(res, (1280 - 448, 0), mask)
+    return {"city": img}, top
+
+
+def pieces(img, spec):
+    """Куски готовой картинки подряд: (x0, x1, flip). Зеркальный стык по общему краю без шва."""
+    a = np.array(img)
+    return np.concatenate([a[:, x0:x1][:, ::-1] if f else a[:, x0:x1] for x0, x1, f in spec], axis=1)
+
+
+def refloor(a):
+    """Новый единый асфальт под стенами (для уличных стадий после перестановки кусков)."""
+    a = a.copy()
+    floor = asphalt(a.shape[1], H - WALL)
+    shade(floor, 0, 4, 0.25)
+    a[WALL:] = floor
+    return a
+
+
+def base_street6():
+    """Улица длиннее: подъезд 3, подъезд 4, его зеркало (подъезд 5), столпы, зеркало столпов, проход."""
+    img, _ = BASES["street"]()
+    apply_windows(img, "street", upto=1, only=["st_seam1"])
+    a = refloor(pieces(img, [(0, 640, 0), (320, 640, 1), (640, 960, 0), (640, 960, 1), (960, 1280, 0)]))
+    return Image.fromarray(a), [WALL] * a.shape[1]
+
+
+def base_yard2():
+    img, _ = BASES["yard"]()
+    apply_windows(img, "yard")
+    a = refloor(pieces(img, [(0, 270, 1), (0, 590, 0)]))
+    return Image.fromarray(a), [WALL] * a.shape[1]
+
+
+BASES = {"street6": base_street6, "yard2": base_yard2, "street": base_street, "yard": base_yard, "vestibule": base_vestibule, "wagon_tile": base_wagon_tile, "mayak": base_mayak, "city": base_city, "mfc": base_mfc}
 
 SEAM = "seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people"
 WINDOWS = {
@@ -221,6 +259,10 @@ WINDOWS = {
         {"name": "st_seam1", "round": 1, "x": 192, "mask": [(104, 0, 152, WALL + 2)], "desc": "base of a modern Moscow residential building, white and grey striped panels, sidewalk with white bollards, " + SEAM},
         {"name": "st_seam2", "round": 1, "x": 512, "mask": [(104, 0, 152, WALL + 2)], "desc": "base of a modern building, white and grey panels turning into massive white tiled pillars under an overhang, " + SEAM},
         {"name": "st_seam3", "round": 1, "x": 832, "mask": [(104, 0, 152, WALL + 2)], "desc": "massive white tiled pillars and grey wall of a passage under a building, " + SEAM},
+    ],
+    "street6": [
+        {"name": "st_seam4", "round": 1, "x": 832, "mask": [(104, 0, 152, WALL + 2)], "desc": "base of a modern Moscow residential building, white and grey striped panels turning into massive white tiled pillars under an overhang, sidewalk with white bollards, " + SEAM},
+        {"name": "st_seam5", "round": 1, "x": 1472, "mask": [(104, 0, 152, WALL + 2)], "desc": "massive white tiled pillars and grey concrete wall of a passage under a building, " + SEAM},
     ],
     "yard": [
         {"name": "yd_seam1", "round": 1, "x": 142, "mask": [(104, 0, 152, WALL + 2)], "desc": "courtyard with green hedge and black metal fence joining the dark red brick and glass metro exit pavilion, residential towers behind, " + SEAM},
@@ -237,8 +279,8 @@ WINDOWS = {
          "desc": "interior of a modern Moscow metro car seen from the side: sliding door, light grey panels, handrail pole, blue-grey rubber floor, " + SEAM},
     ],
     "city": [
-        {"name": "ct_seam1", "round": 1, "x": 192, "mask": [(104, 0, 152, WALL + 2)], "desc": "Moscow City plaza at evening: glass and steel arcade, steel fence with barbed wire, surveillance cameras, glowing blank screens, skyscrapers behind, " + SEAM},
-        {"name": "ct_seam2", "round": 1, "x": 512, "mask": [(104, 0, 152, WALL + 2)], "desc": "Moscow City plaza at evening: security checkpoint fence with barbed wire joining a glass and steel vaulted arcade, glowing blank screens, skyscrapers behind, " + SEAM},
+        {"name": "ct2_seam1", "round": 1, "x": 192, "mask": [(104, 0, 152, WALL + 2)], "desc": "street at the foot of Moscow City: stone and glass office tower bases, trees, glass skyscrapers behind, overcast daylight, " + SEAM},
+        {"name": "ct2_seam2", "round": 1, "x": 1152, "mask": [(104, 0, 152, WALL + 2)], "desc": "street at the foot of Moscow City joining the glass facade of a big state services center building, planters, glass skyscrapers behind, overcast daylight, " + SEAM},
     ],
     "mayak": [
         {"name": "my_floor1", "round": 1, "x": 0, "mask": [(0, 144, 256, H)], "desc": "polished light cream marble platform floor with red and dark square inlays, continue the floor pattern, no objects"},
@@ -248,11 +290,11 @@ WINDOWS = {
 }
 
 
-def apply_windows(img, stage, upto=99):
+def apply_windows(img, stage, upto=99, only=None):
     """Готовые окна inpaint (RAW/<имя>/0.png) вклеиваются только по маске, по раундам."""
     for w in WINDOWS.get(stage, []):
         p = RAW / w["name"] / "0.png"
-        if w["round"] > upto or not p.exists():
+        if w["round"] > upto or not p.exists() or (only and w["name"] not in only):
             continue
         res = Image.open(p).convert("RGBA")
         mask = Image.open(WIN / w["name"] / "mask.png").convert("L")
@@ -286,23 +328,23 @@ def prep(stage, rnd):
 # ---------- финальные стадии ----------
 
 def final_street():
-    img, top = BASES["street"]()
-    apply_windows(img, "street")
+    img, top = BASES["street6"]()
+    apply_windows(img, "street6")
     zone_decal(img)
     return {"street": img}, top
 
 
 def final_yard():
-    img, top = BASES["yard"]()
-    apply_windows(img, "yard")
+    img, top = BASES["yard2"]()
     return {"yard": img}, top
 
 
 def final_vestibule():
     img, top = BASES["vestibule"]()
     apply_windows(img, "vestibule")
-    # справа эскалатор вниз (с x=515 src): не пол, туда не ходят (walkX в route-data.ts)
-    return {"vestibule": img}, [WALL] * 515 + [H] * (img.width - 515)
+    # спереди зеркало vest_a (двойные двери); справа эскалатор вниз (с x=320+515 src): не пол, туда не ходят (walkX)
+    img = Image.fromarray(pieces(img, [(0, 320, 1), (0, 640, 0)]))
+    return {"vestibule": img}, [WALL] * 835 + [H] * (img.width - 835)
 
 
 def window_alpha(img, rows):
@@ -357,10 +399,11 @@ def final_wagon():
     tile, _ = BASES["wagon_tile"]()
     apply_windows(tile, "wagon_tile")
     t = np.array(tile)
-    img = Image.fromarray(np.concatenate([t, t, t], axis=1))
+    img = Image.fromarray(np.concatenate([t] * WAGON_TILES, axis=1))
     return {"wagon": window_alpha(img, WAGON_WINDOWS)}, [WALL] * img.width
 
 
+WAGON_TILES = 5
 WAGON_WINDOWS = (20, 80)  # строки src, где ищем чёрные окна (уточняется по картинке)
 
 
@@ -374,7 +417,8 @@ def final_mayak():
     m.paste(f2.crop((192, 0, 256, H)), (256, 0), Image.open(WIN / "my_floor2/mask.png").convert("L").crop((192, 0, 256, H)))
     # оси симметрии M: центры арок x=67, 161, 255. Куски стыкуются зеркалом по центру арки
     a = np.array(m)
-    img = oval_fix(Image.fromarray(np.concatenate([a[:, 0:255], a[:, 67:255][:, ::-1], a[:, 67:255]], axis=1)))
+    mid = [a[:, 67:255][:, ::-1], a[:, 67:255]] * MAYAK_PAIRS  # длина: пары «зеркало + прямо» по 188
+    img = oval_fix(Image.fromarray(np.concatenate([a[:, 0:255]] + mid, axis=1)))
     return {"mayak-back": img, "mayak": arch_cut(img)}, [WALL] * img.width
 
 
@@ -397,6 +441,7 @@ def arch_cut(img):
     return Image.fromarray(a)
 
 
+MAYAK_PAIRS = 2
 ARCH_ROWS = (36, 92)  # строки src, где ищем проёмы арок
 
 
@@ -404,7 +449,8 @@ def oval_fix(img):
     """Окно my_ovals: зеркальные стыки по центру арки дали «капли» вместо овалов наверху (x 255 и 443)."""
     p = RAW / "my_ovals/0.png"
     if p.exists():
-        img.paste(Image.open(p).convert("RGBA"), (220, 0), Image.open(WIN / "my_ovals/mask.png").convert("L"))
+        for k in range(MAYAK_PAIRS):  # «капли» повторяются с периодом 376
+            img.paste(Image.open(p).convert("RGBA"), (220 + 376 * k, 0), Image.open(WIN / "my_ovals/mask.png").convert("L"))
     return img
 
 
@@ -416,7 +462,7 @@ def final_simple(stage):
     return f
 
 
-FINALS = {"city": final_simple("city"), "mfc": final_simple("mfc"), "street": final_street, "yard": final_yard, "vestibule": final_vestibule, "wagon": final_wagon, "mayak": final_mayak}
+FINALS = {"city": final_city, "mfc": final_simple("mfc"), "street": final_street, "yard": final_yard, "vestibule": final_vestibule, "wagon": final_wagon, "mayak": final_mayak}
 
 
 def floor_ts(tops):

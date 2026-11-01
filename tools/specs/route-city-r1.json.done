@@ -4,5 +4,11 @@
  },
  "ct_seam2": {
   "out": "id: adab6db8-8e78-4397-88c1-2d24c600f760\njob_id: adab6db8-8e78-4397-88c1-2d24c600f760\nsize: 256x180px\nmask: custom mask\nfill: Moscow City plaza at evening: security checkpoint fence with barbed wire joining a glass and steel vaulted arcade, glowing blank screens, skyscrapers behind, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: 70e584cd-8a04-5fe2-af2b-1a86e2cebf02\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_i"
+ },
+ "ct2_seam1": {
+  "out": "id: fe9dacf9-48ac-4dab-aa24-872ab6e57ff8\njob_id: fe9dacf9-48ac-4dab-aa24-872ab6e57ff8\nsize: 256x180px\nmask: custom mask\nfill: street at the foot of Moscow City: stone and glass office tower bases, trees, glass skyscrapers behind, overcast daylight, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: 1b199392-01e5-5b87-8d74-651888c9e466\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\"fe9dacf9-48ac-4dab-aa24-872ab6e5"
+ },
+ "ct2_seam2": {
+  "out": "id: 3d779602-1a5d-44c2-a025-e3f7f0fe793b\njob_id: 3d779602-1a5d-44c2-a025-e3f7f0fe793b\nsize: 256x180px\nmask: custom mask\nfill: street at the foot of Moscow City joining the glass facade of a big state services center building, planters, glass skyscrapers behind, overcast daylight, seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people\ntransparent: False\nasset_id: a70a098a-df4e-5f33-bef3-184f5d2f92a8\nasset_status: pending (saved when generation completes)\ncost: ~10 generations\nstatus: processing (~30-90s)\n\nhint: get_image(job_id=\""
  }
 }
