@@ -1,6 +1,6 @@
 // Общая симуляция боя: одна и та же для сервера (онлайн) и браузера (офлайн).
 // Чистые данные и функции, без Phaser и Colyseus.
-import { LEVELS, stageOf, laneTop, laneBottom, levelW, walkBounds, clampToLane } from './levels.ts';
+import { LEVELS, stageOf, stageProp, laneTop, laneBottom, levelW, walkBounds, clampToLane } from './levels.ts';
 import { KIND, ROLE, MAX_ALIVE, TOKENS_PER_TARGET, TOKENS_TOTAL, TOKEN_GAP_MS, WAIT_RING, GUARD_FRONT_MULT, type EnemyKind } from './enemy-data.ts';
 import { BOSS, BOSS_ATTACK, type BossId } from './boss-data.ts';
 import { ENCOUNTERS, type Spawn } from './encounters.ts';
@@ -828,7 +828,7 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
         const id = 'e' + w.nextEnemyId++, info = BOSS[boss];
         const hp = info.hp;
         w.enemies[id] = { id, bornTick: w.tick, kind: 'vatnik', boss, bossPhase: 1, hp, maxHp: hp,
-          x: boss === 'shaman' ? 1240 : enc.lock[1] + ENTER_OFF, y: boss === 'shaman' ? 205 : laneBottom(w) - 20, facing: -1,
+          x: boss === 'shaman' ? stageProp(w, 'stage_b')!.x : enc.lock[1] - 20, y: boss === 'shaman' ? 205 : laneBottom(w) - 20, facing: -1,
           enterMs: boss === 'shaman' ? 900 : undefined,
           phase: 'none', phaseMs: 0, anim: 'run', animMs: 0, cdMs: 0 };
         if (boss === 'shaman') { w.enemies[id].phase = 'enter'; w.enemies[id].anim = 'enter'; }

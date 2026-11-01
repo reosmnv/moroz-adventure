@@ -105,7 +105,7 @@ export const ROUTE: Stage[] = [
     train: { y: 60, h: 84, arriveMs: 3500, standMs: 5000, leaveMs: 3500, emptyMs: 5000 },
     props: [
       // Сцена для финального босса: отдельный спрайт, низ на линии стены, ступени вниз к героям
-      { file: 'route/props/stage_b.png', x: 1240, y: 149, scale: 1 },
+      { file: 'route/props/stage_b.png', x: 940, y: 149, scale: 1 },
       { file: 'route/props/metro_bench.png', x: 170, y: 148 },
       { file: 'route/props/metro_bench.png', x: 450, y: 148 },
       { file: 'route/props/metro_bench.png', x: 800, y: 148 },

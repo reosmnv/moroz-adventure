@@ -29,6 +29,8 @@ export const LEVELS: Record<'route' | 'old', Level> = {
 
 type Location = { level: 'route' | 'old'; stage: number };
 export const stageOf = (w: Location): Stage => LEVELS[w.level].stages[w.stage];
+export const stageProp = (w: Location, name: string): StageProp | undefined =>
+  stageOf(w).props.find(p => p.file === `route/props/${name}.png`);
 export const levelW = (w: Location): number => stageOf(w).width;
 export const laneBottom = (w: Location): number => stageOf(w).laneBottom;
 export function laneTop(w: Location, x: number): number {

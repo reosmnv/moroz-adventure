@@ -1,5 +1,5 @@
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
+import { BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -582,7 +582,11 @@ for (const front of [true, false]) {
       inp.my = p.y > exit.y1 ? -1 : 0;
     }
     const ev = step(w, { h: inp });
-    for (const event of ev) if (event.t === 'boss') bosses.push(w.enemies[event.id].boss!);
+    for (const event of ev) if (event.t === 'boss') {
+      const boss = w.enemies[event.id];
+      bosses.push(boss.boss!);
+      check(`TZ10: ${boss.boss} появляется внутри арены`, !!w.enc.lock && boss.x >= w.enc.lock[0] && boss.x <= w.enc.lock[1]);
+    }
     intros += ev.filter(e => e.t === 'cine').length;
     locks += ev.filter(e => e.t === 'lock').length; clears += ev.filter(e => e.t === 'clear').length;
     if (w.stage !== lastStage) {
@@ -592,7 +596,7 @@ for (const front of [true, false]) {
     ordered &&= w.enc.cleared >= (done[w.stage] ?? 0);
     done[w.stage] = w.enc.cleared;
   }
-  check('R2: бот проходит весь маршрут по порядку', w.won && ordered && locks === 13 && clears === 13 && done.join() === '3,1,1,1,2,2,3', `ticks=${ticks} locks=${locks} clears=${clears} done=${done}`);
+  check('R2: бот проходит весь маршрут по порядку', w.won && ordered && locks === 12 && clears === 12 && done.join() === '3,1,1,1,1,2,3', `ticks=${ticks} locks=${locks} clears=${clears} done=${done}`);
   check('TZ07: бот показал все девять вставок и пропускал их', intros === 9, String(intros));
   check('TZ06 R9.8: маршрут включает обоих боссов', bosses.join() === 'shaman,pizdulina');
   const n = w.nextEnemyId; spawnEnemies(w, 3); step(w, {});
@@ -643,15 +647,42 @@ for (const dodge of [false, true]) {
 }
 
 
+// Арены оставляют место под кнопки на самом широком экране.
+for (const stage of LEVELS.route.stages) {
+  for (const [i, encounter] of (ENCOUNTERS[stage.id] ?? []).entries()) {
+    check(`TZ10: ${stage.id} E${i + 1} левее кнопок`, encounter.arena[1] <= stage.width - 0.4 * 760);
+  }
+}
+
+// Проходим все волны встречи, убирая рядовых врагов между шагами.
+function finishMayakWaves(w: ReturnType<typeof createWorld>) {
+  step(w, {});
+  for (let i = 0; i < 20 && !w.enc.bossStarted; i++) {
+    w.enemies = {};
+    step(w, {});
+  }
+}
+{
+  const w = createWorld(71, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
+  w.introduced = Object.keys(ENEMY_INTRO); p.x = 800; p.y = 220;
+  step(w, {});
+  check('TZ10: одна встреча, концертные волны без босса', encountersOf(w).length === 1 && !!w.enc.lock && !w.enc.bossStarted && !Object.values(w.enemies).some(e => e.boss));
+  w.enemies = {}; step(w, {}); p.hp = 0;
+  const ev = step(w, {});
+  check('TZ10: смерть во время волн начинает встречу заново', ev.some(e => e.t === 'restart') && w.enc.wave === 0 && w.enc.queue.length === encountersOf(w)[0].waves[0].length && w.enc.index === 0 && w.enc.cleared === 0);
+  finishMayakWaves(w); p.hp = 0; step(w, {}); step(w, {});
+  check('TZ10: чекпойнт Шамана без повторения волн', w.enc.bossStarted === true && Object.values(w.enemies).length === 1 && Object.values(w.enemies)[0].boss === 'shaman' && w.enc.queue.length === 0);
+}
+
 // TZ-06: настоящая встреча, затем изолированные опасности боссов.
 function bossSetup(boss: BossId = 'shaman') {
   const w = createWorld(71, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
   w.introduced = Object.keys(ENEMY_INTRO);
-  w.enc.index = 1; w.enc.cleared = 1; p.x = 1100; p.y = 220;
-  step(w, {}); w.enc.queue = [];
+  p.x = 800; p.y = 220;
+  finishMayakWaves(w);
   const e = Object.values(w.enemies).find(e => e.boss)!;
   if (boss !== 'shaman') { e.boss = boss; e.hp = e.maxHp = BOSS[boss].hp; }
-  e.x = 1180; e.y = 220; e.cdMs = 0; e.enterMs = 0; e.entered = true; e.phase = 'none'; e.anim = 'idle';
+  e.x = 880; e.y = 220; e.cdMs = 0; e.enterMs = 0; e.entered = true; e.phase = 'none'; e.anim = 'idle';
   return { w, p, e };
 }
 function forceBossAttack(e: ReturnType<typeof bossSetup>['e'], atk: string) {
@@ -660,17 +691,17 @@ function forceBossAttack(e: ReturnType<typeof bossSetup>['e'], atk: string) {
 }
 {
   const { w, p, e } = bossSetup();
-  check('TZ06 R9.1: после волны Шаман, выход заперт', e.boss === 'shaman' && w.enc.cleared === 1 && !!w.enc.lock && !w.trans);
+  check('TZ06 R9.1: после волны Шаман, выход заперт', e.boss === 'shaman' && w.enc.cleared === 0 && !!w.enc.lock && !w.trans);
   e.hp = 0; const death = step(w, {});
   check('TZ08 R4: смерть, задержка fall и bossDown', e.anim === 'hurt' && death.some(v => v.t === 'bossDown') && !!w.enemies[e.id]);
   run(w, 1400); check('TZ06 R1: пауза между боссами', !Object.values(w.enemies).some(e => e.boss === 'pizdulina'));
   run(w, 900);
   const next = Object.values(w.enemies).find(e => e.boss === 'pizdulina')!;
-  check('TZ06 R9.1: второй босс после паузы', !!next && w.enc.cleared === 1);
+  check('TZ06 R9.1: второй босс после паузы', !!next && w.enc.cleared === 0);
   p.hp = 0; const restart = step(w, {}); step(w, {});
   check('TZ06 R9.7: чекпойнт Пиздулины без волн и Шамана', restart.some(v => v.t === 'restart') && Object.values(w.enemies).length === 3 && Object.values(w.enemies).filter(e=>e.kind==='omon' && !e.boss).length===2 && Object.values(w.enemies)[0].boss === 'pizdulina');
   for(const e of Object.values(w.enemies)) e.hp = 0; step(w, {}); run(w, 2300);
-  check('TZ06 R9.1: clear только после второго босса', w.enc.cleared === 2 && !w.enc.lock);
+  check('TZ06 R9.1: clear только после второго босса', w.enc.cleared === 1 && !w.enc.lock);
   const exit = stageOf(w).exit!; p.x = exit.x0 + 2; p.y = exit.y1; const ev = step(w, {});
   check('TZ06 R9.1: выход доступен после боссов', ev.some(e => e.t === 'exit'));
 }
@@ -685,7 +716,7 @@ function forceBossAttack(e: ReturnType<typeof bossSetup>['e'], atk: string) {
   run(w, 1420); check('TZ06 R9.2: неуязвимость заканчивается', !e.invulnMs);
 }
 for (const outside of [false, true]) {
-  const { w, p, e } = bossSetup(); forceBossAttack(e, 'vstayu'); p.x = e.x - (outside ? 180 : 80);
+  const { w, p, e } = bossSetup(); e.x = stageProp(w, 'stage_b')!.x; forceBossAttack(e, 'vstayu'); p.x = e.x - (outside ? 180 : 80);
   run(w, 850); check('TZ06 R9.3: до конца замаха урона нет', p.hp === 150);
   run(w, 100);
   check(`TZ06 R9.3: ring ${outside ? 'вне' : 'внутри'}`, p.hp === (outside ? 150 : 138));
@@ -871,7 +902,7 @@ for (const atk of ['mic','vstayu','pyro','chorus','salute','slap','banStrike','s
         const top=stageOf(w).lane[0][1], bottom=stageOf(w).laneBottom;
         p.y=[top+(bottom-top)/6,top+(bottom-top)/2,top+(bottom-top)*5/6].find(y=>e.bands!.every(b=>Math.abs(y-b.y)>b.h))!;
       } else if(atk==='chorus') p.y=(e.bands![0].y+e.bands![1].y)/2;
-      else {p.x=960; p.y=260;}
+      else {p.x=w.enc.lock![1]-20; p.y=260;}
     }
     run(w,a.windupMs-TICK_MS*2);
     check(`TZ08 R6: ${atk} до windup без урона (${dodge})`,p.hp===150);
@@ -881,9 +912,9 @@ for (const atk of ['mic','vstayu','pyro','chorus','salute','slap','banStrike','s
 }
 {
   const w=createWorld(81,false,'route',4),p=addPlayer(w,'h',HERO_ID);
-  w.introduced=Object.keys(ENEMY_INTRO); w.enc.index=1;w.enc.cleared=1;p.x=1100;p.y=205;
-  step(w,{}); const e=Object.values(w.enemies).find(e=>e.boss)!;
-  check('TZ08 R1/R6: waves [] сразу вызывает enter в (1240,205)',e.x===1240&&e.y===205&&e.phase==='enter'&&e.enterMs===900);
+  w.introduced=Object.keys(ENEMY_INTRO); p.x=800;p.y=205;
+  finishMayakWaves(w); const e=Object.values(w.enemies).find(e=>e.boss)!;
+  check('TZ08 R1/R6: после волн enter у сцены',e.x===stageProp(w, 'stage_b')!.x&&e.y===205&&e.phase==='enter'&&e.enterMs===900);
   w.pending.push({ms:0,kind:'hits',owner:p.id,strike:{range:1000,dmg:100,kb:0,stun:0},ids:[e.id]});
   const hp=e.hp; run(w,850);
   check('TZ08 R6: enter неуязвим и не атакует',e.hp===hp&&p.hp===150&&e.phase==='enter'&&!e.token);

@@ -556,7 +556,7 @@ export class GameScene extends Phaser.Scene {
     }
     const pace = latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
     if (b.level === 'route' && b.stage === 4) {
-      this.bossShow ??= new BossShow(this);
+      this.bossShow ??= new BossShow(this, b);
       this.bossShow.update(latestStage, delta * pace);
     } else { this.bossShow?.destroy(); this.bossShow = undefined; }
     this.stageView?.update(delta * pace, latestStage.halt, b.level === 'route' && b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
