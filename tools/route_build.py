@@ -130,7 +130,17 @@ def floor_color(name, rows):
     return np.median(a, axis=0)
 
 
-def slabs(width, height, base, seed=1, sw=40, glows=()):
+def slabs(width, height, base, seed=1, sw=40, glows=(), section=W):
+    """Пол секциями по экрану (своя лёгкая перспектива в каждой), между секциями тёмная полоса-бордюр."""
+    parts = [slabs1(min(section, width - x0), height, base, seed + i, sw, [(gx - x0, c) for gx, c in glows if x0 - 20 <= gx < x0 + section + 20])
+             for i, x0 in enumerate(range(0, width, section))]
+    out = np.concatenate(parts, axis=1)
+    for x0 in range(section, width, section):
+        out[:, x0 - 1:x0 + 1, :3] = (out[:, x0 - 1:x0 + 1, :3] * 0.7).astype(np.uint8)
+    return out
+
+
+def slabs1(width, height, base, seed=1, sw=40, glows=()):
     """Плитка без ИИ: сетка плит, поперечные швы реже к зрителю, продольные сходятся к центру (лёгкая перспектива).
     glows: (x, (r,g,b)) — мокрые отсветы неона под экранами, мягкие по краям."""
     rng = np.random.default_rng(seed)
@@ -200,13 +210,38 @@ def base_city():
     return img, [WALL] * img.width
 
 
+MFC_DY = 18  # у всех экранов МФЦ один срез: фриз и потолок на одной высоте
+MFC = [("mfc_in", 0), ("mfc_int", 0), ("mfc_wait", 0), ("mfc_arch", 0), ("mfc_int", 1),
+       ("mfc_doors", 0), ("mfc_wait", 1), ("mfc_arch", 1), ("mfc_main", 0)]  # (экран, зеркало)
+
+
 def base_mfc():
-    """Зал главного МФЦ (день): экран, зеркало, экран. Пол плиткой с глянцем."""
-    m = cut("mfc_int", 15)
-    parts = [m, m[:, ::-1].copy(), m]
-    floor = slabs(W * 3, H - WALL, floor_color("mfc_int", (150, 178)), seed=5, sw=48)
+    """Главный МФЦ, 9 экранов: вход, окна 1-6, ожидание, архив, окна 7-12, кабинеты, ожидание, архив, главное окно.
+    Стыки закрыты пилястрой из mfc_int (x 170-188): потолок и фриз у всех экранов совпадают по высоте."""
+    parts = []
+    for n, f in MFC:
+        c = cut(n, MFC_DY)
+        parts.append(c[:, ::-1].copy() if f else c)
+    width = W * len(parts)
+    floor = slabs(width, H - WALL, floor_color("mfc_int", (150, 178)), seed=5, sw=48)
+    carpet(floor, W * 8 + 160)
     img = gloss(walls_with_floor(parts, floor))
+    pil = Image.fromarray(cut("mfc_int", MFC_DY)[:WALL + 2, 170:188])
+    for k in range(1, len(parts)):
+        img.paste(pil, (W * k - 9, 0), pil)
     return img, [WALL] * img.width
+
+
+def carpet(floor, cx):
+    """Красная дорожка к главному окну: от стены вниз, расширяется к зрителю, кромки темнее."""
+    h = floor.shape[0]
+    for y in range(h):
+        half = 18 + int(22 * y / h)
+        x0, x1 = cx - half, cx + half
+        floor[y, x0:x1, :3] = (178, 52, 52)
+        floor[y, x0:x0 + 2, :3] = (120, 30, 34)
+        floor[y, x1 - 2:x1, :3] = (120, 30, 34)
+        floor[y, x0 + 2:x1 - 2, :3] = np.clip(floor[y, x0 + 2:x1 - 2, :3].astype(int) + np.random.default_rng(y).integers(-6, 7, (x1 - x0 - 4, 1)), 0, 255)
 
 
 def final_city():

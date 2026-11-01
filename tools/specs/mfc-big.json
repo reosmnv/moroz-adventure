@@ -1,0 +1,122 @@
+[
+ {
+  "name": "mfc_in",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Entrance zone of a big state services center: two walk-through metal detector frames, a security guard desk with monitors, an electronic queue ticket terminal with a touch screen, stands with leaflets, a coat rack, glass entrance doors on the left. Same building interior as the reference screen: white and light green wall panels, white panel ceiling with long lamps at the top edge, bright daylight. Bottom 45% of the image: empty walkable light polished stone floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 801,
+   "style_image_base64": "@assets/level-route/raw/mfc_int/0.png",
+   "style_copy": [
+    "color_palette",
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring screen of the same state services center: match pixel style, colors, wall panels, ceiling and light exactly"
+    }
+   ]
+  }
+ },
+ {
+  "name": "mfc_wait",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Waiting zone of a big state services center: long rows of connected blue waiting chairs against the wall, a large blank queue display board above, a water cooler, two vending machines with snacks and coffee, a small children's play corner with colorful soft blocks and a little table. Same building interior as the reference screen: white and light green wall panels, white panel ceiling with long lamps at the top edge, bright daylight. Bottom 45% of the image: empty walkable light polished stone floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 802,
+   "style_image_base64": "@assets/level-route/raw/mfc_int/0.png",
+   "style_copy": [
+    "color_palette",
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring screen of the same state services center: match pixel style, colors, wall panels, ceiling and light exactly"
+    }
+   ]
+  }
+ },
+ {
+  "name": "mfc_arch",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Archive corridor of a big state services center: tall metal shelves full of colored document folders and boxes, a big office copier machine, a passport photo booth with a curtain, a paper shredder, stacks of paper on a trolley. Same building interior as the reference screen: white and light green wall panels, white panel ceiling with long lamps at the top edge, bright daylight. Bottom 45% of the image: empty walkable light polished stone floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 803,
+   "style_image_base64": "@assets/level-route/raw/mfc_int/0.png",
+   "style_copy": [
+    "color_palette",
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring screen of the same state services center: match pixel style, colors, wall panels, ceiling and light exactly"
+    }
+   ]
+  }
+ },
+ {
+  "name": "mfc_doors",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Office corridor of a big state services center: a row of closed wooden office doors with blank nameplates, a wide padded door of the director's office in the middle, potted ficus plants, a bench, a fire extinguisher, a notice board with pinned blank papers. Same building interior as the reference screen: white and light green wall panels, white panel ceiling with long lamps at the top edge, bright daylight. Bottom 45% of the image: empty walkable light polished stone floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 804,
+   "style_image_base64": "@assets/level-route/raw/mfc_int/0.png",
+   "style_copy": [
+    "color_palette",
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring screen of the same state services center: match pixel style, colors, wall panels, ceiling and light exactly"
+    }
+   ]
+  }
+ },
+ {
+  "name": "mfc_main",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. The final main hall of a big state services center: one huge single service counter in the center under a giant blank electronic queue board, a red carpet leading to it, velvet rope barriers on posts, tall potted palms, a large blank wall screen on each side, solemn and grand. Same building interior as the reference screen: white and light green wall panels, white panel ceiling with long lamps at the top edge, bright daylight. Bottom 45% of the image: empty walkable light polished stone floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 805,
+   "style_image_base64": "@assets/level-route/raw/mfc_int/0.png",
+   "style_copy": [
+    "color_palette",
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring screen of the same state services center: match pixel style, colors, wall panels, ceiling and light exactly"
+    }
+   ]
+  }
+ }
+]

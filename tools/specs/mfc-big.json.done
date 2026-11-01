@@ -1,0 +1,17 @@
+{
+ "mfc_in": {
+  "out": "id: cdf5ee25-bc21-4f25-8075-b1c8d82f012d\njob_id: cdf5ee25-bc21-4f25-8075-b1c8d82f012d\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Entrance zone of a big state services center: two walk-through metal detector frames, a security guard desk with monitors, an electronic queue ticket terminal with a touch screen, stands with leaflets, a coat rack, glass entrance doors on the left. Same bu"
+ },
+ "mfc_wait": {
+  "out": "id: 6cd9ae99-ffd4-407e-9f9a-4b45110e80bd\njob_id: 6cd9ae99-ffd4-407e-9f9a-4b45110e80bd\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Waiting zone of a big state services center: long rows of connected blue waiting chairs against the wall, a large blank queue display board above, a water cooler, two vending machines with snacks and coffee, a small children's play corner with colorful sof"
+ },
+ "mfc_arch": {
+  "out": "id: 5a2ea97b-c57e-435d-af0c-d7c15aff38ff\njob_id: 5a2ea97b-c57e-435d-af0c-d7c15aff38ff\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Archive corridor of a big state services center: tall metal shelves full of colored document folders and boxes, a big office copier machine, a passport photo booth with a curtain, a paper shredder, stacks of paper on a trolley. Same building interior as th"
+ },
+ "mfc_doors": {
+  "out": "id: 897ac969-89ab-4025-ab0b-4e624c7c4f21\njob_id: 897ac969-89ab-4025-ab0b-4e624c7c4f21\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Office corridor of a big state services center: a row of closed wooden office doors with blank nameplates, a wide padded door of the director's office in the middle, potted ficus plants, a bench, a fire extinguisher, a notice board with pinned blank papers"
+ },
+ "mfc_main": {
+  "out": "id: 5a9362cb-7624-4de7-a422-34848a5fa069\njob_id: 5a9362cb-7624-4de7-a422-34848a5fa069\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. The final main hall of a big state services center: one huge single service counter in the center under a giant blank electronic queue board, a red carpet leading to it, velvet rope barriers on posts, tall potted palms, a large blank wall screen on each si"
+ }
+}
