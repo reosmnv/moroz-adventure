@@ -1,8 +1,8 @@
 import * as Phaser from 'phaser';
 import { Impact } from './impact.ts';
 import { BossShow } from './boss-show.ts';
-import { flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, moveDurMs, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
-import { RAMIL_TIPS, RAMIL_FISTS } from './ramil-tips.ts';
+import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, moveDurMs, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { RAMIL_TIPS, RAMIL_FISTS, RAMIL_GRIP } from './ramil-tips.ts';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { showFinale } from './story.ts';
@@ -30,7 +30,7 @@ const ENEMY_LOOK: Record<string, [number, number, number]> = {
 const ICE = 0x66b8ff; // цвет замороженного врага
 
 interface Storm { zone: Phaser.GameObjects.Ellipse; flakes: Phaser.GameObjects.Rectangle[]; seed: number[] }
-interface View { flashUntil?: number; ghosts?: Phaser.GameObjects.Image[]; history?: { texture: string; frame: number; at: number }[]; trigram?: Phaser.GameObjects.Image; trigramAt?: number; trigramEnd?: number; ramilFx?: Map<string, Phaser.GameObjects.Image>; warmAt?: number; warmSince?: number; ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
+interface View { meteor?: Phaser.GameObjects.Graphics; spinFxAt?: number; spinDustAt?: number; stopUntil?: number; stoppedFrame?: number; stoppedX?: number; stoppedY?: number; flashUntil?: number; ghosts?: Phaser.GameObjects.Image[]; history?: { texture: string; frame: number; at: number }[]; trigram?: Phaser.GameObjects.Image; trigramAt?: number; trigramEnd?: number; ramilFx?: Map<string, Phaser.GameObjects.Image>; warmAt?: number; warmSince?: number; ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
@@ -239,10 +239,25 @@ export class GameScene extends Phaser.Scene {
           if (e.level >= 4) this.impact.concentrate(x, y);
         }
       }
+      if (e.t === 'rspinHit') {
+        this.fx('ramil-hit', e.x, e.y - 35);
+        for (const key of ['p:' + e.id, 'e:' + e.target]) {
+          const v = this.views.get(key); if (v) { v.stopUntil = this.time.now + RAMIL.SPIN_STOP_MS; v.stoppedX = v.sprite?.x; v.stoppedY = v.sprite?.y; }
+        }
+      }
       if (e.t === 'rland' || e.t === 'rfinish') {
         this.fx('ramil-crit', e.x, e.y - 30); this.fx('ramil-ring', e.x, e.y);
         if (e.t === 'rfinish') this.word(e.x, e.y - 95, e.line, '#ff5a50');
-        if (e.t === 'rland') this.fx('ramil-dust', e.x, e.y);
+        if (e.t === 'rland') {
+          for (let i = 0; i < 3; i++) this.fx('ramil-dust', e.x + Math.cos(i * Math.PI * 2 / 3) * 30, e.y + Math.sin(i * Math.PI * 2 / 3) * 10);
+          const cracks = this.add.graphics().setDepth(e.y - 0.05).lineStyle(1, 0x292024, 0.9);
+          for (let i = 0; i < 8; i++) {
+            const a = i * Math.PI / 4;
+            cracks.beginPath().moveTo(e.x, e.y).lineTo(e.x + Math.cos(a) * 22, e.y + Math.sin(a) * 8)
+              .lineTo(e.x + Math.cos(a + 0.12) * 42, e.y + Math.sin(a + 0.12) * 15).strokePath();
+          }
+          this.tweens.add({targets: cracks, alpha: 0, duration: 600, onComplete: () => cracks.destroy()});
+        }
         this.cameras.main.shake(200, 0.009);
       }
       if (e.t === 'tele' && 'fromX' in e) {
@@ -579,10 +594,13 @@ export class GameScene extends Phaser.Scene {
     const n = def[dir];
     const t = warmT ?? Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS + lead);
     const raw = Math.floor((t * def.fps * moveSpeed(form, action)) / 1000);
-    const frame = action === 'a3-spin' ? t >= RAMIL.SPIN_MS - TICK_MS ? 0 : Math.floor((t % (RAMIL.SPIN_MS / RAMIL.SPIN_TURNS)) / (RAMIL.SPIN_MS / RAMIL.SPIN_TURNS) * n) : pose ? Math.min(n - 1, pose.frame) : def.loop ? raw % n : Math.min(n - 1, raw);
+    let frame = action === 'a3-spin' ? Math.min(n - 1, Math.floor(ramilSpin(t).phase * n)) : pose ? Math.min(n - 1, pose.frame) : def.loop ? raw % n : Math.min(n - 1, raw);
+    if ((v.stopUntil ?? 0) > this.time.now && action === 'a3-spin') frame = v.stoppedFrame ?? frame;
+    else v.stoppedFrame = frame;
     const sprite = v.sprite!;
     const lift = form === 'kris' && action === 'hop' ? Math.sin(Math.PI * Math.min(1, t / HOP_MS)) * HOP_HEIGHT : 0;
     sprite.setTexture(`${form}/${move}-${dir}`, frame).setPosition(x, y - lift).setDepth(y);
+    if (action === 'a3-spin' && (v.stopUntil ?? 0) > this.time.now) sprite.setPosition(v.stoppedX ?? x,v.stoppedY ?? y);
     // Неуязвимость после удара мигает; во время превращения не мигает, там своя анимация
     const blink = sb.invuln && form !== 'ultimate' && !sb.ultLevel && !action.startsWith('a3-') && !/^(transform|ult|b3)/.test(move) && move !== 'hop' && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
     sprite.setVisible(!(sb.hiddenMs && sb.hiddenMs > 0));
@@ -618,10 +636,10 @@ export class GameScene extends Phaser.Scene {
         if (this.time.now - v.trigramEnd >= 250) { v.trigram.destroy(); v.trigram = undefined; }
       }
       const tip = RAMIL_TIPS[move]?.[frame];
-      const heavy = ['smoke', 'b1', 'b4'].includes(move) || (sb.heavySmokeMs ?? 0) > 0;
+      const heavy = move !== 'a3-spin' && (['smoke', 'b1', 'b4'].includes(move) || (sb.heavySmokeMs ?? 0) > 0);
       const tx = x + ((dir === 'west' ? 127 - (tip?.[0] ?? 64) : tip?.[0] ?? 64) - 64) * SCALE;
       const ty = y - lift + ((tip?.[1] ?? FEET_Y) - FEET_Y) * SCALE;
-      const visible = !!tip && sprite.visible;
+      const visible = (!!tip || move === 'a3-spin') && sprite.visible;
       this.ramilOverlay(v, 'ramil-smoke', visible && !heavy, tx, ty, y + 0.2, 0.62, 1)?.setRotation(-sb.facing * 0.15);
       this.ramilOverlay(v, 'ramil-smoke-heavy', visible && heavy, tx, ty, y + 0.2, 0.62, 1)?.setRotation(-sb.facing * 0.15);
       const fire = this.ramilOverlay(v, 'ramil-fire', visible && (sb.fireMs ?? 0) > 0, tx, ty, y + 0.1, 0, 0.5);
@@ -767,26 +785,76 @@ export class GameScene extends Phaser.Scene {
         const owner = sb.carryBy ? b.players.get(sb.carryBy) : undefined;
         const phase = owner?.move;
         const spinning = phase === 'a3-spin' && !sb.thrown;
-        const theta = spinning ? Math.max(0, owner?.moveT ?? 0) / RAMIL.SPIN_MS * Math.PI * 2 * RAMIL.SPIN_TURNS : 0;
-        if (sb.carried && owner) {
-          const facing = owner.facing < 0 ? -1 : 1;
-          const direction = spinning ? (Math.cos(theta) < 0 ? -1 : 1) : facing;
-          const wobble = phase === 'a2-hold' ? Math.sin(this.time.now / 160) * 0.05 : 0;
-          const progress = phase === 'a3-lift' ? Math.min(1, Math.max(0, owner.moveT ?? 0) / Math.max(1, moveDurMs('ramil', 'a3-lift', facing))) : 1;
-          const height = phase === 'a2-hold' ? 22 : phase === 'a3-lift' ? 22 + 14 * progress : 36;
-          const angle = sb.thrown ? facing * Math.PI / 2 + (sb.carryAngle ?? 0) : direction * Math.PI / 2 + wobble;
-          const perspective = spinning ? Math.max(0.35, Math.abs(Math.cos(theta))) : 1;
-          sp.setOrigin(0.5, phase === 'a2-hold' || phase === 'a3-lift' ? FEET_Y / CELL : 0.5)
-            .setRotation(angle).setFlipX(false).setScale(baseScale, baseScale * perspective)
-            .setPosition(phase === 'a2-hold' || phase === 'a3-lift' ? owner.x + facing * 26 : x,
-              phase === 'a2-hold' || phase === 'a3-lift' ? owner.y - height : y - (sb.thrown ? sb.carryHeight ?? 0 : height))
-            .setDepth(spinning ? owner.y + (Math.sin(theta) < 0 ? -0.2 : 0.2) : y + 0.2);
-          if (spinning) for (let i = 0; i < 3; i++) {
-            const arc = this.add.graphics().setDepth(y + 0.2).lineStyle(1, 0xffffff, 0.65 - i * 0.15);
-            arc.beginPath().arc(x, y - 36, 12 + i * 4, theta - 0.8, theta).strokePath();
-            this.tweens.add({targets: arc, alpha: 0, duration: 150, onComplete: () => arc.destroy()});
+        const spin = ramilSpin(owner?.moveT ?? 0), theta = spin.angle;
+        if (sb.carried && (owner || sb.thrown)) {
+          const facing = owner && owner.facing < 0 ? -1 : 1;
+          const wobble = Math.sin(this.time.now / (phase === 'a2-walk' ? 85 : 160));
+          const handSprite = owner ? this.views.get('p:' + sb.carryBy)?.sprite : undefined;
+          const handFrame = Number(handSprite?.frame.name ?? 0);
+          const grip = RAMIL_GRIP[phase ?? '']?.[handFrame] ?? [84, 57];
+          const handX = (facing < 0 ? 127 - grip[0] : grip[0]) - 64;
+          const handY = (grip[1] - FEET_Y) * SCALE;
+          const neck = 46 * baseScale;
+          const previousTilt = spin.turn ? RAMIL.SPIN_TILT[spin.turn - 1] : 0;
+          const tilt = (previousTilt + (RAMIL.SPIN_TILT[spin.turn] - previousTilt) * spin.phase) * Math.PI / 180;
+          const sx = spinning ? owner!.x + Math.cos(theta) * RAMIL.SPIN_R * facing : owner?.x ?? x;
+          const sy = spinning ? owner!.y + Math.sin(theta) * RAMIL.SPIN_R * 0.3 : owner?.y ?? y;
+          const heldScale = sb.thrown ? baseScale : Math.min(baseScale, Math.max(0.1, (-handY - 10) / 46));
+          sp.setTexture(`enemy/${sb.boss || sb.kind || 'omon'}/hurt`, 0)
+            .setOrigin(0.5, (FEET_Y - 46) / CELL).setScale(heldScale).setFlipX(facing < 0)
+            .setRotation(sb.thrown ? sb.carryAngle ?? 0 : spinning ? -Math.cos(theta) * facing * tilt : -facing * (7 + wobble * 3) * Math.PI / 180)
+            .setPosition(sb.thrown ? x : spinning ? sx : sx + handX * SCALE,
+              sb.thrown ? y - (sb.carryHeight ?? 0) - neck : sy + handY)
+            .setDepth(sb.thrown ? y + 2 : owner!.y + (spinning && Math.sin(theta) < 0 ? -0.2 : 0.2))
+            .setAlpha(spinning && Math.sin(theta) < 0 ? 0.5 : 1);
+          if (!sb.thrown) v.shadow?.setPosition(sp.x,sy).setScale(1);
+          if (spinning && this.time.now - (v.spinFxAt ?? 0) >= 45) {
+            v.spinFxAt = this.time.now;
+            const ox = owner!.x, oy = owner!.y;
+            for (let i = 0; i < 3; i++) {
+              const arc = this.add.graphics().setDepth(oy + 0.3).lineStyle(1 + spin.turn, 0xffffff, 0.15 + spin.turn * 0.12);
+              arc.beginPath();
+              for (let j = 0; j <= 12; j++) {
+                const a = theta - j * 0.09 - i * 2;
+                const ax = ox + Math.cos(a) * (38 + i * 5), ay = oy + handY + Math.sin(a) * (12 + i * 2);
+                if (!j) arc.moveTo(ax,ay); else arc.lineTo(ax,ay);
+              }
+              arc.strokePath();
+              this.tweens.add({targets: arc, alpha: 0, duration: 120, onComplete: () => arc.destroy()});
+            }
+            for (let i = 1; i <= RAMIL.SPIN_GHOSTS[spin.turn]; i++) {
+              const a = theta - i * 0.16;
+              const ghost = this.add.image(ox + Math.cos(a) * RAMIL.SPIN_R * facing,
+                oy + handY + Math.sin(a) * RAMIL.SPIN_R * 0.3, sp.texture.key, 0)
+                .setOrigin(sp.originX,sp.originY).setScale(heldScale).setRotation(-Math.cos(a)*facing*tilt).setFlipX(facing<0)
+                .setTintMode(Phaser.TintModes.FILL).setTint(0xffffff).setAlpha(0.4*(1-i/(RAMIL.SPIN_GHOSTS[spin.turn]+1))).setDepth(oy-0.1);
+              this.tweens.add({targets: ghost, alpha: 0, duration: 100, onComplete: () => ghost.destroy()});
+            }
+            if (spin.turn === 2) {
+              const wind = this.add.graphics().setDepth(oy+0.4).lineStyle(1,0xffffff,0.5);
+              for (let i = 0; i < 4; i++) wind.lineBetween(ox-65+i*12,oy-30-i*12,ox+25+i*12,oy-35-i*12);
+              this.tweens.add({targets: wind, alpha: 0, duration: 100, onComplete: () => wind.destroy()});
+            }
+            this.cameras.main.shake(55,0.0004*(spin.turn+1));
+          }
+          if (spinning && this.time.now - (v.spinDustAt ?? 0) >= RAMIL.SPIN_DUST_MS) {
+            v.spinDustAt = this.time.now;
+            this.fx('ramil-dust', owner!.x, owner!.y, { scale: 0.6, depth: owner!.y - 0.05 })?.setRotation(theta);
           }
         } else sp.setOrigin(0.5, FEET_Y / CELL).setRotation(0).setScale(baseScale);
+        if (sb.thrown) {
+          v.meteor ??= this.add.graphics(); v.meteor.clear().setDepth((sb.meteorY ?? y) - 0.05);
+          const mt = sb.meteorMs ?? 0, tx = sb.meteorX ?? x, ty = sb.meteorY ?? y;
+          const grow = Math.max(0, Math.min(1, (mt - RAMIL.METEOR_UP_MS) / RAMIL.METEOR_HANG_MS));
+          v.meteor.fillStyle(0x100e18,0.6).fillEllipse(tx,ty,90*grow,30*grow)
+            .lineStyle(2,0xff3333,Math.floor(mt/85)%2 ? 0.9 : 0.3).strokeEllipse(tx,ty,90*grow,30*grow);
+          v.shadow?.setVisible(false);
+          if (mt >= RAMIL.METEOR_UP_MS + RAMIL.METEOR_HANG_MS) {
+            v.meteor.lineStyle(1,0xffffff,0.7);
+            for (let i = -2; i <= 2; i++) v.meteor.lineBetween(x+i*8,sp.y-70,x+i*8,sp.y-15);
+          }
+        } else { v.meteor?.clear(); v.shadow?.setVisible(true); }
+        if ((v.stopUntil ?? 0) > this.time.now) sp.setPosition(v.stoppedX ?? sp.x,v.stoppedY ?? sp.y);
         if ((v.flashUntil ?? 0) > this.time.now) { sp.setTintMode(Phaser.TintModes.FILL).setTint(0xffffff); sp.x += Math.floor(this.time.now / 10) % 2 ? 2 : -2; }
         else sp.clearTint();
       }
@@ -828,6 +896,7 @@ export class GameScene extends Phaser.Scene {
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
       v.ghosts?.forEach(g => g.destroy()); v.trigram?.destroy();
+      v.meteor?.destroy();
       v.ramilFx?.forEach(f => f.destroy());
       v.storm?.zone.destroy(); v.storm?.flakes.forEach(f => f.destroy()); v.status?.destroy();
       v.ring?.destroy(); v.warning?.destroy(); v.shield?.destroy(); v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();

@@ -1,0 +1,68 @@
+[
+ {
+  "name": "kp-throat-1",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing visible in his hand. New pose: standing relaxed and lazy, LEFT hand in the jacket pocket, RIGHT arm stretched straight forward and slightly upward at shoulder height, hand clenched in a tight grip as if lifting a man by the throat, body leaning back a little for balance.",
+   "no_background": true,
+   "seed": 1
+  }
+ },
+ {
+  "name": "kp-throat-2",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing visible in his hand. New pose: standing relaxed and lazy, LEFT hand in the jacket pocket, RIGHT arm stretched straight forward and slightly upward at shoulder height, hand clenched in a tight grip as if lifting a man by the throat, body leaning back a little for balance.",
+   "no_background": true,
+   "seed": 2
+  }
+ },
+ {
+  "name": "kp-throat-3",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing visible in his hand. New pose: standing relaxed and lazy, LEFT hand in the jacket pocket, RIGHT arm stretched straight forward and slightly upward at shoulder height, hand clenched in a tight grip as if lifting a man by the throat, body leaning back a little for balance.",
+   "no_background": true,
+   "seed": 3
+  }
+ },
+ {
+  "name": "kp-toss-1",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing visible in his hand. New pose: tossing something heavy straight up into the sky: RIGHT arm thrust straight up above the head with the open hand, LEFT hand in the pocket, knees slightly bent, chin up looking upward.",
+   "no_background": true,
+   "seed": 1
+  }
+ },
+ {
+  "name": "kp-toss-2",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing visible in his hand. New pose: tossing something heavy straight up into the sky: RIGHT arm thrust straight up above the head with the open hand, LEFT hand in the pocket, knees slightly bent, chin up looking upward.",
+   "no_background": true,
+   "seed": 2
+  }
+ },
+ {
+  "name": "kp-toss-3",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing visible in his hand. New pose: tossing something heavy straight up into the sky: RIGHT arm thrust straight up above the head with the open hand, LEFT hand in the pocket, knees slightly bent, chin up looking upward.",
+   "no_background": true,
+   "seed": 3
+  }
+ }
+]

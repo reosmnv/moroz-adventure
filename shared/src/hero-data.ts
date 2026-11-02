@@ -9,10 +9,15 @@ export const RAMIL_ID = 'ramil';
 export const RAMIL = {
   A1_REACH: 56, A1_DASH_MAX: 200, A1_DASH_MS: 140, A1_GAP: 38, // рывок с ногой
   A1_RANGE: 66, A1_DMG: 8, A1_KB: 10, A1_STUN: 500,
-  A2_STEP: 16, A2_RANGE: 64, A2_DMG: 4, GRAB_HOLD_MS: 1500, // захват
-  SPIN_MS: 1200, SPIN_TURNS: 3, SPIN_R: 44, SPIN_DMG: 8, SPIN_HELD_DMG: 3, SPIN_KB: 90,
-  THROW_CLUSTER_R: 70, THROW_EMPTY: 260, THROW_MS: 450, THROW_ARC: 60,
-  THROW_AOE: 80, THROW_DMG: 14, THROW_HELD_DMG: 18, THROW_KB: 140,
+  A2_STEP: 16, A2_RANGE: 64, A2_DMG: 4, GRAB_HOLD_MS: 2500,
+  GRIP_X: 20, GRIP_Y: -50, HOLD_SPEED_MULT: 0.6, SPIN_SPEED_MULT: 0.5,
+  SPIN_TURN_MS: [500, 300, 150], SPIN_MS: 950, SPIN_TURNS: 3,
+  SPIN_R: 26, SPIN_HIT_R: 56, SPIN_DMG: 8, SPIN_HELD_DMG: 3, SPIN_KB: 110,
+  SPIN_LANE_KB: 8, SPIN_HIT_ANGLE: Math.PI / 6, SPIN_STOP_MS: 40,
+  SPIN_TILT: [30, 60, 80], SPIN_GHOSTS: [2, 3, 5], SPIN_DUST_MS: 120,
+  THROW_CLUSTER_R: 70, THROW_EMPTY: 200,
+  METEOR_UP_MS: 350, METEOR_HANG_MS: 450, METEOR_FALL_MS: 180,
+  METEOR_HEIGHT: 400, METEOR_AOE: 90, METEOR_DMG: 16, METEOR_HELD_DMG: 20, METEOR_KB: 150,
   KICK_MAX: 2, KICK_RANGE: 66, KICK_DMG: 20, RETURN_RANGE: 70, // серия B
   FIRE_LEN: 120, FIRE_BAND: 30, FIRE_MS: 330, FIRE_DMG: 3,
   BURN_MS: 3000, BURN_TICK: 500, BURN_DMG: 3,
@@ -254,4 +259,18 @@ export function flurryPose(move: string, t: number, facing: number, dashMs = 0) 
   if (t < f.count * f.step) return { clip: f.clip, frame: Math.floor((t % (f.step * f.marks.length)) / (f.step * f.marks.length) * f.n), active: true };
   const out = f.clip + '-out', def = HERO_ANIMS.ramil[out];
   return { clip: def ? out : 'idle', frame: def ? Math.min(def[dirOf(facing)] - 1, Math.floor((t - f.count * f.step) * def.fps / 1000)) : 0, active: false };
+}
+
+// Общая фаза оборота для симуляции и рендера.
+export function ramilSpin(t: number) {
+  let start = 0;
+  for (let turn = 0; turn < RAMIL.SPIN_TURN_MS.length; turn++) {
+    const ms = RAMIL.SPIN_TURN_MS[turn];
+    if (t < start + ms || turn === RAMIL.SPIN_TURNS - 1) {
+      const phase = Math.max(0, Math.min(1, (t - start) / ms));
+      return { turn, phase, angle: (turn + phase) * Math.PI * 2 };
+    }
+    start += ms;
+  }
+  return { turn: 0, phase: 0, angle: 0 };
 }

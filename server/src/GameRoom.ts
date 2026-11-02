@@ -31,7 +31,7 @@ export const PlayerState = schema({
 export type PlayerState = SchemaType<typeof PlayerState>;
 
 export const EnemyState = schema({
-  ultStopMs: t.number(), carryBy: t.string(), thrown: t.boolean(), carried: t.boolean(), carryAngle: t.number(), carryHeight: t.number(), carryDepth: t.number(),
+  meteorX: t.number(), meteorY: t.number(), meteorMs: t.number(), ultStopMs: t.number(), carryBy: t.string(), thrown: t.boolean(), carried: t.boolean(), carryAngle: t.number(), carryHeight: t.number(),
   burnMs: t.number(), markedBy: t.string(),
   enterMs: t.number(), boss: t.string(), bossPhase: t.number(), atk: t.string(),
   kind: t.string(),
@@ -193,7 +193,8 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
-      es.ultStopMs = e.ultStopMs ?? 0; es.carryBy = e.held?.by ?? e.thrown?.by ?? ''; es.thrown = !!e.thrown; es.carried = !!(e.held || e.thrown); es.carryAngle = e.carryAngle ?? 0; es.carryHeight = e.carryHeight ?? 0; es.carryDepth = e.carryDepth ?? 0;
+      es.meteorX = e.thrown?.x ?? 0; es.meteorY = e.thrown?.y ?? 0; es.meteorMs = e.thrown?.ms ?? 0;
+      es.ultStopMs = e.ultStopMs ?? 0; es.carryBy = e.held?.by ?? e.thrown?.by ?? ''; es.thrown = !!e.thrown; es.carried = !!(e.held || e.thrown); es.carryAngle = e.carryAngle ?? 0; es.carryHeight = e.carryHeight ?? 0;
       es.burnMs = e.burnMs ?? 0; es.markedBy = e.markedBy ?? '';
       es.enterMs = e.enterMs ?? 0;
       es.boss = e.boss ?? ''; es.bossPhase = e.bossPhase ?? 0; es.atk = e.atk ?? '';

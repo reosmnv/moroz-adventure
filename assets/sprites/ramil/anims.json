@@ -71,11 +71,11 @@
     "fps": 8,
     "loop": true
    },
-   "a3-lift": {
-    "east": 3,
-    "west": 3,
-    "fps": 18,
-    "loop": false
+   "a2-walk": {
+    "east": 8,
+    "west": 8,
+    "fps": 9,
+    "loop": true
    },
    "a3-spin": {
     "east": 8,
@@ -89,8 +89,8 @@
     "fps": 18,
     "loop": false,
     "hit": {
-     "east": 2,
-     "west": 2
+     "east": 3,
+     "west": 3
     }
    },
    "flurry-in": {

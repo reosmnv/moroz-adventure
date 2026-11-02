@@ -1136,7 +1136,7 @@ function grabSetup() {
   const ally = addPlayer(w,'ally',NADYA_ID); ally.x = e.x-30; ally.y = e.y;
   step(w,{ally:{...emptyInput(),attack:true}}); run(w,300);
   check('TZ15 союзник бьёт без отброса', e.hp < hp && e.x === x);
-  run(w,1600); check('TZ15 таймаут отпускает', !e.held && p.combo === 0);
+  run(w,2600); check('TZ16 таймаут отпускает', !e.held && p.combo === 0);
 }
 {
   const {w,p,e} = grabSetup();
@@ -1162,15 +1162,15 @@ for (const boss of [false,true]) {
     const hit = ev.find(v=>v.t==='rland'); if(hit?.t==='rland') landing=hit;
   }
   check('TZ15 бросок в группу', !!landing && landing.x > p.x+120);
-  check('TZ15 приземление 3 целей', [0,1,2].every(i=>w.enemies['group'+i].hp === 986));
-  check('TZ15 захваченный 3 оборота и приземление', e.hp === 969 && !e.held && !e.thrown, String(e.hp));
+  check('TZ15 приземление 3 целей', [0,1,2].every(i=>w.enemies['group'+i].hp === 984));
+  check('TZ15 захваченный 3 оборота и приземление', e.hp === 967 && !e.held && !e.thrown, String(e.hp));
   check('TZ15 бросок сбрасывает серию', p.combo === 0 && events.some(v=>v.t==='rland'));
 }
 {
   const {w,p,e} = grabSetup(); ramilDummy(w,'near',-50);
-  const hp = w.enemies.near.hp; const r = run(w,RAMIL.SPIN_MS + moveDurMs('ramil','a3-lift',p.facing) + 3*TICK_MS,press([0],'attack'));
-  check('TZ15 карусель три оборота', r.hits.filter(d=>d===3).length === 3 && e.hp === 987, r.hits.join() + ':' + e.hp);
-  check('TZ15 карусель бьёт другого', w.enemies.near.hp === hp-8, String(w.enemies.near.hp));
+  const hp = w.enemies.near.hp; const r = run(w,RAMIL.SPIN_MS + 3*TICK_MS,press([0],'attack'));
+  check('TZ16 ураган три оборота', r.hits.filter(d=>d===3).length === 3 && e.hp === 987, r.hits.join() + ':' + e.hp);
+  check('TZ16 ураган бьёт другого', w.enemies.near.hp === hp-8, String(w.enemies.near.hp));
 }
 for (const full of [false,true]) {
   const {w,p} = setup(false,'ramil'); ramilDummy(w,'e',40); p.ult=100;
@@ -1226,17 +1226,76 @@ for(let level=0;level<6;level++) {
   step(w,{h:{...emptyInput(),attack:true}});
   for(let t=0;t<1000 && p.move!=='a2-hold';t+=TICK_MS) step(w,{});
   let elapsed=0;
-  while(w.enemies.e.held && elapsed<2000) { step(w,{}); elapsed+=TICK_MS; }
-  check('TZ15 удержание ровно 1500 ± тик',elapsed>=RAMIL.GRAB_HOLD_MS && elapsed-RAMIL.GRAB_HOLD_MS<=TICK_MS,String(elapsed));
+  while(w.enemies.e.held && elapsed<3000) { step(w,{}); elapsed+=TICK_MS; }
+  check('TZ15 удержание ровно 2500 ± тик',elapsed>=RAMIL.GRAB_HOLD_MS && elapsed-RAMIL.GRAB_HOLD_MS<=TICK_MS,String(elapsed));
 }
 {
-  const {w,p}=grabSetup(); ramilDummy(w,'near',60);
+  const {w,p}=grabSetup(); ramilDummy(w,'near',40);
   let hits=0; step(w,{h:{...emptyInput(),attack:true}});
   for(let t=0;t<2500 && p.move!=='a3-throw';t+=TICK_MS) {
-    const e=w.enemies.near; e.x=p.x+60; e.y=p.y; e.pin=undefined;
+    const e=w.enemies.near; e.x=p.x+40; e.y=p.y; e.pin=undefined;
     hits+=step(w,{}).filter(v=>v.t==='hit' && v.target==='near' && v.dmg===8).length;
   }
   check('TZ15 не чаще раза на врага за оборот',hits===3,String(hits));
+}
+
+// TZ16: движение, точные фазы метеора, независимость от хозяина и защита полёта.
+for (const sign of [-1,1]) {
+  const {w,p,e} = grabSetup(); const x=p.x, y=p.y;
+  step(w,{h:{...emptyInput(),mx:sign,my:1,run:true}});
+  check('TZ16 ход с захватом '+sign, Math.abs(p.x-x-sign*90*0.6*TICK_MS/1000)<1e-6 && Math.abs(p.y-y-90*0.7*0.6*TICK_MS/1000)<1e-6 && p.move==='a2-walk' && p.facing===sign && !!e.held);
+  step(w,{}); check('TZ16 остановка с захватом '+sign,p.move==='a2-hold');
+  step(w,{h:{...emptyInput(),attack:true}});
+  const sx=p.x; step(w,{h:{...emptyInput(),mx:sign}});
+  check('TZ16 ход урагана '+sign, Math.abs(p.x-sx-sign*90*0.5*TICK_MS/1000)<1e-6 && p.move==='a3-spin' && p.invulnMs>0);
+  let elapsed=TICK_MS;
+  while(p.move==='a3-spin' && elapsed<1200) { step(w,{}); elapsed+=TICK_MS; }
+  check('TZ16 ураган ровно 950 ± тик '+sign,elapsed>=950 && elapsed-950<TICK_MS,String(elapsed));
+}
+{
+  const {w,p,e} = grabSetup();
+  for(let i=0;i<3;i++) ramilDummy(w,'cluster'+i,180+i*10);
+  const tx = (w.enemies.cluster0.x+w.enemies.cluster1.x+w.enemies.cluster2.x)/3;
+  step(w,{h:{...emptyInput(),attack:true}});
+  for(let t=0;t<2000 && !e.thrown;t+=TICK_MS) step(w,{});
+  check('TZ16 метеор выбирает центр группы',!!e.thrown && Math.abs(e.thrown.x-tx)<1e-6);
+  let elapsed=0, protectedFlight=true, landed=false, aoeDown=false;
+  const ally=addPlayer(w,'ally',NADYA_ID);
+  const hp=e.hp;
+  while(e.thrown && elapsed<1200) {
+    ally.x=e.x-25; ally.y=e.y;
+    const events=step(w,{ally:{...emptyInput(),attack:true}}); elapsed+=TICK_MS;
+    if(e.thrown && e.hp!==hp) protectedFlight=false;
+    if(events.some(v=>v.t==='rland')) { landed=true; aoeDown=[0,1,2].every(i=>w.enemies['cluster'+i].anim==='down' && events.some(v=>v.t==='hit' && v.target==='cluster'+i && v.dmg===16)); }
+  }
+  check('TZ16 метеор 350+450+180 ± тик',landed && elapsed>=980 && elapsed-980<TICK_MS,String(elapsed));
+  check('TZ16 полёт недоступен союзным ударам',protectedFlight);
+  check('TZ16 все цели в радиусе лежат',aoeDown);
+  check('TZ16 брошенный получает 20',e.hp===hp-20);
+}
+{
+  const {w,p,e}=grabSetup(); ramilDummy(w,'near',-28);
+  step(w,{h:{...emptyInput(),attack:true}});
+  let tangent=false;
+  for(let t=0;t<950;t+=TICK_MS) {
+    const ev=step(w,{});
+    if(ev.some(v=>v.t==='rspinHit')) {
+      tangent=w.enemies.near.pin?.dir===-1; break;
+    }
+  }
+  check('TZ16 касательная первой полуволны влево',tangent);
+  check('TZ16 задетый стоп 40 мс',(w.enemies.near.ultStopMs??0)>=40);
+}
+{
+  const {w,p,e}=grabSetup(); step(w,{h:{...emptyInput(),attack:true}});
+  for(let t=0;t<2000 && !e.thrown;t+=TICK_MS) step(w,{});
+  const hp=p.hp; p.invulnMs=0;
+  ramilDummy(w,'attacker',-24); const a=w.enemies.attacker;
+  a.phase='windup'; a.phaseMs=1; a.atkDir=1; a.token=p.id; a.atkX=p.x; a.atkY=p.y;
+  step(w,{});
+  check('TZ16 Рамиля можно бить после подкида',p.hp<hp && !!e.thrown && p.combo===0);
+  addPlayer(w,'buddy',NADYA_ID); p.hp=0; const r=run(w,1100);
+  check('TZ16 метеор долетает после поражения Рамиля',!e.thrown && r.events.includes('rland'));
 }
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');

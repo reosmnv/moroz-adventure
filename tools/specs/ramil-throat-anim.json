@@ -1,0 +1,182 @@
+[
+ {
+  "name": "t-grab-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing relaxed and slouched, both hands in jacket pockets, facing right",
+   "description": "pulls the right hand out of the pocket and shoots it forward and up, grabbing something at shoulder height in a tight grip; left hand stays in the pocket Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 1
+  }
+ },
+ {
+  "name": "t-grab-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing relaxed and slouched, both hands in jacket pockets, facing right",
+   "description": "pulls the right hand out of the pocket and shoots it forward and up, grabbing something at shoulder height in a tight grip; left hand stays in the pocket Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 2
+  }
+ },
+ {
+  "name": "t-hold-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing, left hand in pocket, right arm stretched forward and up at shoulder height with a clenched grip",
+   "description": "holds a heavy weight up with the straight right arm, slight strain, body swaying a little; left hand stays in the pocket Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 1
+  }
+ },
+ {
+  "name": "t-hold-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing, left hand in pocket, right arm stretched forward and up at shoulder height with a clenched grip",
+   "description": "holds a heavy weight up with the straight right arm, slight strain, body swaying a little; left hand stays in the pocket Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 2
+  }
+ },
+ {
+  "name": "t-walk-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing, left hand in pocket, right arm stretched forward and up at shoulder height with a clenched grip",
+   "description": "slow heavy walk cycle in place to the right while the straight right arm keeps holding a heavy weight up at shoulder height; left hand in pocket; legs step, arm stays steady Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 8,
+   "seed": 1
+  }
+ },
+ {
+  "name": "t-walk-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing, left hand in pocket, right arm stretched forward and up at shoulder height with a clenched grip",
+   "description": "slow heavy walk cycle in place to the right while the straight right arm keeps holding a heavy weight up at shoulder height; left hand in pocket; legs step, arm stays steady Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 8,
+   "seed": 2
+  }
+ },
+ {
+  "name": "t-spin-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing, left hand in pocket, right arm stretched forward and up at shoulder height with a clenched grip",
+   "description": "spins a full fast 360 degree turn on the spot with the right arm stretched straight out holding a heavy weight: right side, back, left side, front, back to facing right; pivoting on the feet, leaning back against the pull; left hand in pocket",
+   "frame_count": 8,
+   "seed": 1
+  }
+ },
+ {
+  "name": "t-spin-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing, left hand in pocket, right arm stretched forward and up at shoulder height with a clenched grip",
+   "description": "spins a full fast 360 degree turn on the spot with the right arm stretched straight out holding a heavy weight: right side, back, left side, front, back to facing right; pivoting on the feet, leaning back against the pull; left hand in pocket",
+   "frame_count": 8,
+   "seed": 2
+  }
+ },
+ {
+  "name": "t-spin-s3",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing, left hand in pocket, right arm stretched forward and up at shoulder height with a clenched grip",
+   "description": "spins a full fast 360 degree turn on the spot with the right arm stretched straight out holding a heavy weight: right side, back, left side, front, back to facing right; pivoting on the feet, leaning back against the pull; left hand in pocket",
+   "frame_count": 8,
+   "seed": 3
+  }
+ },
+ {
+  "name": "t-toss-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-toss-3.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing, left hand in pocket, right arm stretched forward and up at shoulder height with a clenched grip",
+   "description": "dips the arm down and then hurls a heavy weight straight up into the sky with the right arm, rising on the toes; left hand in pocket Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 1
+  }
+ },
+ {
+  "name": "t-toss-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-throat-1.png",
+   "last_frame_base64": "@assets/gen/hero4/throat/kp-toss-3.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing, left hand in pocket, right arm stretched forward and up at shoulder height with a clenched grip",
+   "description": "dips the arm down and then hurls a heavy weight straight up into the sky with the right arm, rising on the toes; left hand in pocket Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 2
+  }
+ },
+ {
+  "name": "t-toss-out-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/throat/kp-toss-3.png",
+   "last_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "right arm thrust straight up above the head, left hand in pocket, looking up",
+   "description": "lowers the arm, glances up lazily and puts the hand back into the jacket pocket, relaxed slouch Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 8,
+   "seed": 1
+  }
+ }
+]
