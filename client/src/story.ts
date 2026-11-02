@@ -4,7 +4,6 @@ export const GAME_TITLE = 'Moroz Birthday Adventures';
 export const STORY = {
   mfcLast: ['ОХРАНА ОКНА', 'ПОСЛЕДНИЙ БОЙ'],
   "menu": {
-    "sub": "1–4 игрока. У каждого свой телефон",
     "solo": "Играть соло",
     "online": "Создать комнату"
   },

@@ -37,7 +37,6 @@ document.title = GAME_TITLE;
 $('gameTitle').setAttribute('aria-label', GAME_TITLE);
 $('gameTitle').innerHTML = `<span class="logo-moroz">${[...'MOROZ'].map((c, i) => `<i style="--i:${i}">${c}</i>`).join('')}</span>`
   + '<span class="logo-ribbon">BIRTHDAY</span><span class="logo-adv">ADVENTURES</span>';
-document.querySelector('.brand p')!.textContent = STORY.menu.sub;
 $('newOnline').textContent = STORY.menu.online; $('newLocal').textContent = STORY.menu.solo;
 $('share').textContent = STORY.service.invite;
 $('exitYes').textContent = STORY.service.exit; $('exitNo').textContent = STORY.service.stay;
