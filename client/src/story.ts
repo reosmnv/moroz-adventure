@@ -1,3 +1,4 @@
+export const GAME_TITLE = 'НЕСУЩЕСТВУЮЩАЯ';
 // Тексты завязки и поздравления редактируются отдельно от экранов.
 export const STORY = {
   intro: {
@@ -19,9 +20,9 @@ const wait = (ms: number) => new Promise<void>(r => window.setTimeout(r, ms));
 let introShowing = false, finaleShowing = false;
 function overlay() {
   const root = document.createElement('div');
-  root.style.cssText = 'position:fixed;inset:0;z-index:10000;background:#100d18;color:#eee;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;overflow:auto';
+  root.className = 'overlay story-overlay';
   const card = document.createElement('div');
-  card.style.cssText = 'position:relative;max-width:680px;width:100%;font:18px/1.6 sans-serif;text-align:center;white-space:pre-line';
+  card.className = 'story-card';
   root.append(card); document.body.append(root);
   return { root, card };
 }
@@ -31,7 +32,7 @@ function text(parent: HTMLElement, tag: string, value: string) {
 function button(parent: HTMLElement, label: string) {
   return new Promise<void>(resolve => {
     const b = document.createElement('button'); b.textContent = label;
-    b.style.cssText = 'font:inherit;padding:12px 24px;cursor:pointer;margin-top:16px;position:relative';
+    b.style.position = 'relative';
     parent.append(b); b.onclick = () => resolve();
   });
 }
@@ -44,14 +45,14 @@ async function type(parent: HTMLElement, value: string, tap: HTMLElement) {
 export async function showIntro(done: () => void) {
   if (introShowing) return; introShowing = true;
   const { root, card } = overlay();
-  card.style.cssText += ';background:white;color:#5e6470;border-top:12px solid #2867b2;padding:20px;box-sizing:border-box';
+  card.classList.add('notification');
   text(card, 'h2', STORY.intro.title); text(card, 'p', STORY.intro.body);
   await button(card, STORY.intro.button);
-  card.replaceChildren(); card.style.background = 'transparent'; card.style.color = '#eee'; card.style.borderTop = 'none';
+  card.replaceChildren(); card.classList.remove('notification');
   await type(card, STORY.intro.go.join('\n'), root);
   await button(card, 'ПОГНАЛИ'); done(); root.remove(); introShowing = false;
 }
-export async function showFinale(replay: () => void = () => location.reload()) {
+export async function showFinale(replay: () => void = () => location.replace(location.pathname)) {
   if (finaleShowing) return; finaleShowing = true;
   await wait(1500);
   const { root, card } = overlay(); root.style.opacity = '0'; root.style.transition = 'opacity 600ms';
@@ -61,7 +62,7 @@ export async function showFinale(replay: () => void = () => location.reload()) {
   text(card, 'h1', STORY.finale.title);
   for (let i = 0; i < 70; i++) {
     const piece = document.createElement('i');
-    piece.style.cssText = `position:absolute;pointer-events:none;left:${(i * 37) % 100}%;top:-12px;width:7px;height:12px;background:${['#9d74d4', '#c2185b', '#9be33b'][i % 3]}`;
+    piece.style.cssText = `position:absolute;pointer-events:none;left:${(i * 37) % 100}%;top:-12px;width:7px;height:12px;background:${['var(--lav)', 'var(--pink)', 'var(--gold)'][i % 3]}`;
     root.prepend(piece);
     piece.animate([{ transform: 'translateY(-20px) rotate(0)' }, { transform: `translateY(110vh) rotate(${360 + i * 13}deg)` }], { duration: 2500 + i * 31, delay: i * 30, iterations: Infinity });
   }

@@ -1,0 +1,48 @@
+/* Все экраны помещаются в горизонтальный телефон без прокрутки. */
+button { min-height: 44px; font-size: 12px; padding: 8px 14px; cursor: pointer; }
+button.secondary, #topbar button { background: var(--plum); box-shadow: var(--px-outline), inset 0 -4px var(--ink); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+button[aria-pressed="true"], button.selected { outline: 2px solid var(--gold); color: var(--gold); }
+.overlay { gap: 8px; padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); font-size: 12px; }
+.overlay h2 { font-size: 16px; }
+.overlay p { margin: 4px 0; font-size: 12px; }
+#menu { image-rendering: pixelated; background: repeating-linear-gradient(to bottom, rgb(18 12 25 / 25%) 0 2px, transparent 2px 4px), linear-gradient(rgb(33 23 39 / 80%), rgb(33 23 39 / 80%)), url('/route/street.png') left center / auto 100% no-repeat; }
+.home { width: min(100%, 960px); display: grid; grid-template-columns: 1fr 300px; align-items: center; gap: 20px; }
+.brand h1 { color: var(--gold); font-size: clamp(14px, 2.2vw, 22px); line-height: 1.8; font-weight: normal; text-shadow: 2px 2px var(--ink); margin: 0 0 8px; }
+.brand p { font-size: 10px; margin: 0 0 16px; }
+#portraits { gap: 8px; }
+#portraits img { width: 48px; height: 48px; image-rendering: pixelated; }
+.actions, .screen { display: flex; flex-direction: column; gap: 4px; align-items: stretch; width: min(100%, 360px); }
+.screen { gap: 8px; width: min(100%, 600px); align-items: center; }
+.screen > button { min-width: 300px; }
+#menuNote, #pickNote, #pauseNote, #serverNote, #lostNote { font-size: 10px; line-height: 1.6; color: var(--cream); margin: 0; }
+#menuNote:empty, #pickNote:empty, #pauseNote:empty, #lostNote:empty { display: none; }
+#locations { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
+#locations button { font-size: 10px; padding: 6px; }
+#locations button:last-child { grid-column: 2; }
+#serverNote { overflow-wrap: anywhere; }
+#chars { flex-wrap: nowrap; gap: 10px; }
+#chars button { background: var(--plum); width: 130px; font-size: 10px; padding: 8px 2px; }
+#chars img { display: block; width: 96px; height: 96px; margin: 0 auto 8px; image-rendering: pixelated; }
+#chars span { display: block; min-height: 16px; color: var(--gold); }
+#settingsRows { width: min(100%, 560px); display: flex; flex-direction: column; gap: 12px; }
+.setting { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; font-size: 12px; }
+.setting button { min-width: 130px; }
+#topbar { gap: 6px; }
+#topbar button { font-size: 10px; }
+#testBtn { color: var(--gold); }
+#testPanel { position: absolute; right: 0; top: 52px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 6px; background: var(--deep); box-shadow: var(--px-outline); width: 350px; }
+#testPanel button { font-size: 10px; }
+#restartBanner { position: fixed; top: 40%; left: 50%; transform: translateX(-50%); padding: 18px; background: var(--deep); color: var(--gold); box-shadow: var(--px-outline); font-size: 14px; z-index: 8; white-space: nowrap; pointer-events: none; }
+.link { font-size: 10px; min-height: 44px; }
+.story-overlay { z-index: 12; overflow: hidden; }
+.story-card { position: relative; width: min(100%, 720px); font-size: 12px; line-height: 1.8; text-align: center; white-space: pre-line; }
+.story-card p { font-size: inherit; margin: 8px 0; }
+.story-card h1, .story-card h2, .story-card h3 { font-size: 16px; font-weight: normal; line-height: 1.8; margin: 8px 0; color: var(--gold); }
+.story-card button { font-size: 12px; }
+.story-card.notification { background: white; color: #5e6470; border-top: 12px solid #2867b2; padding: 16px; font: 16px/1.6 sans-serif; }
+.story-card.notification h2 { color: #2867b2; font: inherit; font-weight: bold; }
+.story-card.notification button { font: inherit; }
+#lostBox { z-index: 15; }
+@media (max-width: 700px) { .home { grid-template-columns: 1fr 280px; gap: 10px; } .brand h1 { font-size: 14px; } }
+@media (max-height: 400px) { .overlay { gap: 6px; } .actions { gap: 2px; } .story-card { line-height: 1.8; } .story-card p, .story-card h1, .story-card h3 { margin: 4px 0; } }

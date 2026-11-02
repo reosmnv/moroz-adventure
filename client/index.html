@@ -7,9 +7,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="./manifest.webmanifest">
-<title>Кооп: прототип сети</title>
+<title>НЕСУЩЕСТВУЮЩАЯ</title>
 <style>
-  @font-face { font-family: 'Press Start 2P'; src: url('./fonts/PressStart2P-Regular.ttf') format('truetype'); font-display: block; }
+  @font-face { font-family: 'Press Start 2P'; src: url('/fonts/PressStart2P-Regular.ttf') format('truetype'); font-display: block; }
   :root { --ink:#120c19; --navy:#2e3049; --deep:#211727; --plum:#5a495d; --mauve:#866679; --lav:#9d74d4; --cream:#d7d1c7; --pink:#e0457b; --pink-dark:#a02f5a; --gold:#f2a541;
     --px-outline: 0 -2px 0 0 var(--ink), 0 2px 0 0 var(--ink), -2px 0 0 0 var(--ink), 2px 0 0 0 var(--ink); }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -28,7 +28,6 @@
   button:disabled { opacity: .35; filter: grayscale(1); }
   .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   label { font-size: 16px; line-height: 1.5; display: flex; gap: 8px; align-items: center; }
-  input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--pink); }
   #menuNote, #pickNote, #pauseNote { font-size: 8px; line-height: 1.5; color: var(--mauve); }
   #debug { position: fixed; top: calc(env(safe-area-inset-top) + 4px); left: calc(env(safe-area-inset-left) + 6px); font: 11px/1.3 ui-monospace, monospace; color: #9f9; z-index: 5; pointer-events: none; white-space: pre; text-shadow: 0 0 2px #000; }
   #topbar { position: fixed; top: calc(env(safe-area-inset-top) + 4px); right: calc(env(safe-area-inset-right) + 6px); z-index: 5; display: flex; gap: 6px; }
@@ -41,49 +40,58 @@
   #rotate { display: none; font-size: 16px; }
   @media (orientation: portrait) { #rotate { display: flex; z-index: 30; } }
 </style>
+<link rel="stylesheet" href="./src/menus.css">
 </head>
 <body>
 <div id="stage"><div id="game"></div></div>
 <div id="debug"></div>
 <div id="topbar" class="hidden">
-  <button id="chargeBtn" class="hidden">Заряд ульты</button>
-  <button id="spawnBtn" class="hidden">+3 врага</button>
-  <button id="nextBtn" class="hidden">→ Локация</button>
-  <button id="pauseBtn">⏸ Пауза</button>
-  <button id="share" class="hidden">Позвать друга</button>
-</div>
-
-<div id="menu" class="overlay">
-  <h2 style="margin:0">Прототип мультиплеера</h2>
-  <label><input type="checkbox" id="online" checked> Онлайн-режим</label>
-  <div class="row"><button id="start">Новая игра</button></div>
-  <div class="row" id="joinRow"><input id="codeInput" maxlength="5" placeholder="КОД" autocomplete="off" autocapitalize="characters"><button id="joinBtn">Войти по коду</button></div>
-  <div id="menuNote" style="font-size:13px;opacity:.7"></div>
-</div>
-
-<div id="picker" class="overlay hidden">
-  <h3 style="margin:0">Кем играешь?</h3>
-  <div class="row" id="chars"></div>
-  <div id="pickNote" style="font-size:13px;opacity:.7"></div>
-</div>
-
-<div id="pauseBox" class="overlay hidden">
-  <h2 style="margin:0">Пауза</h2>
-  <div id="pauseNote" style="font-size:14px;opacity:.7"></div>
-  <button id="resumeBtn">Продолжить</button>
-</div>
-
-<div id="shareBox" class="overlay hidden">
-  <div>Код комнаты</div>
-  <div class="code" id="shareCode"></div>
-  <input class="link" id="shareLink" readonly>
-  <div class="row">
-    <button id="copyBtn">Скопировать</button>
-    <button id="nativeShareBtn" class="hidden">Поделиться</button>
-    <button id="closeShareBtn" style="background:#555">Закрыть</button>
+  <button id="testBtn" class="hidden" aria-expanded="false">ТЕСТ</button>
+  <button id="pauseBtn">Пауза</button>
+  <div id="testPanel" class="hidden">
+    <button id="chargeBtn">Заряд ульты</button><button id="spawnBtn">+3 врага</button>
+    <button id="killBtn">Убить врагов</button><button id="healBtn">Вылечить всех</button>
+    <button id="godBtn">Бессмертие: выкл</button><button id="nextBtn">→ Локация</button>
   </div>
-  <div style="font-size:13px;opacity:.7">Друг открывает ссылку или вводит код на стартовом экране</div>
 </div>
+<div id="menu" class="overlay">
+  <div id="menuHome" class="home">
+    <div class="brand"><h1 id="gameTitle"></h1><p>кооп на четверых</p><div id="portraits" class="row"></div></div>
+    <div class="actions">
+      <button id="linkJoin" class="secondary hidden"></button>
+      <button id="continueBtn" class="secondary hidden"></button>
+      <button id="start">Новая игра</button>
+      <button id="openJoin" class="secondary">Войти по коду</button>
+      <button id="openTest" class="secondary hidden">Тест-режим</button>
+      <button id="menuSettings" class="secondary">Настройки</button>
+    </div>
+  </div>
+  <div id="newScreen" class="screen hidden"><h2>Новая игра</h2>
+    <button id="newOnline">С друзьями (онлайн)</button><button id="newLocal" class="secondary">Одна на телефоне (офлайн)</button><button class="secondary menuBack">Назад</button>
+  </div>
+  <form id="joinScreen" class="screen hidden"><h2>Войти по коду</h2>
+    <input id="codeInput" aria-label="Код комнаты" maxlength="5" placeholder="КОД" autocomplete="off" autocapitalize="characters">
+    <button id="joinBtn" type="submit">Войти</button><button type="button" class="secondary menuBack">Назад</button>
+  </form>
+  <div id="testScreen" class="screen hidden"><h2>Тест-режим</h2>
+    <div class="row" id="modeTabs"><button id="testOnline" class="secondary" aria-pressed="true">Онлайн</button><button id="testLocal" class="secondary" aria-pressed="false">Офлайн</button></div>
+    <div id="locations"></div><p id="serverNote"></p><button class="secondary menuBack">Назад</button>
+  </div>
+  <div id="menuNote" role="status"></div>
+</div>
+<div id="picker" class="overlay hidden"><h2>Кем играешь?</h2><div class="row" id="chars"></div><div id="pickNote" role="status"></div><button id="pickBack" class="secondary">Назад</button></div>
+<div id="pauseBox" class="overlay hidden"><h2>Пауза</h2><div id="pauseNote"></div><div class="actions">
+  <button id="resumeBtn">Продолжить</button><button id="switchBtn" class="secondary">Сменить героя</button>
+  <button id="pauseSettings" class="secondary">Настройки</button><button id="share" class="secondary hidden">Позвать друга</button><button id="exitBtn" class="secondary">В главное меню</button>
+</div></div>
+<div id="settingsBox" class="overlay hidden"><h2>Настройки</h2><div id="settingsRows"></div><button id="settingsBack" class="secondary">Назад</button></div>
+<div id="exitBox" class="overlay hidden"><h2>Выйти?</h2><p>Прогресс встречи пропадёт</p><div class="row"><button id="exitYes">Да</button><button id="exitNo" class="secondary">Нет</button></div></div>
+<div id="lostBox" class="overlay hidden"><h2>Связь потеряна</h2><p id="lostNote" role="status"></p><button id="reconnectBtn">Переподключиться</button><button id="lostMenu" class="secondary">В главное меню</button></div>
+<div id="shareBox" class="overlay hidden"><div>Код комнаты</div><div class="code" id="shareCode"></div><input class="link" id="shareLink" aria-label="Ссылка другу" readonly>
+  <div class="row"><button id="copyBtn">Скопировать</button><button id="nativeShareBtn" class="hidden">Поделиться</button><button id="closeShareBtn" class="secondary">Назад</button></div>
+  <p>Друг открывает ссылку или вводит код в меню</p>
+</div>
+<div id="restartBanner" class="hidden" role="status"></div>
 <div id="rotate" class="overlay">Поверни телефон горизонтально</div>
 <div id="err" class="hidden"></div>
 

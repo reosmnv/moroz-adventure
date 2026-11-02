@@ -1,4 +1,6 @@
 import * as Phaser from 'phaser';
+import { shake, settings } from './settings.ts';
+import { returnToMenu } from './session.ts';
 import { Impact } from './impact.ts';
 import { BossShow } from './boss-show.ts';
 import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, moveDurMs, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
@@ -30,7 +32,7 @@ const ENEMY_LOOK: Record<string, [number, number, number]> = {
 const ICE = 0x66b8ff; // цвет замороженного врага
 
 interface Storm { zone: Phaser.GameObjects.Ellipse; flakes: Phaser.GameObjects.Rectangle[]; seed: number[] }
-interface View { tornado?: Phaser.GameObjects.Image; tornadoAt?: number; debrisAt?: number; tornadoWord?: Phaser.GameObjects.Text; meteor?: Phaser.GameObjects.Graphics; spinFxAt?: number; spinDustAt?: number; stopUntil?: number; stoppedFrame?: number; stoppedX?: number; stoppedY?: number; flashUntil?: number; ghosts?: Phaser.GameObjects.Image[]; history?: { texture: string; frame: number; at: number }[]; trigram?: Phaser.GameObjects.Image; trigramAt?: number; trigramEnd?: number; ramilFx?: Map<string, Phaser.GameObjects.Image>; warmAt?: number; warmSince?: number; ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
+interface View { char?: string; tornado?: Phaser.GameObjects.Image; tornadoAt?: number; debrisAt?: number; tornadoWord?: Phaser.GameObjects.Text; meteor?: Phaser.GameObjects.Graphics; spinFxAt?: number; spinDustAt?: number; stopUntil?: number; stoppedFrame?: number; stoppedX?: number; stoppedY?: number; flashUntil?: number; ghosts?: Phaser.GameObjects.Image[]; history?: { texture: string; frame: number; at: number }[]; trigram?: Phaser.GameObjects.Image; trigramAt?: number; trigramEnd?: number; ramilFx?: Map<string, Phaser.GameObjects.Image>; warmAt?: number; warmSince?: number; ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
@@ -90,6 +92,9 @@ export class GameScene extends Phaser.Scene {
     this.layout();
     this.scale.on('resize', () => this.layout());
     this.session.onEvents = evs => this.onEvents(evs);
+    const applySettings = () => { if (!settings.shake) this.cameras.main.shakeEffect.reset(); };
+    window.addEventListener('bc-settings-change', applySettings);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => window.removeEventListener('bc-settings-change', applySettings));
   }
 
   // Камера ездит по уровню за своей героиней; интерфейс в отдельной сцене ui.ts
@@ -152,7 +157,7 @@ export class GameScene extends Phaser.Scene {
     parts.push(start, mid);
     let f = 0;
     const pulse = this.time.addEvent({ delay: 70, loop: true, callback: () => { f = (f + 1) % 3; start.setTexture('fx-beam-start-' + f); mid.setTexture('fx-beam-mid-' + f); } });
-    this.cameras.main.shake(BEAM_MS, 0.006);
+    shake(this.cameras.main, BEAM_MS, 0.006);
     this.time.delayedCall(BEAM_MS, () => {
       pulse.remove();
       this.tweens.add({ targets: parts, alpha: 0, scaleY: 0.2, duration: 150, onComplete: () => parts.forEach(o => o.destroy()) });
@@ -190,12 +195,12 @@ export class GameScene extends Phaser.Scene {
       if (e.t === 'bossFx') {
         const floor = {depth: 0};
         if (e.attack === 'vstayu') {
-          this.fx('boss-ring',e.x,e.y,{...floor,scale:3}); this.cameras.main.shake(200,0.008); this.bossWord(e.x,e.y-100,'ВСТАЮ!');
+          this.fx('boss-ring',e.x,e.y,{...floor,scale:3}); shake(this.cameras.main, 200,0.008); this.bossWord(e.x,e.y-100,'ВСТАЮ!');
         } else if (e.attack === 'pyro') this.fx('boss-pyro',e.x,e.y-63,{depth:e.y,scale:1.5,frames:12});
         else if (e.attack === 'salute') this.fx('boss-firework',e.x,e.y-30,{depth:e.y,scale:1.5,frames:5}).setTint(e.tint ?? 0xffffff);
         else if (e.attack === 'banStrike') {
           this.fx('boss-ban',e.x,e.y-(110-64)*1.5,{depth:e.y,scale:1.5});
-          this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5}); this.bossWord(e.x,e.y-85,'ЗАБЛОКИРОВАНО',8,'#ff3030'); this.cameras.main.shake(120,0.006);
+          this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5}); this.bossWord(e.x,e.y-85,'ЗАБЛОКИРОВАНО',8,'#ff3030'); shake(this.cameras.main, 120,0.006);
         } else if (e.attack === 'zones') this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5});
         else if (e.h) {
           this.attackBands.push({x:e.x,y:e.y,h:e.h,until:this.time.now+e.ms,grid:e.attack==='grid'});
@@ -222,7 +227,7 @@ export class GameScene extends Phaser.Scene {
       if (e.t === 'rstage') { this.word(e.x, e.y - 100, ['2 УДАРА!', '4 УДАРА!', '8 УДАРОВ!', '16 УДАРОВ!', '32 УДАРА!', '64 УДАРА!'][e.level], ['#ffffff','#ffedcf','#ffcc8c','#ff993c','#ff6630','#ff3030'][e.level]);
       }
       if (e.t === 'flurry') {
-        this.cameras.main.shake(e.level < 2 ? 65 : e.level < 4 ? 80 : 120, e.level < 2 ? 0.005 : 0.002 + e.level * 0.0005);
+        shake(this.cameras.main, e.level < 2 ? 65 : e.level < 4 ? 80 : 120, e.level < 2 ? 0.005 : 0.002 + e.level * 0.0005);
         const v = this.views.get('p:' + e.id), sprite = v?.sprite;
         const snap = this.session.snapshots.at(-1)?.players.get(e.id);
         if (sprite && snap) {
@@ -258,7 +263,7 @@ export class GameScene extends Phaser.Scene {
           }
           this.tweens.add({targets: cracks, alpha: 0, duration: 600, onComplete: () => cracks.destroy()});
         }
-        this.cameras.main.shake(200, 0.009);
+        shake(this.cameras.main, 200, 0.009);
       }
       if (e.t === 'tele' && 'fromX' in e) {
         const v = this.views.get('p:' + e.id);
@@ -311,7 +316,7 @@ export class GameScene extends Phaser.Scene {
           if (by === RAMIL_ID) {
             if (!e.tick && !e.flurry) {
               this.fx('ramil-hit', e.x, e.y - 45);
-              if (!e.flurry) this.cameras.main.shake(e.impact === 2 ? 150 : 60, 0.003);
+              if (!e.flurry) shake(this.cameras.main, e.impact === 2 ? 150 : 60, 0.003);
             }
             if (e.word === 'ПОКА!') {
               this.fx('ramil-crit', e.x, e.y - 45);
@@ -325,7 +330,7 @@ export class GameScene extends Phaser.Scene {
           if (e.word) this.word(e.x, e.y - 95, e.word, by === RAMIL_ID ? e.word === 'ОПА!' ? '#ffd36b' : e.word === 'СТРАЙК!' ? '#ff5a50' : e.word === 'ПЫХ!' ? '#ff8c3c' : e.word === 'ПОКА!' || e.word === 'ВСЁ.' ? '#ff5a50' : '#e8743b' : by === KRIS_ID ? '#c8ff6a' : by === NADYA_ID ? '#ff8fc4' : '#9d74d4');
         };
         if (delay) this.time.delayedCall(delay, showText); else showText();
-        if (by !== RAMIL_ID && e.target.startsWith('e') && e.dmg >= 18) this.cameras.main.shake(90, 0.004); // сильный удар встряхивает кадр
+        if (by !== RAMIL_ID && e.target.startsWith('e') && e.dmg >= 18) shake(this.cameras.main, 90, 0.004); // сильный удар встряхивает кадр
         beep(e.target.startsWith('e') ? 520 : 180, 0.05);
       } else if (e.t === 'heal') {
         const v = this.views.get('p:' + e.id);
@@ -378,7 +383,7 @@ export class GameScene extends Phaser.Scene {
           this.tweens.add({ targets: ball, y: e.ty - 10, duration: BALL_FLIGHT_MS / 2, ease: 'Quad.easeIn', onComplete: () => ball.destroy() });
         } });
       } else if (e.t === 'boom') {
-        this.fx('kris-boom', e.x, e.y - 30); this.cameras.main.shake(150, 0.006); beep(140, 0.15);
+        this.fx('kris-boom', e.x, e.y - 30); shake(this.cameras.main, 150, 0.006); beep(140, 0.15);
       } else if (e.t === 'kiss') {
         this.kiss(e.x, e.y, e.tx); beep(990, 0.08); this.time.delayedCall(90, () => beep(1320, 0.1));
       } else if (e.t === 'charm') {
@@ -397,7 +402,11 @@ export class GameScene extends Phaser.Scene {
         this.tweens.add({ targets: [trail, edge], alpha: 0, scaleY: 0.2, duration: 380, onComplete: () => { trail.destroy(); edge.destroy(); } });
         beep(1800, 0.05);
       } else if (e.t === 'restart') {
-        this.cameras.main.flash(300, 255, 0, 0);
+        const snap = this.session.snapshots.at(-1);
+        const banner = document.getElementById('restartBanner')!;
+        banner.textContent = `ЗАНОВО: БОЙ ${Math.min((snap?.encDone ?? 0) + 1, snap?.encTotal ?? 1)}/${snap?.encTotal ?? 1}`;
+        banner.classList.remove('hidden');
+        this.time.delayedCall(1500, () => banner.classList.add('hidden'));
       }
     }
   }
@@ -419,10 +428,15 @@ export class GameScene extends Phaser.Scene {
 
   private viewFor(key: string, isPlayer: boolean, snap: EntitySnap): View {
     let v = this.views.get(key);
+    if (v && isPlayer && v.char !== snap.char) {
+      this.destroyView(key, v);
+      v = undefined;
+    }
     if (!v) {
       const ch = CHARACTERS.find(c => c.id === snap.char);
       const color = isPlayer ? (ch?.color ?? 0xffffff) : snap.dummy ? 0xb08d57 : 0x8a8f98;
       v = {
+        char: snap.char,
         body: this.add.rectangle(0, 0, 30, isPlayer ? 82 : 75, color).setOrigin(0.5, 1),
         fist: this.add.rectangle(0, 0, 10, 5, 0xffffff).setVisible(false),
         hp: this.add.rectangle(0, 0, 40, 3, isPlayer ? 0x4cd964 : 0xff3b30).setOrigin(0, 0.5),
@@ -458,12 +472,16 @@ export class GameScene extends Phaser.Scene {
     return v;
   }
 
-  private replay() {
-    this.session.leave();
-    // Сохраняем параметры уровня; завершённую онлайн-комнату не открываем снова.
-    history.replaceState(null, '', location.pathname + location.search);
-    location.reload();
+  private destroyView(key: string, v: View) {
+    v.ghosts?.forEach(g => g.destroy()); v.trigram?.destroy();
+    v.meteor?.destroy(); v.tornado?.destroy(); v.tornadoWord?.destroy();
+    v.ramilFx?.forEach(f => f.destroy());
+    v.storm?.zone.destroy(); v.storm?.flakes.forEach(f => f.destroy()); v.status?.destroy();
+    v.ring?.destroy(); v.warning?.destroy(); v.shield?.destroy(); v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
+    this.views.delete(key);
   }
+
+  private replay() { returnToMenu(this.session); }
 
   private drawBossFx(s: Snapshot) {
     this.floorFx ??= this.add.graphics().setDepth(0);
@@ -620,7 +638,7 @@ export class GameScene extends Phaser.Scene {
         .setFrame(Math.floor(age * (20 + (spin.turn - 1) * 2.5) / 1000) % 12);
       sprite.setAlpha(0.3);
       v.tornadoWord?.setPosition(x + Math.sin(age) , y - HEAD * 1.3).setDepth(y + 0.4).setAlpha(Math.max(0, 1 - age / 500));
-      this.cameras.main.shake(60, spin.turn === 5 ? 0.0012 : 0.0004);
+      shake(this.cameras.main, 60, spin.turn === 5 ? 0.0012 : 0.0004);
       if (this.time.now - (v.spinDustAt ?? 0) >= 80) {
         v.spinDustAt = this.time.now;
         this.fx('ramil-dust', x, y, { scale: 0.6, depth: y - 0.05 });
@@ -742,7 +760,7 @@ export class GameScene extends Phaser.Scene {
       this.guide.fillStyle(0xff3b30).fillTriangle(x, e.y - 6, x, e.y + 6, x - d * 6, e.y);
     }
     if (stage.tunnel && s.halt >= HALT_MS && !this.stopped) {
-      this.stopped = true; this.stoppedAt = this.time.now; cam.shake(120, 0.003);
+      this.stopped = true; this.stoppedAt = this.time.now; shake(cam, 120, 0.003);
       const t = this.add.text(this.scale.width / 2, VIEW_H / 2, 'СТАНЦИЯ!', textStyle(16, '#ffe45c')).setOrigin(0.5).setScrollFactor(0).setDepth(2500);
       this.time.delayedCall(1000, () => t.destroy());
     }
@@ -783,6 +801,7 @@ export class GameScene extends Phaser.Scene {
     const seen = new Set<string>();
     const draw = (key: string, isPlayer: boolean, sa: EntitySnap | undefined, sb: EntitySnap, live = false) => {
       seen.add(key);
+      if (isPlayer && sa?.char !== sb.char) sa = sb;
       const x = sa && !live ? sa.x + (sb.x - sa.x) * f : sb.x;
       const y = sa && !live ? sa.y + (sb.y - sa.y) * f : sb.y;
       const v = this.viewFor(key, isPlayer, sb);
@@ -862,7 +881,7 @@ export class GameScene extends Phaser.Scene {
               arc.strokePath();
               this.tweens.add({targets: arc, alpha: 0, duration: 120, onComplete: () => arc.destroy()});
             }
-            this.cameras.main.shake(55,0.0004*(spin.turn+1));
+            shake(this.cameras.main, 55,0.0004*(spin.turn+1));
           }
           if (spinning && spin.turn === 0 && this.time.now - (v.spinDustAt ?? 0) >= RAMIL.SPIN_DUST_MS) {
             v.spinDustAt = this.time.now;
@@ -922,12 +941,7 @@ export class GameScene extends Phaser.Scene {
     this.drawCine(latest);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
-      v.ghosts?.forEach(g => g.destroy()); v.trigram?.destroy();
-      v.meteor?.destroy(); v.tornado?.destroy(); v.tornadoWord?.destroy();
-      v.ramilFx?.forEach(f => f.destroy());
-      v.storm?.zone.destroy(); v.storm?.flakes.forEach(f => f.destroy()); v.status?.destroy();
-      v.ring?.destroy(); v.warning?.destroy(); v.shield?.destroy(); v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
-      this.views.delete(key);
+      this.destroyView(key, v);
     }
   }
 }

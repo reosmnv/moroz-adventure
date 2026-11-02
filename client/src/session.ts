@@ -2,13 +2,13 @@
 // Сцена знает только снимки и события, режим ей не важен.
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  encountersOf, TEST_TOOLS, TICK_MS, nextStage, addPlayer, chargeUlt, createWorld, emptyInput, spawnEnemies, step, takenChars,
+  encountersOf, switchHero, testHeal, testGod, testKillAll, TEST_TOOLS, TICK_MS, nextStage, addPlayer, chargeUlt, createWorld, emptyInput, spawnEnemies, step, takenChars,
   type Anim, type Form, type Input, type SimEvent, type World,
 } from '@bc/shared';
 
 export interface EntitySnap {
   meteorX?: number; meteorY?: number; meteorMs?: number; ultStopMs?: number; carryBy?: string; thrown?: boolean; carried?: boolean; ultLevel?: number; ultWindow?: number; carryAngle?: number; carryHeight?: number;
-  x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean; air?: number; height?: number; frozen?: boolean; storm?: number;
+  god?: boolean; x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean; air?: number; height?: number; frozen?: boolean; storm?: number;
   fDashMs?: number; idleInput?: boolean; hiddenMs?: number; heavySmokeMs?: number; fireMs?: number; burnMs?: number; markedBy?: string;
   form?: Form; move?: string; moveT?: number; formMs?: number; combo?: number; hitCount?: number; bCombo?: number; charge2?: number; invuln?: boolean;
   enterMs?: number; kind?: string; phase?: string; boss?: string; bossPhase?: number; atk?: string;
@@ -19,6 +19,14 @@ export type Button = 'skip' | 'attack' | 'heavy' | 'taunt' | 'ult' | 'ult2';
 
 export interface GameSession {
   introOpen: boolean;
+  readonly testMode: boolean;
+  connectionLost: boolean;
+  reconnect(): Promise<void>;
+  onPickError: (msg: string) => void;
+  heal(): void;
+  god(on: boolean): void;
+  killAll(): void;
+  switchHero(char: string): void;
   readonly kind: 'local' | 'online';
   needsIntro(): boolean;
   finishIntro(): void;
@@ -53,6 +61,10 @@ function pushSnap(list: Snapshot[], s: Snapshot) {
 export class LocalSession implements GameSession {
   introOpen = false;
   readonly kind = 'local' as const;
+  connectionLost = false;
+  async reconnect() {}
+  onPickError: (msg: string) => void = () => {};
+  get testMode() { return this.world.testTools; }
   me = 'me';
   roomId = '';
   status = 'офлайн';
@@ -66,15 +78,17 @@ export class LocalSession implements GameSession {
   finishIntro() { this.intro = false; this.input = emptyInput(); }
   private paused = false;
 
-  constructor(level: 'route' | 'old' = 'route', stage = 0) {
-    this.intro = level === 'route' && stage === 0;
-    this.world = createWorld(Date.now() & 0xffff, TEST_TOOLS, level, stage);
+  constructor(level: 'route' | 'old' = 'route', stage = 0, testMode = false) {
+    testMode = TEST_TOOLS && testMode;
+    stage = testMode ? stage : 0;
+    this.intro = !testMode && level === 'route' && stage === 0;
+    this.world = createWorld(Date.now() & 0xffff, testMode, level, stage);
     this.timer = window.setInterval(() => this.tick(), TICK_MS);
   }
 
   private tick() {
-    if (document.hidden || this.paused) return; // офлайн-пауза в фоне и по кнопке
-    const evs = this.intro ? [] : step(this.world, { [this.me]: this.input });
+    if (document.hidden) return; // офлайн-пауза в фоне и по кнопке
+    const evs = this.intro || this.paused ? [] : step(this.world, { [this.me]: this.input });
     this.input.attack = this.input.heavy = this.input.taunt = this.input.ult = this.input.skip = false;
     if (this.world.players[this.me]?.char !== 'ramil') this.input.ult2 = false;
     const players = new Map<string, EntitySnap>();
@@ -89,9 +103,16 @@ export class LocalSession implements GameSession {
   press(b: Button) { this.input[b] = true; }
   view(x: number, width: number) { this.input.viewX = x; this.input.viewW = width; }
   holdSmoke(on: boolean) { this.input.ult2 = on; }
-  next() { if (TEST_TOOLS) nextStage(this.world); }
-  spawn() { if (TEST_TOOLS) spawnEnemies(this.world, 3); }
-  charge() { if (TEST_TOOLS) chargeUlt(this.world, this.me); }
+  next() { if (this.testMode) nextStage(this.world); }
+  spawn() { if (this.testMode) spawnEnemies(this.world, 3); }
+  charge() { if (this.testMode) chargeUlt(this.world, this.me); }
+  heal() { if (this.testMode) testHeal(this.world); }
+  god(on: boolean) { if (this.testMode) testGod(this.world, this.me, on); }
+  killAll() { if (this.testMode) testKillAll(this.world); }
+  switchHero(char: string) {
+    if (!switchHero(this.world, this.me, char)) this.onPickError('Персонаж занят');
+    else this.input = emptyInput();
+  }
   pick(char: string) { addPlayer(this.world, this.me, char); }
   setPaused(on: boolean) { this.paused = on; }
   isPaused() { return this.paused; }
@@ -103,10 +124,33 @@ export class LocalSession implements GameSession {
 }
 
 const TOKEN_KEY = 'bc-reconnect';
+const TOKEN_LIFETIME = 60_000;
+export function clearReconnect() { sessionStorage.removeItem(TOKEN_KEY); }
+export function savedReconnect(): { roomId: string; token: string } | null {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(TOKEN_KEY) ?? 'null');
+    if (typeof saved?.roomId === 'string' && typeof saved?.token === 'string' &&
+        typeof saved?.at === 'number' && Date.now() - saved.at < TOKEN_LIFETIME) return saved;
+  } catch { /* повреждённый токен */ }
+  clearReconnect();
+  return null;
+}
+export function returnToMenu(session: GameSession) {
+  session.leave(); clearReconnect();
+  location.replace(location.pathname);
+}
 
 export class OnlineSession implements GameSession {
   introOpen = false;
   readonly kind = 'online' as const;
+  testMode = false;
+  connectionLost = false;
+  private left = false;
+  private visibility = async () => {
+    if (document.hidden) { this.saveToken(); this.safeSend('away', true); return; }
+    await this.reconnect();
+    this.safeSend('away', false);
+  };
   me = '';
   roomId = '';
   status = 'подключение…';
@@ -121,7 +165,7 @@ export class OnlineSession implements GameSession {
   private paused = false;
   private pausedBy = '';
   private intro = false;
-  needsIntro() { return this.intro; }
+  needsIntro() { return !this.testMode && this.intro; }
   finishIntro() { this.safeSend('introDone', true); }
 
   private safeSend(type: string, payload: unknown) {
@@ -132,24 +176,25 @@ export class OnlineSession implements GameSession {
     this.client = new Client(url);
   }
 
-  // Вход: по сохранённому токену (вернулись после фона/перезагрузки), иначе по коду или новая комната
-  static async open(url: string, roomCode?: string, level: 'route' | 'old' = 'route', stage = 0): Promise<OnlineSession> {
+  // Продолжение по токену явно отделено от новой игры и входа по коду.
+  static async open(url: string, roomCode?: string, level: 'route' | 'old' = 'route', stage = 0, testMode = false, resume = false): Promise<OnlineSession> {
     const s = new OnlineSession(url);
-    const saved = JSON.parse(sessionStorage.getItem(TOKEN_KEY) ?? 'null');
-    let room: Room | null = null;
-    if (saved && (!roomCode || saved.roomId === roomCode)) {
-      try { room = await s.client.reconnect(saved.token); } catch { sessionStorage.removeItem(TOKEN_KEY); }
-    }
-    if (!room) room = roomCode ? await s.client.joinById(roomCode) : await s.client.create('game', { level, stage });
+    testMode = TEST_TOOLS && testMode;
+    const saved = resume ? savedReconnect() : null;
+    if (resume && !saved) throw new Error('Срок возврата в комнату истёк');
+    const room = saved ? await s.client.reconnect(saved.token).catch(error => { clearReconnect(); throw error; })
+      : roomCode ? await s.client.joinById(roomCode)
+      : await s.client.create('game', { level, stage: testMode ? stage : 0, testMode: TEST_TOOLS && testMode });
     s.bind(room);
-    s.pingTimer = window.setInterval(() => s.room.ping(ms => { s.lastPing = ms; }), 2000);
-    // Свернул Safari: сообщаем серверу, персонаж замирает; вернулся: переподключаемся при нужде
-    document.addEventListener('visibilitychange', async () => {
-      if (document.hidden) { s.safeSend('away', true); return; }
-      await s.ensureConnected();
-      s.safeSend('away', false);
-    });
+    s.pingTimer = window.setInterval(() => {
+      if (s.room?.connection?.isOpen) { s.saveToken(); s.room.ping(ms => { s.lastPing = ms; }); }
+    }, 2000);
+    document.addEventListener('visibilitychange', s.visibility);
     return s;
+  }
+
+  private saveToken() {
+    if (!this.left && this.room?.connection?.isOpen) sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ roomId: this.roomId, token: this.room.reconnectionToken, at: Date.now() }));
   }
 
   private bind(room: Room) {
@@ -157,39 +202,55 @@ export class OnlineSession implements GameSession {
     this.me = room.sessionId;
     this.roomId = room.roomId;
     this.status = 'онлайн';
-    sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ roomId: room.roomId, token: room.reconnectionToken }));
+    this.connectionLost = false;
+    this.lastMove = this.lastView = '';
+    this.saveToken();
     room.onStateChange((state: any) => {
+      if (this.room !== room || this.left) return;
+      this.testMode = state.testMode === true;
       this.intro = state.intro;
       const players = new Map<string, EntitySnap>();
-      state.players.forEach((p: any, id: string) => players.set(id, { ultLevel: p.ultLevel, ultWindow: p.ultWindow, x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, fDashMs: p.fDashMs, idleInput: p.idleInput, hiddenMs: p.hiddenMs, heavySmokeMs: p.heavySmokeMs, fireMs: p.fireMs, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
+      state.players.forEach((p: any, id: string) => players.set(id, { god: p.god, ultLevel: p.ultLevel, ultWindow: p.ultWindow, x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, fDashMs: p.fDashMs, idleInput: p.idleInput, hiddenMs: p.hiddenMs, heavySmokeMs: p.heavySmokeMs, fireMs: p.fireMs, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
       state.enemies.forEach((e: any, id: string) => enemies.set(id, { meteorX: e.meteorX, meteorY: e.meteorY, meteorMs: e.meteorMs, ultStopMs: e.ultStopMs, carryBy: e.carryBy, thrown: e.thrown, carried: e.carried, carryAngle: e.carryAngle, carryHeight: e.carryHeight, burnMs: e.burnMs, markedBy: e.markedBy, enterMs: e.enterMs, boss: e.boss, bossPhase: e.bossPhase, atk: e.atk, kind: e.kind, phase: e.phase, x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
       pushSnap(this.snapshots, { pauseMs: state.pauseMs, slowmoMs: state.slowmoMs, halt: state.halt, cineId: state.cineId, cineKind: state.cineKind, cineMs: state.cineMs, shots: Array.from(state.shots, (s: any) => ({ x: s.x, y: s.y, dir: s.dir })), zones: Array.from(state.zones, (z: any) => ({ x: z.x, y: z.y, r: z.r, ms: z.ms })), t: performance.now(), players, enemies, lockX0: state.lockX0, lockX1: state.lockX1, encDone: state.encDone, encTotal: state.encTotal, won: state.won, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
+      if (this.testMode && this.intro && players.has(this.me)) this.finishIntro();
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;
-      sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ roomId: room.roomId, token: room.reconnectionToken }));
+      this.saveToken();
     });
     room.onMessage('ev', (evs: SimEvent[]) => this.onEvents(evs));
     room.onMessage('pickError', (m: string) => this.onPickError(m));
     room.onDrop(() => { this.status = 'связь потеряна, переподключаюсь…'; });
-    room.onReconnect(() => { this.status = 'онлайн'; });
+    room.onReconnect(() => {
+      if (this.left || this.room !== room) return;
+      this.status = 'онлайн'; this.connectionLost = false; this.lastMove = this.lastView = '';
+      // SDK обновляет токен после вызова обработчика.
+      queueMicrotask(() => this.saveToken());
+    });
     room.onLeave((code: number) => {
+      if (this.left || this.room !== room) return;
       if (code === 4000) { this.status = 'вышел'; return; }
       this.status = 'отключён, жду возврата в игру…';
-      if (!document.hidden) this.ensureConnected();
+      if (!document.hidden) this.reconnect();
     });
   }
 
   // Ручное переподключение: iOS убивает сокет и страницу в фоне, авто-реконнект SDK это не покрывает
-  private async ensureConnected() {
-    if (this.reconnecting || this.room?.connection?.isOpen) return;
-    const saved = JSON.parse(sessionStorage.getItem(TOKEN_KEY) ?? 'null');
-    if (!saved) return;
+  async reconnect() {
+    if (this.left || this.reconnecting || this.room?.reconnection.isReconnecting || this.room?.connection?.isOpen) return;
+    const saved = savedReconnect();
+    if (!saved) { this.connectionLost = true; return; }
     this.reconnecting = true;
     this.status = 'переподключаюсь…';
+    this.connectionLost = false;
     try {
-      this.bind(await this.client.reconnect(saved.token));
+      const room = await this.client.reconnect(saved.token);
+      if (this.left) { void room.leave(true); return; }
+      this.snapshots = [];
+      this.bind(room);
     } catch (e: any) {
+      this.connectionLost = true;
       this.status = 'не удалось вернуться: ' + (e?.message ?? e);
     } finally {
       this.reconnecting = false;
@@ -201,19 +262,23 @@ export class OnlineSession implements GameSession {
     const key = mx.toFixed(1) + ',' + my.toFixed(1) + (run ? 'r' : '');
     if (key === this.lastMove) return;
     this.lastMove = key;
-    this.room.send('move', { mx, my, run });
+    this.safeSend('move', { mx, my, run });
   }
-  press(b: Button) { this.room.send('btn', b); }
+  press(b: Button) { this.safeSend('btn', b); }
   private lastView = '';
   view(x: number, width: number) {
     const key = Math.round(x) + ':' + width;
     if (key !== this.lastView) { this.lastView = key; this.safeSend('view', { x: Math.round(x), width }); }
   }
   holdSmoke(on: boolean) { this.safeSend('smoke', on); }
-  next() { this.safeSend('next', true); }
-  spawn() { this.safeSend('spawn', true); }
-  charge() { this.safeSend('charge', true); }
-  pick(char: string) { this.room.send('pick', char); }
+  next() { if (this.testMode) this.safeSend('next', true); }
+  spawn() { if (this.testMode) this.safeSend('spawn', true); }
+  charge() { if (this.testMode) this.safeSend('charge', true); }
+  heal() { if (this.testMode) this.safeSend('heal', true); }
+  god(on: boolean) { if (this.testMode) this.safeSend('god', on); }
+  killAll() { if (this.testMode) this.safeSend('killall', true); }
+  switchHero(char: string) { this.safeSend('switch', char); }
+  pick(char: string) { this.safeSend('pick', char); }
   setPaused(on: boolean) { this.safeSend('pause', on); }
   isPaused() { return this.paused; }
   pausedByMe() { return this.pausedBy === this.me; }
@@ -227,6 +292,8 @@ export class OnlineSession implements GameSession {
   }
   ping() { return this.lastPing; }
   leave() {
+    this.left = true;
+    document.removeEventListener('visibilitychange', this.visibility);
     clearInterval(this.pingTimer);
     sessionStorage.removeItem(TOKEN_KEY);
     this.room.leave(true);
