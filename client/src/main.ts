@@ -168,7 +168,6 @@ function renderPicker() {
     const b = document.createElement('button'); const img = document.createElement('img');
     img.src = portrait(c.id); img.alt = ''; b.append(img, document.createTextNode(c.name));
     const note = document.createElement('span'); note.textContent = c.id === current ? 'сейчас' : taken.includes(c.id) ? 'занят' : '';
-    const role = document.createElement('small'); role.className = 'hero-role'; role.textContent = STORY.roles[c.id as keyof typeof STORY.roles]; b.append(role);
     b.append(note); b.disabled = c.id === current || taken.includes(c.id);
     b.classList.toggle('current', c.id === current);
     b.onclick = () => { if (pendingHero) return; unlockAudio(); pendingHero = c.id; $('pickNote').textContent = ''; if (changingHero) session!.switchHero(c.id); else session!.pick(c.id); };
