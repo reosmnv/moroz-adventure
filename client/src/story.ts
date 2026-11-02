@@ -1,5 +1,5 @@
 import { CHARACTERS, HERO_ID, NADYA_ID, KRIS_ID } from '@bc/shared';
-export const GAME_TITLE = 'НЕСУЩЕСТВУЮЩАЯ';
+export const GAME_TITLE = 'Moroz Birthday Adventures';
 // Тексты завязки и поздравления редактируются отдельно от экранов.
 export const STORY = {
   mfcLast: ['ОХРАНА ОКНА', 'ПОСЛЕДНИЙ БОЙ'],

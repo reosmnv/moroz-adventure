@@ -74,3 +74,24 @@ button[aria-pressed="true"], button.selected { outline: 2px solid var(--gold); c
 .registry-push { position: fixed; z-index: 6; top: max(65px, calc(env(safe-area-inset-top) + 65px)); left: 50%; transform: translateX(-50%); width: min(60vw, 400px); background: white; border-top: 4px solid #2867b2; color: #343b48; padding: 5px 8px; font: 12px/1.25 sans-serif; text-align: left; touch-action: manipulation; }
 .registry-push small { display: block; font: 10px/1.2 sans-serif; }
 .registry-push[hidden] { display: none; }
+
+/* Логотип «Moroz Birthday Adventures» */
+.brand h1#gameTitle { display:flex; flex-direction:column; align-items:center; gap:2px; margin:0 0 10px; line-height:1; text-shadow:none; }
+.logo-moroz { display:flex; gap:2px; font-size:clamp(30px, 5.4vw, 46px); }
+.logo-moroz i { font-style:normal; color:#e6fbff; display:inline-block; transform:rotate(calc((var(--i) - 2) * 3deg));
+  text-shadow: 0 -2px #ffffff, 2px 2px #7fd6f2, 4px 4px #3a8fc7, 6px 6px #1f3a6b, 7px 7px var(--ink);
+  animation: logo-bob 1.6s ease-in-out infinite; animation-delay: calc(var(--i) * -0.32s); }
+/* сосульки под буквами */
+.logo-moroz i::after { content:''; position:absolute; left:20%; right:20%; top:100%; height:8px;
+  background: linear-gradient(135deg, #bfefff 25%, transparent 25%) 0 0 / 8px 8px repeat-x,
+              linear-gradient(225deg, #bfefff 25%, transparent 25%) 0 0 / 8px 8px repeat-x; opacity:.85; }
+.logo-moroz i { position:relative; }
+.logo-ribbon { margin-top:12px; padding:6px 14px 5px; font-size:clamp(13px, 2.2vw, 18px); color:var(--cream); background:var(--pink);
+  transform:rotate(-4deg); box-shadow: 3px 3px 0 var(--pink-dark), 0 0 0 2px var(--ink), 5px 5px 0 2px var(--ink);
+  position:relative; }
+.logo-ribbon::before, .logo-ribbon::after { content:''; position:absolute; top:6px; width:12px; height:100%; background:var(--pink-dark); z-index:-1; }
+.logo-ribbon::before { left:-10px; clip-path:polygon(0 0, 100% 0, 100% 100%, 0 100%, 45% 50%); }
+.logo-ribbon::after { right:-10px; clip-path:polygon(0 0, 100% 0, 55% 50%, 100% 100%, 0 100%); }
+.logo-adv { margin-top:14px; font-size:clamp(10px, 1.6vw, 13px); color:var(--gold); letter-spacing:3px; text-shadow:2px 2px var(--ink); transform:rotate(2deg); }
+@keyframes logo-bob { 0%,100% { translate:0 0; } 50% { translate:0 -4px; } }
+@media (prefers-reduced-motion: reduce) { .logo-moroz i { animation:none; } }

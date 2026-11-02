@@ -33,7 +33,10 @@ document.addEventListener('touchstart', e => { if ((e.target as HTMLElement).tag
 document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.title = GAME_TITLE;
-$('gameTitle').textContent = GAME_TITLE;
+// Логотип в меню: MOROZ ледяными прыгающими буквами, BIRTHDAY на розовой ленте, ADVENTURES золотом
+$('gameTitle').setAttribute('aria-label', GAME_TITLE);
+$('gameTitle').innerHTML = `<span class="logo-moroz">${[...'MOROZ'].map((c, i) => `<i style="--i:${i}">${c}</i>`).join('')}</span>`
+  + '<span class="logo-ribbon">BIRTHDAY</span><span class="logo-adv">ADVENTURES</span>';
 document.querySelector('.brand p')!.textContent = STORY.menu.sub;
 $('newOnline').textContent = STORY.menu.online; $('newLocal').textContent = STORY.menu.solo;
 $('share').textContent = STORY.service.invite;
