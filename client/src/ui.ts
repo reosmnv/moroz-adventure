@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { NADYA_MOVE_NAMES, RAMIL_ID, RAMIL_MOVE_NAMES, CHAIN, CHARACTERS, HEAVY, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, TEST_TOOLS, ULT_MS, VIEW_H } from '@bc/shared';
+import { NADYA_MOVE_NAMES, RAMIL_ID, RAMIL_MOVE_NAMES, CHAIN, CHARACTERS, HEAVY, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, ULT_MS, VIEW_H } from '@bc/shared';
 import type { Button, EntitySnap, GameSession } from './session.ts';
 
 // Интерфейс поверх боя: стик, кнопки, панели игроков. Отдельная сцена, поэтому встряска
@@ -79,6 +79,7 @@ export class UIScene extends Phaser.Scene {
   private shownHits = 0;
   private ultNext!: Phaser.GameObjects.Text;
   private bHint!: Phaser.GameObjects.Text;
+  private testLabel!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
   private panels: Panel[] = [];
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
@@ -108,6 +109,7 @@ export class UIScene extends Phaser.Scene {
     cg.generateTexture('ramil-cigarette', 64, 64); cg.destroy();
     this.shownHits = 0;
     this.hitText = this.add.text(0, HITS_Y, '', { ...textStyle(), fontSize: HITS_FONT }).setOrigin(1, 0).setScrollFactor(0);
+    this.testLabel = this.add.text(0, 58, 'ТЕСТ', textStyle(10, '#f2a541')).setOrigin(0.5, 0).setScrollFactor(0);
     this.waveText = this.add.text(0, 44, '', textStyle()).setOrigin(0.5, 0);
     for (let i = 0; i < 4; i++) this.panels.push(this.makePanel(PANEL_X + i * (PANEL_W + PANEL_GAP), PANEL_Y));
 
@@ -166,7 +168,8 @@ export class UIScene extends Phaser.Scene {
 
   private layout() {
     const w = this.scale.width;
-    this.waveText.setX(w / 2);
+    this.waveText.setX(w / 2).setScrollFactor(0);
+    this.testLabel.setX(w / 2);
     for (const b of this.activeLayout) {
       const { x, y } = btnPos(b, w);
       const v = this.btns.get(b.id)!;
@@ -340,7 +343,9 @@ export class UIScene extends Phaser.Scene {
     if (s.hasMe()) s.move(...this.readMove());
     const last = s.snapshots[s.snapshots.length - 1];
     if (!last) return;
-    this.waveText.setText(last.level === 'route' ? (last.encDone >= last.encTotal ? 'ВПЕРЁД' : `БОЙ ${last.encDone}/${last.encTotal}`) : TEST_TOOLS ? 'ТЕСТ: МАНЕКЕН' : `ВОЛНА ${last.wave}`);
+    this.waveText.setText(last.level === 'route' ? (last.encDone >= last.encTotal ? 'ВПЕРЁД' : `БОЙ ${last.encDone}/${last.encTotal}`) : s.testMode ? 'ТЕСТ: МАНЕКЕН' : `ВОЛНА ${last.wave}`);
+
+    this.testLabel.setVisible(s.testMode);
 
     // Своя панель первая, напарник рядом
     const me = last.players.get(s.me);

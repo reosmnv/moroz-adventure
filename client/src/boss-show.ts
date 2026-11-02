@@ -1,3 +1,4 @@
+import { shake } from './settings.ts';
 import * as Phaser from 'phaser';
 import { ENEMY_ANIMS, stageProp } from '@bc/shared';
 import type { Snapshot } from './session.ts';
@@ -43,7 +44,7 @@ export class BossShow {
       const t=this.elapsed-this.departure, u=Math.min(1,t/700);
       this.singer.setPosition(this.stageX, STAGE_Y+(205-STAGE_Y)*u-240*u*(1-u)).setDepth(u ? 204 : 120).setVisible(t<700 && boss?.phase==='enter');
       this.fans.forEach((f,i)=>f.setPosition(this.stageX-90+i*27+t*0.7,150+(i%3)*5-t*0.15).setVisible(t<1200));
-      if(t>=700 && t-dt<700) this.scene.cameras.main.shake(150,0.006);
+      if(t>=700 && t-dt<700) shake(this.scene.cameras.main, 150,0.006);
     }
   }
   destroy() { this.objects.forEach(o=>o.destroy()); }

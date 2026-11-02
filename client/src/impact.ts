@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { settings } from './settings.ts';
 
 const IMPACT = {
   stopMs1: 60, stopMs2: 100, frameMs: 40, cooldownMs: 400, priorityMs: 150,
@@ -12,7 +13,7 @@ interface Flash { since: number; level: 1 | 2; shade: Phaser.GameObjects.Rectang
 
 // Кадры сцена задаёт вручную: восстанавливаем их после её update, не трогая симуляцию.
 export class Impact {
-  private enabled = new URLSearchParams(location.search).get('fx') !== '0';
+  private get enabled() { return settings.flashes !== 'off' && new URLSearchParams(location.search).get('fx') !== '0'; }
   private stops = new Map<Image, Stop>();
   private flash?: Flash;
   private lastFlash = -Infinity;
@@ -39,7 +40,7 @@ export class Impact {
       this.stops.set(image, { image, texture: prev?.texture ?? image.texture.key, frame: prev?.frame ?? image.frame.name,
         until: Math.max(prev?.until ?? 0, now + (level === 2 ? IMPACT.stopMs2 : IMPACT.stopMs1)), target: image === target });
     }
-    if (now - this.lastFlash >= IMPACT.cooldownMs) {
+    if (settings.flashes === 'full' && now - this.lastFlash >= IMPACT.cooldownMs) {
       this.clearFlash();
       this.lastFlash = now;
       this.lastLevel = level;
@@ -75,6 +76,14 @@ export class Impact {
 
   private update() {
     const now = this.scene.time.now;
+    if (settings.flashes !== 'full') this.clearFlash();
+    if (!this.enabled) {
+      this.stops.clear();
+      for (const l of this.lines) l.g.destroy();
+      this.lines = [];
+      this.clearFlash();
+      return;
+    }
     for (const [image, s] of this.stops) {
       if (!image.active || now >= s.until) { this.stops.delete(image); continue; }
       image.setTexture(s.texture, s.frame);
