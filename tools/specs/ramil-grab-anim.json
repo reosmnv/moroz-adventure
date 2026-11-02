@@ -1,0 +1,227 @@
+[
+ {
+  "name": "a1-in-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-kick-2.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing relaxed and slouched, both hands in jacket pockets, facing right",
+   "description": "pulls hands out of pockets, shifts weight back and snaps a powerful straight side kick forward Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 1
+  }
+ },
+ {
+  "name": "a1-in-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-kick-2.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing relaxed and slouched, both hands in jacket pockets, facing right",
+   "description": "pulls hands out of pockets, shifts weight back and snaps a powerful straight side kick forward Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 2
+  }
+ },
+ {
+  "name": "a1-out-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-kick-2.png",
+   "last_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "side kick to the right, front leg extended horizontally",
+   "description": "retracts the kicking leg, lands and returns to a lazy stance with hands back in pockets Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 1
+  }
+ },
+ {
+  "name": "a1-out-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-kick-2.png",
+   "last_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "side kick to the right, front leg extended horizontally",
+   "description": "retracts the kicking leg, lands and returns to a lazy stance with hands back in pockets Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 2
+  }
+ },
+ {
+  "name": "a2-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing relaxed and slouched, both hands in jacket pockets, facing right",
+   "description": "quickly drops low into a wide crouch and grabs forward with both hands at knee height, yanking hard Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 8,
+   "seed": 1
+  }
+ },
+ {
+  "name": "a2-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing relaxed and slouched, both hands in jacket pockets, facing right",
+   "description": "quickly drops low into a wide crouch and grabs forward with both hands at knee height, yanking hard Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 8,
+   "seed": 2
+  }
+ },
+ {
+  "name": "a2-hold-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "crouched low, both hands gripping forward at knee height",
+   "description": "holds a heavy weight in a low crouch, straining, body rocking slightly back and forth Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 1
+  }
+ },
+ {
+  "name": "a2-hold-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "crouched low, both hands gripping forward at knee height",
+   "description": "holds a heavy weight in a low crouch, straining, body rocking slightly back and forth Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 2
+  }
+ },
+ {
+  "name": "a3-lift-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-swing-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "crouched low, both hands gripping forward at knee height",
+   "description": "rises from the crouch pulling a heavy weight up with both arms to chest height, leaning back Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 1
+  }
+ },
+ {
+  "name": "a3-spin-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-swing-1.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-swing-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "wide stance leaning back, both arms extended forward clenched at chest height",
+   "description": "spins a full 360 degree turn in place with both arms stretched forward holding a heavy weight: right side, back, left side, front, and back to facing right; feet pivoting, body leaning back against the pull",
+   "frame_count": 8,
+   "seed": 1
+  }
+ },
+ {
+  "name": "a3-spin-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-swing-1.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-swing-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "wide stance leaning back, both arms extended forward clenched at chest height",
+   "description": "spins a full 360 degree turn in place with both arms stretched forward holding a heavy weight: right side, back, left side, front, and back to facing right; feet pivoting, body leaning back against the pull",
+   "frame_count": 8,
+   "seed": 2
+  }
+ },
+ {
+  "name": "a3-spin-s3",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-swing-1.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-swing-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "wide stance leaning back, both arms extended forward clenched at chest height",
+   "description": "spins a full 360 degree turn in place with both arms stretched forward holding a heavy weight: right side, back, left side, front, and back to facing right; feet pivoting, body leaning back against the pull",
+   "frame_count": 8,
+   "seed": 3
+  }
+ },
+ {
+  "name": "a3-throw-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-swing-1.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-throw-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "wide stance leaning back, both arms extended forward clenched at chest height",
+   "description": "swings both arms forward and releases a heavy weight, throwing it far to the right Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 1
+  }
+ },
+ {
+  "name": "a3-throw-s2",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-swing-1.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-throw-1.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "wide stance leaning back, both arms extended forward clenched at chest height",
+   "description": "swings both arms forward and releases a heavy weight, throwing it far to the right Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 4,
+   "seed": 2
+  }
+ },
+ {
+  "name": "a3-throw-out-s1",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/grab/kp-throw-1.png",
+   "last_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "follow-through after a throw, arms flung forward and up, rear leg lifted",
+   "description": "lowers the leg and arms, straightens up lazily and puts hands back into the jacket pockets Stays in strict side profile facing right, never turns to the camera.",
+   "frame_count": 8,
+   "seed": 1
+  }
+ }
+]

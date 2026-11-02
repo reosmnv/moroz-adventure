@@ -1037,86 +1037,6 @@ for (const hp of [1000, 1]) {
 }
 function ramilDummy(w: World, id: string, dx: number) { dummy(w, id, dx); w.enemies[id].slowMs = 1e8; w.enemies[id].slow = 1; }
 
-// TZ13: число ударов, тайминги, рывки, независимые цепочки.
-for (let level = 0; level < 4; level++) {
-  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 40);
-  p.combo = level; p.comboMs = 1000;
-  const timing = flurryTiming('f' + (level + 1), 1);
-  const hits: number[] = []; let ended = 0;
-  for (let t = 0; t < 1000; t += TICK_MS) {
-    const events = step(w, { h: { ...emptyInput(), attack: t === 0 } });
-    hits.push(...events.filter(e => e.t === 'hit' && !e.tick).map(e => e.t === 'hit' ? e.dmg : 0));
-    if (t > 0 && !/^f[1-4]$/.test(p.move)) { ended = t; break; }
-  }
-  check(`Рамиль f${level + 1}: ${RAMIL.F_HITS[level]} попаданий`, hits.length === RAMIL.F_HITS[level], hits.join());
-  check(`Рамиль f${level + 1}: урон`, hits.every((d, k) => d === (level === 3 && k === 15 ? 6 : RAMIL.F_DMG[level])));
-  check(`Рамиль f${level + 1}: длительность`, Math.abs(ended - timing.duration) <= TICK_MS, `${ended}/${timing.duration}`);
-  if (level === 3) check('Рамиль f4: лежит и горит', w.enemies.e1.anim === 'down' && !!w.enemies.e1.burnMs);
-  check('Рамиль: ладони не заряжают ульту', p.ult === 0);
-}
-// TZ14: поджог каждого попадания f4, без сложения тиков.
-for (let level = 0; level < 4; level++) {
-  const { w, p } = setup(false, 'ramil');
-  ramilDummy(w, 'e1', 40); ramilDummy(w, 'e2', 50);
-  p.combo = level; p.comboMs = 1000;
-  let lastHit = 0, firstBurn: boolean | undefined, refreshed = true, elapsed = 0;
-  for (; elapsed < 1000; elapsed += TICK_MS) {
-    const ev = step(w, { h: { ...emptyInput(), attack: elapsed === 0 } });
-    if (ev.some(e => e.t === 'hit' && !e.tick)) {
-      lastHit = elapsed;
-      if (level === 3) {
-        const burning = Object.values(w.enemies).every(e => e.burnMs === RAMIL.BURN_MS - TICK_MS && e.burnTickMs === RAMIL.BURN_TICK - TICK_MS && e.burnBy === p.id);
-        firstBurn ??= burning;
-        refreshed &&= burning;
-      }
-    }
-    if (elapsed > 0 && !/^f[1-4]$/.test(p.move)) break;
-  }
-  if (level < 3) {
-    check(`TZ14 f${level + 1}: обе цели без поджога`, Object.values(w.enemies).every(e => !e.burnMs));
-    continue;
-  }
-  check('TZ14 f4: обе цели горят с первых попаданий', firstBurn === true);
-  check('TZ14 f4: каждый удар обновляет один таймер', refreshed);
-  let ticks = 0, damageOk = true;
-  while (elapsed - lastHit < RAMIL.BURN_MS + TICK_MS) {
-    elapsed += TICK_MS;
-    const ev = step(w, {});
-    for (const e of ev) if (e.t === 'hit' && e.tick) { ticks++; damageOk &&= e.dmg === RAMIL.BURN_DMG; }
-    if (Object.values(w.enemies).every(e => !e.burnMs)) break;
-  }
-  check('TZ14 f4: горение истекает через 3000 мс после последнего удара', Math.abs(elapsed - lastHit - RAMIL.BURN_MS) <= TICK_MS, String(elapsed - lastHit));
-  check('TZ14 f4: обе цели получают по 6 тиков урона 3', ticks === 12 && damageOk, String(ticks));
-  check('TZ14 f4: после истечения тиков нет', !run(w, 1000).hits.length);
-}
-for (const dx of [40, 58, 59, 100, 150, 160, 220, 240, 241]) {
-  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', dx);
-  const result = run(w, 700, press([0], 'attack'));
-  const dash = dx > 58 && dx <= 240;
-  check(`Рамиль: рывок ${dx}`, result.events.includes('rdash') === dash && p.x === (dash ? 200 + dx - RAMIL.F_GAP : 200));
-}
-{
-  const def = { ...HERO_ANIMS.ramil.flurry2, east: 10, west: 10, hits: [2, 6] };
-  for (const move of ['f3', 'f4']) {
-    const timing = flurryTiming(move, 1, def);
-    check(`Рамиль ${move}: полоса с двумя hits`, timing.times.length === (move === 'f3' ? 8 : 16) && timing.times.every((t, k) => Math.abs(t - timing.intro - (Math.floor(k / 2) + [0.2, 0.6][k % 2]) * timing.step * 2) < 0.01));
-    const original = HERO_ANIMS.ramil.flurry2;
-    try {
-      HERO_ANIMS.ramil.flurry2 = def;
-      const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 40); p.combo = move === 'f3' ? 2 : 3; p.comboMs = 1000;
-      const result = run(w, timing.duration + TICK_MS, press([0], 'attack'));
-      check(`Рамиль ${move}: sim с копией определения`, result.hits.length === timing.count);
-      check(`Рамиль ${move}: кадры совпадают с hits`, timing.times.every((t, k) => flurryPose(move, t + 0.001, 1).frame === def.hits[k % 2]));
-    } finally { HERO_ANIMS.ramil.flurry2 = original; }
-  }
-}
-{
-  const { w, p } = setup(false, 'ramil');
-  const result = run(w, 2500, press([0, 100, 550, 1050, 1600], 'attack'));
-  check('Рамиль: очередь A и цикл после f4', result.log.filter(m => /^f[1-4]$/.test(m)).join() === 'f1,f2,f3,f4,f1', result.log.join());
-  run(w, 1500); run(w, 50, press([0], 'attack'));
-  check('Рамиль: A сброс окна', p.move === 'f1');
-}
 {
   const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 40); ramilDummy(w, 'e2', 50); ramilDummy(w, 'e3', 60);
   const origin = p.x;
@@ -1142,53 +1062,6 @@ for (const dx of [40, 58, 59, 100, 150, 160, 220, 240, 241]) {
   const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 80); p.bCombo = 2; p.bComboMs = 1200;
   const result = run(w, 4500, press([0], 'heavy'));
   check('Рамиль: огонь один раз и 6 тиков', result.hits.length === 7 && result.hits.every(d => d === 3), result.hits.join());
-}
-// Необязательные переходы подключаются данными, без правки файлов анимаций.
-{
-  const clips = HERO_ANIMS.ramil;
-  const intro = clips['flurry2-in'], outro = clips['flurry2-out'];
-  try {
-    clips['flurry2-in'] = { ...clips.flurry2, east: 3, west: 3, fps: 20 };
-    clips['flurry2-out'] = { ...clips.flurry2, east: 4, west: 4, fps: 20 };
-    const timing = flurryTiming('f3', 1);
-    const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 40); p.combo = 2; p.comboMs = 1000;
-    run(w, 100, press([0], 'attack'));
-    check('Рамиль: вступление держит врага без урона', w.enemies.e1.hp === 1000 && (w.enemies.e1.stunMs ?? 0) > 0);
-    check('Рамиль: длительности переходов из данных', timing.intro === 150 && timing.recover === 200 && timing.duration === 710);
-    check('Рамиль: кадры переходов', flurryPose('f3', 50, 1).clip === 'flurry2-in' && flurryPose('f3', 550, 1).clip === 'flurry2-out');
-    check('Рамиль: вступление не теряет удары', run(w, 700).hits.length === 8);
-  } finally {
-    if (intro) clips['flurry2-in'] = intro; else delete clips['flurry2-in'];
-    if (outro) clips['flurry2-out'] = outro; else delete clips['flurry2-out'];
-  }
-}
-{
-  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 40); ramilDummy(w, 'e2', 50);
-  p.combo = 2; p.comboMs = 1000;
-  const result = run(w, flurryTiming('f3', p.facing).duration + 2 * TICK_MS, press([0], 'attack'));
-  check('Рамиль: ладони бьют всех перед ним', result.hits.length === 16 && w.enemies.e1.hp === 984 && w.enemies.e2.hp === 984);
-  run(w, 1000);
-  p.bCombo = 1; p.bComboMs = 1200;
-  run(w, 750, press([0], 'heavy'));
-  check('Рамиль: метки от b2', p.ramil?.marks.length === 2);
-  run(w, RAMIL.MARK_MS);
-  check('Рамиль: метки истекают', !p.ramil?.marks.length && !w.enemies.e1.markedBy && !w.enemies.e2.markedBy);
-  run(w, 50, press([0], 'heavy'));
-  check('Рамиль: B сброс окна', p.move === 'b1');
-}
-{
-  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 100);
-  step(w, { h: { ...emptyInput(), attack: true, mx: -1 } });
-  check('Рамиль: стик разворачивает до поиска рывка', p.facing === -1 && p.fDashMs === 0);
-}
-for (const n of [1, 3]) {
-  const { w, p } = setup(false, 'ramil');
-  for (let i = 0; i < n; i++) ramilDummy(w, 'e' + i, 60 + i * 50);
-  const x = p.x, y = p.y; p.ult = 100;
-  const r = run(w, 1500, press([0], 'ult'));
-  check(`Рамиль: ульта ${n} целей, 8 ударов`, r.hits.length === 8 && r.hits.every(d => d === 12), r.hits.join());
-  check(`Рамиль: ульта ${n} распределение`, Array.from({ length: n }, (_, i) => 1000 - w.enemies['e' + i].hp).join() === (n === 1 ? '96' : '36,36,24'));
-  check(`Рамиль: ульта ${n} возврат`, p.x === x && p.y === y && p.ult === 0);
 }
 {
   const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'offscreen', 800); p.ult = 100;
@@ -1242,6 +1115,128 @@ for (const n of [1, 3]) {
   p.bCombo = 3; p.bComboMs = 1200;
   run(w, 500, press([0], 'heavy'));
   check('Рамиль: b4 со стороны союзника', p.x === w.enemies.e1.x + 40);
+}
+
+// TZ15: новая серия и шестиступенчатая ульта.
+for (const dx of [40, 56, 57, 120, 200, 201, 220]) {
+  const {w,p} = setup(false,'ramil'); ramilDummy(w,'e',dx);
+  const r = run(w,700,press([0],'attack'));
+  check(`TZ15 a1 ${dx}: рывок`, r.events.includes('rdash') === (dx > RAMIL.A1_REACH && dx <= RAMIL.A1_DASH_MAX), r.events.join());
+  check(`TZ15 a1 ${dx}: попадание`, w.enemies.e.hp === (dx > RAMIL.A1_DASH_MAX ? 1000 : 992));
+}
+function grabSetup() {
+  const {w,p} = setup(false,'ramil'); ramilDummy(w,'held',40);
+  p.combo = 1; p.comboMs = 1000; run(w,450,press([0],'attack'));
+  return {w,p,e:w.enemies.held};
+}
+{
+  const {w,p,e} = grabSetup();
+  check('TZ15 захват и удержание', e.held?.by === p.id && p.move === 'a2-hold' && e.hp === 996);
+  const x = e.x, hp = e.hp;
+  const ally = addPlayer(w,'ally',NADYA_ID); ally.x = e.x-30; ally.y = e.y;
+  step(w,{ally:{...emptyInput(),attack:true}}); run(w,300);
+  check('TZ15 союзник бьёт без отброса', e.hp < hp && e.x === x);
+  run(w,1600); check('TZ15 таймаут отпускает', !e.held && p.combo === 0);
+}
+{
+  const {w,p,e} = grabSetup();
+  ramilDummy(w,'attacker',-24); const a = w.enemies.attacker;
+  a.phase='windup'; a.phaseMs=1; a.atkDir=1; a.token=p.id; a.atkX=p.x; a.atkY=p.y;
+  step(w,{}); check('TZ15 урон отпускает захват', p.hp < 150 && !e.held && p.combo === 0);
+}
+for (const boss of [false,true]) {
+  const {w,p} = setup(false,'ramil');
+  if (boss) { ramilDummy(w,'e',40); w.enemies.e.boss='shaman'; }
+  p.combo=1; p.comboMs=1000; run(w,600,press([0],'attack'));
+  check('TZ15 a2 сброс '+boss, p.combo === 0 && !p.ramil?.grab && (!boss || w.enemies.e.hp === 996));
+  run(w,500,press([0],'attack')); check('TZ15 a3 без захвата недоступна '+boss, !p.move.startsWith('a3'));
+}
+{
+  const {w,p,e} = grabSetup();
+  for (let i=0;i<3;i++) ramilDummy(w,'group'+i,150+i*10);
+  ramilDummy(w,'single',-100);
+  const events: import('@bc/shared').SimEvent[] = [];
+  let landing: {x:number;y:number}|undefined;
+  for (let t=0;t<4000;t+=TICK_MS) {
+    const ev = step(w,{h:{...emptyInput(),attack:t===0}}); events.push(...ev);
+    const hit = ev.find(v=>v.t==='rland'); if(hit?.t==='rland') landing=hit;
+  }
+  check('TZ15 бросок в группу', !!landing && landing.x > p.x+120);
+  check('TZ15 приземление 3 целей', [0,1,2].every(i=>w.enemies['group'+i].hp === 986));
+  check('TZ15 захваченный 3 оборота и приземление', e.hp === 969 && !e.held && !e.thrown, String(e.hp));
+  check('TZ15 бросок сбрасывает серию', p.combo === 0 && events.some(v=>v.t==='rland'));
+}
+{
+  const {w,p,e} = grabSetup(); ramilDummy(w,'near',-50);
+  const hp = w.enemies.near.hp; const r = run(w,RAMIL.SPIN_MS + moveDurMs('ramil','a3-lift',p.facing) + 3*TICK_MS,press([0],'attack'));
+  check('TZ15 карусель три оборота', r.hits.filter(d=>d===3).length === 3 && e.hp === 987, r.hits.join() + ':' + e.hp);
+  check('TZ15 карусель бьёт другого', w.enemies.near.hp === hp-8, String(w.enemies.near.hp));
+}
+for (const full of [false,true]) {
+  const {w,p} = setup(false,'ramil'); ramilDummy(w,'e',40); p.ult=100;
+  let hits=0, finals=0, max=0;
+  for(let t=0;t<16000;t+=TICK_MS) {
+    const active=p.ramil?.ult;
+    const ev = step(w,{h:{...emptyInput(),ult:t===0,attack:full && !!active && !active.buffered}});
+    hits+=ev.filter(v=>v.t==='flurry').length; finals+=ev.filter(v=>v.t==='rfinish').length;
+    max=Math.max(max,p.ultLevel??0);
+  }
+  check('TZ15 ульта число ударов '+full,hits===(full?126:2) && finals===1,`${hits}/${finals}`);
+  check('TZ15 ульта ступени '+full,max===(full?6:1) && !p.ramil?.ult && p.ult===0);
+}
+{
+  const {w,p} = setup(false,'ramil'); ramilDummy(w,'off',800); p.ult=100; run(w,500,press([0],'ult'));
+  check('TZ15 без целей заряд сохранён',p.ult===100 && !p.ramil?.ult);
+}
+for(let level=0;level<6;level++) {
+  const {w,p}=setup(false,'ramil'); ramilDummy(w,'e',40); p.ult=100;
+  step(w,{h:{...emptyInput(),ult:true}});
+  const u=p.ramil!.ult!; u.level=level; p.move='u'+(level+1); p.ultLevel=level+1;
+  const timing=flurryTiming(p.move,1); const at:number[]=[]; let elapsed=0;
+  while(elapsed<timing.activeMs+2*TICK_MS) {
+    elapsed+=TICK_MS;
+    for(const ev of step(w,{})) if(ev.t==='flurry') at.push(elapsed);
+    if(u.window || u.finish!==undefined) break;
+  }
+  check('TZ15 тайминг со стопами '+level,at.length===timing.count && at.every((t,k)=>t>=timing.stops[k] && t-timing.stops[k]<=TICK_MS),at.join());
+  check('TZ15 длительность ступени '+level,Math.abs(elapsed-timing.activeMs)<=TICK_MS);
+  check('TZ15 поза попадания '+level,timing.stops.every((t,k)=>flurryPose('u'+(level+1),t+0.001,1).frame===timing.marks[k%timing.marks.length]));
+  if(level===0) {
+    check('TZ15 окно 800',u.window===800);
+    run(w,700); check('TZ15 окно ещё открыто',!!p.ramil?.ult && (p.ultWindow??0)>0);
+    run(w,150); check('TZ15 окно закончилось финалом',p.ramil?.ult?.finish!==undefined);
+  }
+}
+
+{
+  const {w,p}=setup(false,'ramil'); ramilDummy(w,'boss',40); w.enemies.boss.boss='shaman'; p.ult=100;
+  run(w,900,press([0],'ult'));
+  check('TZ15 ульта оглушает босса в окне', (w.enemies.boss.stunMs??0)>0 && (p.ultWindow??0)>0);
+  step(w,{h:{...emptyInput(),ult:true}});
+  check('TZ15 U в окне продолжает',p.ultLevel===2 && p.ramil?.ult?.level===1);
+}
+{
+  const {w,p}=setup(false,'ramil'); ramilDummy(w,'behind',-100); p.ult=100;
+  run(w,250,press([0],'ult'));
+  check('TZ15 ульта разворот и рывок к видимой цели сзади',p.facing===-1 && p.ult===0 && p.x<200);
+}
+
+{
+  const {w,p}=setup(false,'ramil'); ramilDummy(w,'e',40); p.combo=1; p.comboMs=1000;
+  step(w,{h:{...emptyInput(),attack:true}});
+  for(let t=0;t<1000 && p.move!=='a2-hold';t+=TICK_MS) step(w,{});
+  let elapsed=0;
+  while(w.enemies.e.held && elapsed<2000) { step(w,{}); elapsed+=TICK_MS; }
+  check('TZ15 удержание ровно 1500 ± тик',elapsed>=RAMIL.GRAB_HOLD_MS && elapsed-RAMIL.GRAB_HOLD_MS<=TICK_MS,String(elapsed));
+}
+{
+  const {w,p}=grabSetup(); ramilDummy(w,'near',60);
+  let hits=0; step(w,{h:{...emptyInput(),attack:true}});
+  for(let t=0;t<2500 && p.move!=='a3-throw';t+=TICK_MS) {
+    const e=w.enemies.near; e.x=p.x+60; e.y=p.y; e.pin=undefined;
+    hits+=step(w,{}).filter(v=>v.t==='hit' && v.target==='near' && v.dmg===8).length;
+  }
+  check('TZ15 не чаще раза на врага за оборот',hits===3,String(hits));
 }
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');

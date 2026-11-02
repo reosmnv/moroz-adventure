@@ -60,6 +60,13 @@ export class Impact {
     return this.flash ? Math.max(0, this.flash.since + IMPACT.frameMs * (this.flash.level === 2 ? 3 : 2) - now) : 0;
   }
 
+  private lastConcentration = -Infinity;
+  concentrate(x: number, y: number) {
+    if (!this.enabled || this.scene.time.now - this.lastConcentration < IMPACT.cooldownMs) return;
+    this.lastConcentration = this.scene.time.now;
+    this.lines.push({ g: this.scene.add.graphics().setDepth(IMPACT.depth + 2), since: this.scene.time.now, level: 2, x, y, color: IMPACT.outline });
+  }
+
   private clearFlash() {
     this.flash?.shade.destroy();
     for (const c of this.flash?.copies ?? []) c.copy.destroy();

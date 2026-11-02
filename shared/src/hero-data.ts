@@ -7,20 +7,27 @@ export const KRIS_ID = 'kris';
 export const RAMIL_ID = 'ramil';
 // Рамиль: стартовые числа приёмов и их постановки, для настройки mr.R.
 export const RAMIL = {
-  F_HITS: [2, 4, 8, 16], F_STEP: [160, 80, 45, 30], F_DMG: [3, 2, 2, 1], // число, интервал и урон ладоней
-  F_LAST: [{ kb: 6 }, { kb: 10, impact: 1 }, { kb: 16, impact: 1 }, { kb: 30, dmg: 6, down: true, impact: 2 }],
-  F_RANGE: 58, F_DASH_MAX: 240, F_DASH_MS: 140, F_GAP: 40, F_RECOVER: 120, F_STUN: 150, // рывок и выход
+  A1_REACH: 56, A1_DASH_MAX: 200, A1_DASH_MS: 140, A1_GAP: 38, // рывок с ногой
+  A1_RANGE: 66, A1_DMG: 8, A1_KB: 10, A1_STUN: 500,
+  A2_STEP: 16, A2_RANGE: 64, A2_DMG: 4, GRAB_HOLD_MS: 1500, // захват
+  SPIN_MS: 1200, SPIN_TURNS: 3, SPIN_R: 44, SPIN_DMG: 8, SPIN_HELD_DMG: 3, SPIN_KB: 90,
+  THROW_CLUSTER_R: 70, THROW_EMPTY: 260, THROW_MS: 450, THROW_ARC: 60,
+  THROW_AOE: 80, THROW_DMG: 14, THROW_HELD_DMG: 18, THROW_KB: 140,
   KICK_MAX: 2, KICK_RANGE: 66, KICK_DMG: 20, RETURN_RANGE: 70, // серия B
   FIRE_LEN: 120, FIRE_BAND: 30, FIRE_MS: 330, FIRE_DMG: 3,
   BURN_MS: 3000, BURN_TICK: 500, BURN_DMG: 3,
   TELE_MS: 150, TELE_GAP: 34, RETURN_GAP: 40, TELE_DMG: 5, RETURN_DMG: 6,
   MARK_MS: 6000, KICK_FLY: 300, B_COMBO_MS: 1200,
-  ULT_HITS: 8, ULT_STEP: 160, ULT_DMG: 12, ULT_REST: 400,
+  ULT_HITS: [2, 4, 8, 16, 32, 64], ULT_STEPS: [200, 140, 95, 65, 42, 28], // шесть ступеней
+  ULT_DMG: [4, 3, 2, 1, 1, 1], ULT_FINISH: [10, 10, 12, 14, 18, 30],
+  ULT_HITSTOP: [90, 60, 30, 0, 0, 0], ULT_LAST_STOP: 120, ULT_FINISH_STOP: 200,
+  ULT_WINDOW: 800, ULT_REACH: 260, ULT_RANGE: 70, ULT_STUN: 300, ULT_NUDGE: 2,
+  ULT_MAIN_KB: 300, ULT_OTHER_KB: 160, ULT_SLOWMO: 250,
   SMOKE_RATE: 20, SMOKE_LINE_MS: 1600, HEAVY_SMOKE_MS: 300,
   HAND_X: 30, HAND_Y: -52, IDLE_MIN: 4000, IDLE_MAX: 7000,
 } as const;
 export const RAMIL_SMOKE_LINES = ['Ща-ща, подождите, докурю', 'Минуту, я на перекуре', 'Не торопите', 'Ещё затяжечку', 'Сейчас-сейчас', 'Пять минут, мужики'];
-export const RAMIL_ULT_WORDS = ['РАЗ', 'ДВА', 'ТРИ', 'ЧЕТЫРЕ', 'ПЯТЬ', 'ШЕСТЬ', 'СЕМЬ', 'ВСЁ.'];
+export const RAMIL_FINISH_WORDS = ['ХВАТИТ.', 'ХВАТИТ.', 'ВСЁ.', 'ВСЁ!', 'ВОН!', 'ШЕСТЬДЕСЯТ ЧЕТЫРЕ!'];
 export const RAMIL_MOVE_NAMES = { b1: 'Телепорт', b2: 'С разворота', b3: 'Огонь', b4: 'К ним' };
 
 // Персонаж -> его стартовый набор спрайтов (у Анастасии две формы, у остальных одна)
@@ -83,7 +90,7 @@ export const AIR_MS = 900; // сколько враг летит после по
 // Анастасия: независимые серии A и B по три удара.
 // Надя: B своя серия из трёх. Kris: два взмаха и отскок, B всегда вспышка
 export const CHAIN: Record<Form, string[]> = {
-  ramil: ['f1', 'f2', 'f3', 'f4'],
+  ramil: ['a1', 'a2', 'a3'],
   prime: ['superman', 'highkick', 'teep'],
   ultimate: ['flying-knee', 'elbow', 'roundhouse'],
   nadya: ['a1', 'a2', 'a3'],
@@ -103,7 +110,8 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
     b2: { range: RAMIL.KICK_RANGE, dmg: RAMIL.KICK_DMG, kb: RAMIL.KICK_FLY, stun: 400, down: true, impact: 2, word: 'ПОКА!' },
     b3: { range: RAMIL.FIRE_LEN, dmg: RAMIL.FIRE_DMG, kb: 0, stun: 0 },
     b4: { range: 0, dmg: RAMIL.RETURN_DMG, kb: 0, stun: 0, word: 'Я ТУТ' },
-    slap: { range: 0, dmg: RAMIL.ULT_DMG, kb: 0, stun: 0 },
+    a1: { range: RAMIL.A1_RANGE, dmg: RAMIL.A1_DMG, kb: RAMIL.A1_KB, stun: RAMIL.A1_STUN, stunMs: RAMIL.A1_STUN, impact: 1, word: 'НА!' },
+    a2: { range: RAMIL.A2_RANGE, dmg: RAMIL.A2_DMG, kb: 0, stun: 0 },
   },
   prime: {
     jab: { range: 52, dmg: 5, kb: 2, stun: 250 },
@@ -197,7 +205,7 @@ export const STORM_RADIUS = Math.round(STRIKES.ultimate.hurricane.range * RANGE_
 export const SPEED_MULT: Record<Form, number> = { prime: 1, ultimate: 2.5, nadya: 1, kris: 1, ramil: 1 };
 
 export const dirOf = (facing: number): 'east' | 'west' => (facing >= 0 ? 'east' : 'west');
-export const moveAnim = (form: Form, move: string) => form === 'ramil' && /^f[1-4]$/.test(move) ? (+move[1] < 3 ? 'flurry' : 'flurry2') : form === 'prime' && move === 'slam' ? SLAM_ANIM : move;
+export const moveAnim = (form: Form, move: string) => form === 'ramil' && /^u[1-6]$/.test(move) ? (+move[1] < 3 ? 'flurry' : 'flurry2') : form === 'prime' && move === 'slam' ? SLAM_ANIM : move;
 export const animDef = (form: Form, move: string): AnimDef | undefined => HERO_ANIMS[form][moveAnim(form, move)];
 export const isLoop = (form: Form, move: string) => !!animDef(form, move)?.loop;
 
@@ -221,19 +229,26 @@ export function hitTimesMs(form: Form, move: string, facing: number): number[] {
 }
 
 // Один цикл может содержать несколько ладоней: каждому hit отведён свой шаг.
-export function flurryTiming(move: string, facing: number, def = HERO_ANIMS.ramil[moveAnim('ramil', move)]) {
+export function flurryTiming(move: string, facing: number, def = HERO_ANIMS.ramil[Number(move[1]) < 3 ? 'flurry' : 'flurry2']) {
   const level = Number(move[1]) - 1, clip = level < 2 ? 'flurry' : 'flurry2';
   const n = def[dirOf(facing)], marks = def.hits ?? [def.hit?.[dirOf(facing)] ?? 0];
-  const step = RAMIL.F_STEP[level], count = RAMIL.F_HITS[level];
+  const step = RAMIL.ULT_STEPS[level], count = RAMIL.ULT_HITS[level];
   const intro = (level === 0 || level === 2) ? moveDurMs('ramil', clip + '-in', facing) : 0;
-  const recover = moveDurMs('ramil', clip + '-out', facing) || RAMIL.F_RECOVER;
+  const recover = moveDurMs('ramil', clip + '-out', facing);
   const times = Array.from({ length: count }, (_, k) => intro + (Math.floor(k / marks.length) + marks[k % marks.length] / n) * step * marks.length);
-  return { level, clip, n, marks, step, count, intro, recover, hasOut: !!HERO_ANIMS.ramil[clip + '-out'], times, duration: intro + count * step + recover };
+  let stop = 0;
+  const stops = times.map((time, k) => { const at = time + stop; stop += k === count - 1 ? RAMIL.ULT_LAST_STOP : RAMIL.ULT_HITSTOP[level]; return at; });
+  return { level, clip, n, marks, step, count, intro, recover, stops, activeMs: intro + count * step + stop, hasOut: !!HERO_ANIMS.ramil[clip + '-out'], times, duration: intro + count * step + stop + recover };
 }
 export function flurryPose(move: string, t: number, facing: number, dashMs = 0) {
   const f = flurryTiming(move, facing);
   if (t < dashMs) return { clip: 'dash', frame: Math.floor(t * HERO_ANIMS.ramil.dash.fps / 1000) % HERO_ANIMS.ramil.dash[dirOf(facing)], active: false };
   t = Math.max(0, t - dashMs);
+  for (let k = 0; k < f.count; k++) {
+    const stop = k === f.count - 1 ? RAMIL.ULT_LAST_STOP : RAMIL.ULT_HITSTOP[f.level];
+    if (t >= f.stops[k] && t < f.stops[k] + stop) return { clip: f.clip, frame: f.marks[k % f.marks.length], active: true };
+  }
+  t -= f.stops.reduce((sum, at, k) => sum + (t >= at + (k === f.count - 1 ? RAMIL.ULT_LAST_STOP : RAMIL.ULT_HITSTOP[f.level]) ? (k === f.count - 1 ? RAMIL.ULT_LAST_STOP : RAMIL.ULT_HITSTOP[f.level]) : 0), 0);
   if (t < f.intro) return { clip: f.clip + '-in', frame: Math.floor(t * HERO_ANIMS.ramil[f.clip + '-in'].fps / 1000), active: false };
   t -= f.intro;
   if (t < f.count * f.step) return { clip: f.clip, frame: Math.floor((t % (f.step * f.marks.length)) / (f.step * f.marks.length) * f.n), active: true };

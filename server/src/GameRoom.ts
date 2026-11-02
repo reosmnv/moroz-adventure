@@ -6,6 +6,7 @@ import {
 } from '@bc/shared';
 
 export const PlayerState = schema({
+  ultLevel: t.number(), ultWindow: t.number(),
   fDashMs: t.number(), idleInput: t.boolean(), hiddenMs: t.number(), heavySmokeMs: t.number(), fireMs: t.number(),
   char: t.string(),
   x: t.number(),
@@ -30,6 +31,7 @@ export const PlayerState = schema({
 export type PlayerState = SchemaType<typeof PlayerState>;
 
 export const EnemyState = schema({
+  ultStopMs: t.number(), carryBy: t.string(), thrown: t.boolean(), carried: t.boolean(), carryAngle: t.number(), carryHeight: t.number(), carryDepth: t.number(),
   burnMs: t.number(), markedBy: t.string(),
   enterMs: t.number(), boss: t.string(), bossPhase: t.number(), atk: t.string(),
   kind: t.string(),
@@ -180,6 +182,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const p of Object.values(w.players)) {
       let ps = s.players.get(p.id);
       if (!ps) { ps = new PlayerState(); s.players.set(p.id, ps); }
+      ps.ultLevel = p.ultLevel ?? 0; ps.ultWindow = p.ultWindow ?? 0;
       ps.fDashMs = p.fDashMs ?? 0; ps.idleInput = !!p.idleInput; ps.hiddenMs = p.hiddenMs ?? 0; ps.heavySmokeMs = p.heavySmokeMs ?? 0; ps.fireMs = p.fireMs ?? 0;
       ps.char = p.char; ps.x = round(p.x); ps.y = round(p.y); ps.hp = p.hp; ps.facing = p.facing;
       ps.anim = p.anim; ps.ult = Math.floor(p.ult);
@@ -190,6 +193,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
+      es.ultStopMs = e.ultStopMs ?? 0; es.carryBy = e.held?.by ?? e.thrown?.by ?? ''; es.thrown = !!e.thrown; es.carried = !!(e.held || e.thrown); es.carryAngle = e.carryAngle ?? 0; es.carryHeight = e.carryHeight ?? 0; es.carryDepth = e.carryDepth ?? 0;
       es.burnMs = e.burnMs ?? 0; es.markedBy = e.markedBy ?? '';
       es.enterMs = e.enterMs ?? 0;
       es.boss = e.boss ?? ''; es.bossPhase = e.bossPhase ?? 0; es.atk = e.atk ?? '';

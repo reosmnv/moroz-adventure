@@ -5,7 +5,7 @@ import json, sys
 from pathlib import Path
 from PIL import Image, ImageOps
 sys.path.insert(0, str(Path(__file__).parent))
-from sprites import CELL, FEET_Y, anchor
+from sprites import CELL, FEET_Y, anchor, despeckle
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW, OD = ROOT / 'assets/pixellab/ramil', ROOT / 'assets/sprites/ramil'
@@ -22,6 +22,13 @@ CFG = {
     'getup':     ('getup-s1', None, 10, False, None),
     # серия A переделана 02.11 (mr.R: стебли/пинок/огонь неудачны): рывок + 2/4/8/16 ударов руками, анимация одна, петлёй
     # mr.R 02.11: f1-f2 «рука в кармане, ладонь» (концепт 4), f3-f4 «стойка Неджи, ладони обеими» (концепт 2)
+    # серия A с нуля (mr.R 02.11 вечер): рывок+нога, захват за ноги, карусель и бросок (позы tools/specs/ramil-grab-keys.json, полосы ramil-grab-anim.json)
+    'a1':        ([('a1-in-s1', [1, 2, 3, 4]), ('a1-out-s1', [0, 1, 2, 3])], None, STRIKE_FPS, False, 3),  # подсед, колено, нога (3), держит (4), возврат
+    'a2':        ('a2-v2-s4', [1, 2, 3, 4], STRIKE_FPS, False, 2),      # присед, руки вперёд-вниз, хват (2); первые a2-s1/s2 дали удар ногой
+    'a2-hold':   ('a2-hold-s1', [0, 1, 2, 3], 8, True, None),         # присед, держит за ноги, покачивается
+    'a3-lift':   ('a3-lift-s1', [1, 2, 3], STRIKE_FPS, False, None),   # встаёт, подтягивает к груди
+    'a3-spin':   ('a3-spin-s1', list(range(8)), 16, True, None),       # полный оборот: бок, спина, другой бок, лицо
+    'a3-throw':  ([('a3-throw-s1', [1, 2, 3, 4]), ('a3-throw-out-s1', [1, 2, 3, 5, 7])], None, STRIKE_FPS, False, 2),  # отпускание (2), нога назад, возврат в карманы
     'flurry-in': ('fl-in-s2', [2, 3, 4], STRIKE_FPS, False, None),       # рука выходит из кармана к ладони наготове
     'flurry':    ('fl-loop-s3', [1, 2, 3, 4, 5], STRIKE_FPS, False, 2),  # цикл: 2 смаз, 3 ладонь-копьё (hit), 5 назад; играется петлёй в темпе шага
     'flurry-out': ('fl-out-s1', [1, 3, 4], STRIKE_FPS, False, None),     # рука обратно в карман (2: лишний выпад)
@@ -69,20 +76,24 @@ def main():
     OD.mkdir(parents=True, exist_ok=True); (OD / 'gif').mkdir(exist_ok=True)
     manifest, tips, fists = {}, {}, {}
     for name, (src, keep, fps, loop, hit) in CFG.items():
-        p = RAW / f'{src}.png'
-        if not p.exists():
+        # src: имя полосы или список кусков [(полоса, кадры), ...], склеиваются по порядку (вход в удар + выход)
+        parts = src if isinstance(src, list) else [(src, keep)]
+        if any(not (RAW / f'{ps}.png').exists() for ps, _ in parts):
             print('нет', src); continue
-        s = Image.open(p).convert('RGBA'); c = s.height; n = s.width // c  # стойки idle-c/d сделаны на холсте 64
-        cells = []
-        for i in range(n):
-            g = Image.new('RGBA', (CELL, CELL)); g.paste(s.crop((i * c, 0, (i + 1) * c, c)), ((CELL - c) // 2, CELL - c)); cells.append(g)
-        keep = keep if keep is not None else list(range(n - 1))
-        ax, ay = anchor([cells[0]])  # опора по первому кадру (стойка): весь клип сдвигается одинаково
-        if name.startswith('flurry'):  # клипы серии A стыкуются друг с другом: опора одна, по исходной стойке (иначе широкая стойка Неджи прыгает на 5 px)
-            ax, ay = anchor([Image.open(ROOT / 'assets/gen/hero4/ramil-base128.png').convert('RGBA')])
+        base_anchor = name.startswith(('flurry', 'a1', 'a2', 'a3')) or isinstance(src, list)
         fr = []
-        for i in keep:
-            g = Image.new('RGBA', (CELL, CELL)); g.paste(cells[i], (CELL // 2 - ax, FEET_Y - ay), cells[i]); fr.append(g)
+        for ps, pk in parts:
+            s = Image.open(RAW / f'{ps}.png').convert('RGBA'); c = s.height; n = s.width // c  # стойки idle-c/d сделаны на холсте 64
+            cells = []
+            for i in range(n):
+                g = Image.new('RGBA', (CELL, CELL)); g.paste(s.crop((i * c, 0, (i + 1) * c, c)), ((CELL - c) // 2, CELL - c)); cells.append(g)
+            pk = pk if pk is not None else list(range(n - 1))
+            ax, ay = anchor([cells[0]])  # опора по первому кадру (стойка): весь клип сдвигается одинаково
+            if base_anchor:  # клипы, стыкующиеся друг с другом (от одного холста base128): опора одна, по исходной стойке, иначе широкие позы прыгают
+                ax, ay = anchor([Image.open(ROOT / 'assets/gen/hero4/ramil-base128.png').convert('RGBA')])
+            for i in pk:
+                g = Image.new('RGBA', (CELL, CELL)); g.paste(cells[i], (CELL // 2 - ax, FEET_Y - ay), cells[i])
+                fr.append(despeckle(g) if name.startswith(('a1', 'a2', 'a3')) else g)
         tips[name] = [list(t) if (t := tip(f)) else None for f in fr]
         if name in FIST_ANIMS: fists[name] = [list(fist(f)) for f in fr]
         for d in ('east', 'west'):

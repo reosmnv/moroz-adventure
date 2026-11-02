@@ -77,6 +77,7 @@ export class UIScene extends Phaser.Scene {
   private pips!: Phaser.GameObjects.Graphics;
   private hitText!: Phaser.GameObjects.Text;
   private shownHits = 0;
+  private ultNext!: Phaser.GameObjects.Text;
   private bHint!: Phaser.GameObjects.Text;
   private waveText!: Phaser.GameObjects.Text;
   private panels: Panel[] = [];
@@ -122,6 +123,7 @@ export class UIScene extends Phaser.Scene {
     const u = this.btns.get('ult')!;
     this.ultPulse = this.tweens.add({ targets: [u.base, u.icon], scale: { from: BTN_SCALE, to: BTN_SCALE * ULT_PULSE_SCALE }, duration: ULT_PULSE_MS, yoyo: true, repeat: -1, paused: true });
     this.pips = this.add.graphics();
+    this.ultNext = this.add.text(0, 0, '', textStyle()).setOrigin(0.5, 1).setScrollFactor(0).setDepth(5001).setFontSize(14);
     this.bHint = this.add.text(0, 0, '', textStyle()).setOrigin(1, 0.5);
 
     this.children.list.forEach(o => { if ('setScrollFactor' in o) (o as Phaser.GameObjects.Image).setScrollFactor(0); });
@@ -370,7 +372,9 @@ export class UIScene extends Phaser.Scene {
     const u = this.btns.get('ult')!;
     const ultimate = me?.form === 'ultimate';
     const charge = ultimate ? (me?.formMs ?? 0) / ULT_MS : (me?.ult ?? 0) / 100;
-    const ready = !!me && !ultimate && charge >= 1;
+    const ramilUlt = me?.char === RAMIL_ID && (me.ultLevel ?? 0) > 0;
+    const ready = !!me && !ultimate && (charge >= 1 || ramilUlt);
+    this.ultNext.setPosition(u.base.x, u.base.y - 25).setText(ramilUlt && me!.ultLevel! < 6 ? '×' + [2,4,8,16,32,64][me!.ultLevel!] : '');
     u.base.setAlpha(ready || ultimate ? 1 : 0.5);
     u.icon.setAlpha(ready || ultimate ? 1 : 0.5);
     if (ready && this.ultPulse.isPaused()) this.ultPulse.restart(); // с начала, без рывка масштаба
@@ -382,6 +386,8 @@ export class UIScene extends Phaser.Scene {
       this.ultRing.lineStyle(RING_LINE, ultimate ? ULTIMATE_COLOR : ready ? CREAM : color)
         .beginPath().arc(u.base.x, u.base.y, RING_RADIUS, start, start + Math.PI * 2 * Math.min(1, charge)).strokePath();
     }
+
+    if (ramilUlt && (me?.ultWindow ?? 0) > 0) this.ultRing.fillStyle(CREAM).fillRect(u.base.x - 20, u.base.y - 28, 40 * me!.ultWindow! / 800, 3);
 
     // Буря: тусклая без полного заряда (шкала общая с U), во время бури кольцо показывает остаток.
     // У Kris на этой кнопке шар: своя шкала копится от попаданий вспышкой

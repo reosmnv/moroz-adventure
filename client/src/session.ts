@@ -7,6 +7,7 @@ import {
 } from '@bc/shared';
 
 export interface EntitySnap {
+  ultStopMs?: number; carryBy?: string; thrown?: boolean; carried?: boolean; ultLevel?: number; ultWindow?: number; carryAngle?: number; carryHeight?: number; carryDepth?: number;
   x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean; air?: number; height?: number; frozen?: boolean; storm?: number;
   fDashMs?: number; idleInput?: boolean; hiddenMs?: number; heavySmokeMs?: number; fireMs?: number; burnMs?: number; markedBy?: string;
   form?: Form; move?: string; moveT?: number; formMs?: number; combo?: number; hitCount?: number; bCombo?: number; charge2?: number; invuln?: boolean;
@@ -79,7 +80,7 @@ export class LocalSession implements GameSession {
     const players = new Map<string, EntitySnap>();
     for (const p of Object.values(this.world.players)) players.set(p.id, { ...p, storm: p.stormMs, invuln: p.invulnMs > 0 });
     const enemies = new Map<string, EntitySnap>();
-    for (const e of Object.values(this.world.enemies)) enemies.set(e.id, { ...e, kind: e.boss ?? e.kind, frozen: (e.frozenMs ?? 0) > 0, slow: (e.slowMs ?? 0) > 0, stun: (e.stunMs ?? 0) > 0, charm: (e.charmMs ?? 0) > 0 });
+    for (const e of Object.values(this.world.enemies)) enemies.set(e.id, { ...e, carryBy: e.held?.by ?? e.thrown?.by ?? '', thrown: !!e.thrown, carried: !!(e.held || e.thrown), kind: e.boss ?? e.kind, frozen: (e.frozenMs ?? 0) > 0, slow: (e.slowMs ?? 0) > 0, stun: (e.stunMs ?? 0) > 0, charm: (e.charmMs ?? 0) > 0 });
     pushSnap(this.snapshots, { pauseMs: this.world.pauseMs ?? 0, slowmoMs: this.world.slowmoMs ?? 0, halt: this.world.halt, cineId: this.world.cine?.id ?? '', cineKind: this.world.cine?.kind ?? '', cineMs: this.world.cine?.ms ?? 0, shots: this.world.shots.map(s => ({ ...s })), zones: this.world.zones.map(z => ({ ...z })), t: performance.now(), players, enemies, lockX0: this.world.enc.lock?.[0] ?? -1, lockX1: this.world.enc.lock?.[1] ?? -1, encDone: this.world.enc.cleared, encTotal: encountersOf(this.world).length, won: this.world.won, level: this.world.level, stage: this.world.stage, trans: this.world.trans?.ms ?? 0, wave: this.world.wave, tick: this.world.tick });
     if (evs.length) this.onEvents(evs);
   }
@@ -160,9 +161,9 @@ export class OnlineSession implements GameSession {
     room.onStateChange((state: any) => {
       this.intro = state.intro;
       const players = new Map<string, EntitySnap>();
-      state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, fDashMs: p.fDashMs, idleInput: p.idleInput, hiddenMs: p.hiddenMs, heavySmokeMs: p.heavySmokeMs, fireMs: p.fireMs, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
+      state.players.forEach((p: any, id: string) => players.set(id, { ultLevel: p.ultLevel, ultWindow: p.ultWindow, x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, fDashMs: p.fDashMs, idleInput: p.idleInput, hiddenMs: p.hiddenMs, heavySmokeMs: p.heavySmokeMs, fireMs: p.fireMs, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
-      state.enemies.forEach((e: any, id: string) => enemies.set(id, { burnMs: e.burnMs, markedBy: e.markedBy, enterMs: e.enterMs, boss: e.boss, bossPhase: e.bossPhase, atk: e.atk, kind: e.kind, phase: e.phase, x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
+      state.enemies.forEach((e: any, id: string) => enemies.set(id, { ultStopMs: e.ultStopMs, carryBy: e.carryBy, thrown: e.thrown, carried: e.carried, carryAngle: e.carryAngle, carryHeight: e.carryHeight, carryDepth: e.carryDepth, burnMs: e.burnMs, markedBy: e.markedBy, enterMs: e.enterMs, boss: e.boss, bossPhase: e.bossPhase, atk: e.atk, kind: e.kind, phase: e.phase, x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
       pushSnap(this.snapshots, { pauseMs: state.pauseMs, slowmoMs: state.slowmoMs, halt: state.halt, cineId: state.cineId, cineKind: state.cineKind, cineMs: state.cineMs, shots: Array.from(state.shots, (s: any) => ({ x: s.x, y: s.y, dir: s.dir })), zones: Array.from(state.zones, (z: any) => ({ x: z.x, y: z.y, r: z.r, ms: z.ms })), t: performance.now(), players, enemies, lockX0: state.lockX0, lockX1: state.lockX1, encDone: state.encDone, encTotal: state.encTotal, won: state.won, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;

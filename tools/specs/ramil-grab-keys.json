@@ -1,0 +1,134 @@
+[
+ {
+  "name": "kp-kick-1",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: powerful straight side kick to the right: body leaning back, rear leg planted, front leg fully extended horizontally at stomach height with the white sneaker sole forward, arms bent for balance, determined bored face.",
+   "no_background": true,
+   "seed": 1
+  }
+ },
+ {
+  "name": "kp-kick-2",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: powerful straight side kick to the right: body leaning back, rear leg planted, front leg fully extended horizontally at stomach height with the white sneaker sole forward, arms bent for balance, determined bored face.",
+   "no_background": true,
+   "seed": 2
+  }
+ },
+ {
+  "name": "kp-kick-3",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: powerful straight side kick to the right: body leaning back, rear leg planted, front leg fully extended horizontally at stomach height with the white sneaker sole forward, arms bent for balance, determined bored face.",
+   "no_background": true,
+   "seed": 3
+  }
+ },
+ {
+  "name": "kp-grab-1",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: crouched low in a wide stance, leaning back, both arms reaching forward and down to knee height with fists clenched as if gripping two ankles, pulling hard.",
+   "no_background": true,
+   "seed": 1
+  }
+ },
+ {
+  "name": "kp-grab-2",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: crouched low in a wide stance, leaning back, both arms reaching forward and down to knee height with fists clenched as if gripping two ankles, pulling hard.",
+   "no_background": true,
+   "seed": 2
+  }
+ },
+ {
+  "name": "kp-grab-3",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: crouched low in a wide stance, leaning back, both arms reaching forward and down to knee height with fists clenched as if gripping two ankles, pulling hard.",
+   "no_background": true,
+   "seed": 3
+  }
+ },
+ {
+  "name": "kp-swing-1",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: wide strong stance leaning back, both arms extended straight forward at chest height, fists clenched together as if holding a very heavy weight by a handle and about to swing it around.",
+   "no_background": true,
+   "seed": 1
+  }
+ },
+ {
+  "name": "kp-swing-2",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: wide strong stance leaning back, both arms extended straight forward at chest height, fists clenched together as if holding a very heavy weight by a handle and about to swing it around.",
+   "no_background": true,
+   "seed": 2
+  }
+ },
+ {
+  "name": "kp-swing-3",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: wide strong stance leaning back, both arms extended straight forward at chest height, fists clenched together as if holding a very heavy weight by a handle and about to swing it around.",
+   "no_background": true,
+   "seed": 3
+  }
+ },
+ {
+  "name": "kp-throw-1",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: follow-through after a big throw: both arms flung forward and up to the right, open hands, body leaning forward, rear leg lifted behind him, cigarette in mouth.",
+   "no_background": true,
+   "seed": 1
+  }
+ },
+ {
+  "name": "kp-throw-2",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: follow-through after a big throw: both arms flung forward and up to the right, open hands, body leaning forward, rear leg lifted behind him, cigarette in mouth.",
+   "no_background": true,
+   "seed": 2
+  }
+ },
+ {
+  "name": "kp-throw-3",
+  "tool": "edit_image_pro_flash",
+  "args": {
+   "image_base64": "@assets/gen/hero4/ramil-base128.png",
+   "method": "text",
+   "description": "Keep this exact character, same pixel art style, same outline, same colours, same size and proportions, same head and face, cigarette in the mouth, strict side profile facing right, never turn to the camera, feet on the same ground line. No effects, no other characters, nothing in his hands. New pose: follow-through after a big throw: both arms flung forward and up to the right, open hands, body leaning forward, rear leg lifted behind him, cigarette in mouth.",
+   "no_background": true,
+   "seed": 3
+  }
+ }
+]

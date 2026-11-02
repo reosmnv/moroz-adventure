@@ -1,0 +1,47 @@
+[
+ {
+  "name": "a2-v2-s3",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing relaxed, hands in pockets, facing right",
+   "description": "bends the knees and squats down low, both hands come out of the pockets and reach forward and down to knee height, gripping. Both feet stay on the ground, no kicking. Strict side profile facing right.",
+   "frame_count": 4,
+   "seed": 3
+  }
+ },
+ {
+  "name": "a2-v2-s4",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing relaxed, hands in pockets, facing right",
+   "description": "bends the knees and squats down low, both hands come out of the pockets and reach forward and down to knee height, gripping. Both feet stay on the ground, no kicking. Strict side profile facing right.",
+   "frame_count": 4,
+   "seed": 4
+  }
+ },
+ {
+  "name": "a2-v2-s5",
+  "tool": "animate_image_pixminimax",
+  "args": {
+   "first_frame_base64": "@assets/gen/hero4/ramil-base128.png",
+   "last_frame_base64": "@assets/gen/hero4/grab/kp-grab-3.png",
+   "view": "side",
+   "direction": "east",
+   "subject_description": "bearded man with big wavy dark hair and glasses, Aztec-pattern bomber jacket, grey t-shirt, very wide baggy dark-blue jeans, white sneakers, cigarette in mouth",
+   "initial_pose": "standing relaxed, hands in pockets, facing right",
+   "description": "bends the knees and squats down low, both hands come out of the pockets and reach forward and down to knee height, gripping. Both feet stay on the ground, no kicking. Strict side profile facing right.",
+   "frame_count": 4,
+   "seed": 5
+  }
+ }
+]

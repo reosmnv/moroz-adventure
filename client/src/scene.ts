@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import { Impact } from './impact.ts';
 import { BossShow } from './boss-show.ts';
-import { flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, moveDurMs, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { RAMIL_TIPS, RAMIL_FISTS } from './ramil-tips.ts';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
@@ -30,7 +30,7 @@ const ENEMY_LOOK: Record<string, [number, number, number]> = {
 const ICE = 0x66b8ff; // цвет замороженного врага
 
 interface Storm { zone: Phaser.GameObjects.Ellipse; flakes: Phaser.GameObjects.Rectangle[]; seed: number[] }
-interface View { ghosts?: Phaser.GameObjects.Image[]; history?: { texture: string; frame: number; at: number }[]; flame?: Phaser.GameObjects.Graphics; trigram?: Phaser.GameObjects.Image; trigramAt?: number; trigramEnd?: number; ramilFx?: Map<string, Phaser.GameObjects.Image>; warmAt?: number; warmSince?: number; ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
+interface View { flashUntil?: number; ghosts?: Phaser.GameObjects.Image[]; history?: { texture: string; frame: number; at: number }[]; trigram?: Phaser.GameObjects.Image; trigramAt?: number; trigramEnd?: number; ramilFx?: Map<string, Phaser.GameObjects.Image>; warmAt?: number; warmSince?: number; ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
@@ -130,7 +130,7 @@ export class GameScene extends Phaser.Scene {
 
   // Комиксное слово над попаданием: «ШЛЁП!», «БАМ!»
   private word(x: number, y: number, text: string, color: string) {
-    const t = this.add.text(x, y, text, { ...textStyle(text === 'ПОКА!' || text === 'ВСЁ.' || text === '16 УДАРОВ!' ? 21 : 16, color), strokeThickness: 4 }).setOrigin(0.5).setDepth(1550).setAngle(-8).setScale(0.4);
+    const t = this.add.text(x, y, text, { ...textStyle(/^(2|4|8|16|32|64) УДАР/.test(text) ? 16 + [2,4,8,16,32,64].indexOf(parseInt(text)) * 2 : text === 'ПОКА!' || text === 'ВСЁ.' || text === '16 УДАРОВ!' ? 21 : 16, color), strokeThickness: 4 }).setOrigin(0.5).setDepth(1550).setAngle(-8).setScale(0.4);
     this.tweens.add({ targets: t, scale: 1, duration: 120, ease: 'Back.easeOut' });
     this.tweens.add({ targets: t, y: y - 12, alpha: 0, delay: 350, duration: 300, onComplete: () => t.destroy() });
   }
@@ -219,23 +219,31 @@ export class GameScene extends Phaser.Scene {
           this.tweens.add({ targets: smoke, alpha: 0, duration: 250, onComplete: () => smoke.destroy() });
         });
       }
+      if (e.t === 'rstage') { this.word(e.x, e.y - 100, ['2 УДАРА!', '4 УДАРА!', '8 УДАРОВ!', '16 УДАРОВ!', '32 УДАРА!', '64 УДАРА!'][e.level], ['#ffffff','#ffedcf','#ffcc8c','#ff993c','#ff6630','#ff3030'][e.level]);
+      }
       if (e.t === 'flurry') {
-        if (e.k === 0) this.word(e.x, e.y - 100, ['2 УДАРА!', '4 УДАРА!', '8 УДАРОВ!', '16 УДАРОВ!'][e.level], '#ff8c3c');
-        if (e.level >= 2 && e.k === RAMIL.F_HITS[e.level] - 1) this.cameras.main.shake(90, 0.003);
+        this.cameras.main.shake(e.level < 2 ? 65 : e.level < 4 ? 80 : 120, e.level < 2 ? 0.005 : 0.002 + e.level * 0.0005);
         const v = this.views.get('p:' + e.id), sprite = v?.sprite;
         const snap = this.session.snapshots.at(-1)?.players.get(e.id);
         if (sprite && snap) {
           const clip = e.level < 2 ? 'flurry' : 'flurry2';
-          const timing = flurryTiming('f' + (e.level + 1), snap.facing);
-          const hitFrame = flurryPose('f' + (e.level + 1), timing.times[e.k] + 0.001, snap.facing).frame;
+          const timing = flurryTiming('u' + (e.level + 1), snap.facing);
+          const hitFrame = flurryPose('u' + (e.level + 1), timing.stops[e.k] + 0.001, snap.facing).frame;
           const point = RAMIL_FISTS[clip]?.[hitFrame] ?? [90, 76];
           const x = e.x + ((snap.facing < 0 ? 127 - point[0] : point[0]) - 64) * SCALE, y = e.y + (point[1] - FEET_Y) * SCALE;
           for (let i = 0; i < 3; i++) {
             const spark = this.add.rectangle(x, y, 2, 2, i ? 0xff8c3c : 0xffefaa).setDepth(e.y + 1);
             this.tweens.add({ targets: spark, x: x + snap.facing * (10 + i * 5), y: y - 12 + i * 10, alpha: 0, duration: 180, onComplete: () => spark.destroy() });
           }
-          if (e.level === 3 && e.k === 15) this.fx('ramil-crit', x, y);
+          this.fx('ramil-hit', x, y);
+          if (e.level >= 4) this.impact.concentrate(x, y);
         }
+      }
+      if (e.t === 'rland' || e.t === 'rfinish') {
+        this.fx('ramil-crit', e.x, e.y - 30); this.fx('ramil-ring', e.x, e.y);
+        if (e.t === 'rfinish') this.word(e.x, e.y - 95, e.line, '#ff5a50');
+        if (e.t === 'rland') this.fx('ramil-dust', e.x, e.y);
+        this.cameras.main.shake(200, 0.009);
       }
       if (e.t === 'tele' && 'fromX' in e) {
         const v = this.views.get('p:' + e.id);
@@ -245,7 +253,7 @@ export class GameScene extends Phaser.Scene {
           this.time.delayedCall(17, () => silhouette.destroy());
         }
         this.fx('ramil-poof', e.fromX, e.fromY - 35);
-        const ms = this.session.snapshots.at(-1)?.players.get(e.id)?.move === 'slap' ? 0 : RAMIL.TELE_MS;
+        const ms = RAMIL.TELE_MS;
         this.time.delayedCall(ms, () => { this.fx('ramil-poof', e.toX, e.toY - 35); this.fx('ramil-dust', e.toX, e.toY, { depth: e.toY + 0.1 }); });
       }
       if (e.t === 'victory') void showFinale(() => this.replay());
@@ -267,6 +275,10 @@ export class GameScene extends Phaser.Scene {
         if (this.locationKey === 'old:0') this.cameras.main.fadeIn(350);
       } else if (e.t === 'hit') {
         const by = this.charOf(e.by);
+        if (e.flurry) {
+          const v = this.views.get('e:' + e.target);
+          if (v) v.flashUntil = this.time.now + 40;
+        }
         const delay = (e.kill || e.impact) && this.views.has('e:' + e.target)
           ? this.impact.play(e.kill ? 2 : e.impact!, this.views.get('p:' + e.by)?.sprite, this.views.get('e:' + e.target)?.sprite, e.x, e.y,
             CHARACTERS.find(c => c.id === by)?.color) : 0;
@@ -282,7 +294,7 @@ export class GameScene extends Phaser.Scene {
           // Искры по герою: розовые у Нади, салатовые у Kris
           if (by === NADYA_ID) e.word === 'ШЛЁП!' ? this.fx('nadya-slap', e.x, e.y - 50, { frames: 10 }) : this.fx('nadya-hit', e.x, e.y - 45);
           if (by === RAMIL_ID) {
-            if (!e.tick && (!e.flurry || e.flurry.level === 3 || e.flurry.level === 2 && e.flurry.k % 2 === 1)) {
+            if (!e.tick && !e.flurry) {
               this.fx('ramil-hit', e.x, e.y - 45);
               if (!e.flurry) this.cameras.main.shake(e.impact === 2 ? 150 : 60, 0.003);
             }
@@ -295,7 +307,7 @@ export class GameScene extends Phaser.Scene {
           }
           if (by === KRIS_ID) this.fx('kris-hit', e.x, e.y - 45);
           if (e.word === 'БУМ!') this.fx('kris-ring', e.x, e.y, { depth: e.y - 0.3 });
-          if (e.word) this.word(e.x, e.y - 95, e.word, by === RAMIL_ID ? e.word === 'ПЫХ!' ? '#ff8c3c' : e.word === 'ПОКА!' || e.word === 'ВСЁ.' ? '#ff5a50' : '#e8743b' : by === KRIS_ID ? '#c8ff6a' : by === NADYA_ID ? '#ff8fc4' : '#9d74d4');
+          if (e.word) this.word(e.x, e.y - 95, e.word, by === RAMIL_ID ? e.word === 'ОПА!' ? '#ffd36b' : e.word === 'СТРАЙК!' ? '#ff5a50' : e.word === 'ПЫХ!' ? '#ff8c3c' : e.word === 'ПОКА!' || e.word === 'ВСЁ.' ? '#ff5a50' : '#e8743b' : by === KRIS_ID ? '#c8ff6a' : by === NADYA_ID ? '#ff8fc4' : '#9d74d4');
         };
         if (delay) this.time.delayedCall(delay, showText); else showText();
         if (by !== RAMIL_ID && e.target.startsWith('e') && e.dmg >= 18) this.cameras.main.shake(90, 0.004); // сильный удар встряхивает кадр
@@ -307,6 +319,7 @@ export class GameScene extends Phaser.Scene {
           this.tweens.add({ targets: t, y: t.y - 18, alpha: 0, duration: 600, onComplete: () => t.destroy() });
         }
       } else if (e.t === 'taunt') {
+        const showBubble = () => {
         const v = this.views.get('p:' + e.id) ?? this.views.get('e:' + e.id);
         if (v) {
           v.bubble?.destroy();
@@ -315,6 +328,8 @@ export class GameScene extends Phaser.Scene {
           this.time.delayedCall(2000, () => { b.destroy(); if (v.bubble === b) v.bubble = undefined; });
         }
         beep(880, 0.08);
+        };
+        if (e.line === 'ЛОВИ!') this.time.delayedCall(INTERP_MS, showBubble); else showBubble();
       } else if (e.t === 'ult') {
         const v = this.views.get('p:' + e.id);
         if (v) {
@@ -557,47 +572,37 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
-    const pose = form === 'ramil' && /^f[1-4]$/.test(action) ? flurryPose(action, Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS + lead), sb.facing, sb.fDashMs) : undefined;
+    const pose = form === 'ramil' && /^u[1-6]$/.test(action) ? flurryPose(action, Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS + lead), sb.facing, sb.fDashMs) : undefined;
     if (pose) move = pose.clip;
+    if (action === 'a3-spin') move = 'a3-spin';
     const def = HERO_ANIMS[form][move];
     const n = def[dir];
     const t = warmT ?? Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS + lead);
     const raw = Math.floor((t * def.fps * moveSpeed(form, action)) / 1000);
-    const frame = pose ? pose.frame : def.loop ? raw % n : Math.min(n - 1, raw);
+    const frame = action === 'a3-spin' ? t >= RAMIL.SPIN_MS - TICK_MS ? 0 : Math.floor((t % (RAMIL.SPIN_MS / RAMIL.SPIN_TURNS)) / (RAMIL.SPIN_MS / RAMIL.SPIN_TURNS) * n) : pose ? Math.min(n - 1, pose.frame) : def.loop ? raw % n : Math.min(n - 1, raw);
     const sprite = v.sprite!;
     const lift = form === 'kris' && action === 'hop' ? Math.sin(Math.PI * Math.min(1, t / HOP_MS)) * HOP_HEIGHT : 0;
     sprite.setTexture(`${form}/${move}-${dir}`, frame).setPosition(x, y - lift).setDepth(y);
     // Неуязвимость после удара мигает; во время превращения не мигает, там своя анимация
-    const blink = sb.invuln && form !== 'ultimate' && !/^(transform|ult|b3)/.test(move) && move !== 'hop' && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
+    const blink = sb.invuln && form !== 'ultimate' && !sb.ultLevel && !action.startsWith('a3-') && !/^(transform|ult|b3)/.test(move) && move !== 'hop' && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
     sprite.setVisible(!(sb.hiddenMs && sb.hiddenMs > 0));
     sprite.setAlpha(away ? 0.35 : blink ? 0.45 : 1);
     if (form === 'ramil') {
       const level = pose ? Number(action[1]) - 1 : -1;
       v.ghosts ??= []; v.history ??= [];
       const dashGhosts = pose?.clip === 'dash';
-      const ghostCount = dashGhosts ? 2 : pose?.active ? level : 0;
+      const ghostCount = dashGhosts ? 2 : pose?.active ? Math.max(0, level - 1) : 0;
       if (ghostCount > 0) {
         if (!v.history.length || this.time.now - v.history[0].at >= 20) v.history.unshift({ texture: sprite.texture.key, frame, at: this.time.now });
-        v.history.length = Math.min(v.history.length, 4);
+        v.history.length = Math.min(v.history.length, 5);
       } else v.history = [];
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
         if (!v.ghosts[i]) v.ghosts[i] = this.add.image(0, 0, sprite.texture.key).setOrigin(0.5, FEET_Y / CELL).setScale(SCALE).setTint(0xff8c3c);
         const old = v.history[i + 1];
         v.ghosts[i].setVisible(!!old && i < ghostCount && sprite.visible);
-        if (old) v.ghosts[i].setTexture(old.texture, old.frame).setPosition(x + sb.facing * (4 + i * 2), y).setDepth(y - 0.01).setAlpha(0.5 - i * 0.175);
+        if (old) v.ghosts[i].setTexture(old.texture, old.frame).setPosition(x + sb.facing * (4 + i * 2), y).setDepth(y - 0.01).setAlpha(0.5 - i * 0.1);
       }
-      const fist = RAMIL_FISTS[move]?.[frame];
-      const gx = x + ((dir === 'west' ? 127 - (fist?.[0] ?? 64) : fist?.[0] ?? 64) - 64) * SCALE;
-      const gy = y + ((fist?.[1] ?? FEET_Y) - FEET_Y) * SCALE;
-      v.flame ??= this.add.graphics(); v.flame.clear().setDepth(y + 0.3);
-      if (pose?.active && level >= 2 && fist && sprite.visible) {
-        const radius = [0, 3, 6, 9][level] * (level === 3 ? 1 + 0.15 * Math.sin(this.time.now / 20) : 1);
-        v.flame.fillStyle(0xff5b16, 0.65).fillEllipse(gx, gy - radius, radius * 2, radius * 4);
-        v.flame.fillStyle(0xffe69a, 0.9).fillEllipse(gx, gy, radius, radius * 2);
-        if (level >= 2) { v.flame.lineStyle(level, 0xff8c3c, 0.6).lineBetween(gx - sb.facing * radius * 4, gy + 3, gx, gy); }
-        if (level === 3) for (let i = 0; i < 3; i++) v.flame.lineStyle(1, 0xffd67a, 0.7).lineBetween(gx, gy - 12 + i * 10, gx + sb.facing * 35, gy - 12 + i * 10);
-      }
-      const ringOn = level >= 2 && sprite.visible;
+      const ringOn = (sb.ultLevel ?? 0) > 0 && sprite.visible;
       if (ringOn) {
         if (!v.trigram) {
           v.trigram = this.add.image(x, y, 'fx-ramil-trigram'); v.trigramAt = this.time.now;
@@ -606,7 +611,7 @@ export class GameScene extends Phaser.Scene {
         }
         v.trigramEnd = undefined;
         const def = VFX['ramil-trigram'];
-        v.trigram.setPosition(x, y).setDepth(0).setScale(SCALE * Math.min(1, 0.3 + (this.time.now - v.trigramAt!) / 150 * 0.7)).setAlpha(level === 3 ? 1 : 0.8).setFrame(Math.floor(this.time.now * def.fps * (level === 3 ? 2 : 1) / 1000) % def.n);
+        v.trigram.setPosition(x, y).setDepth(0).setScale(SCALE * Math.min(1, 0.3 + (this.time.now - v.trigramAt!) / 150 * 0.7)).setAlpha(level === 5 ? 0.8 + Math.sin(this.time.now / 45) * 0.2 : 0.4 + (level + 1) * 0.1).setTint(level === 5 ? 0xff3030 : 0xffffff).setFrame(Math.floor(this.time.now * def.fps * (1 + (level + 1) * 0.35) / 1000) % def.n);
       } else if (v.trigram) {
         v.trigramEnd ??= this.time.now;
         v.trigram.setAlpha(Math.max(0, 0.8 * (1 - (this.time.now - v.trigramEnd) / 250)));
@@ -742,7 +747,7 @@ export class GameScene extends Phaser.Scene {
         const kind = sb.boss || sb.kind || 'omon';
         const clips = ENEMY_ANIMS[kind]!;
         const casting = !!sb.boss && !!sb.atk && BOSS_ATTACK[sb.atk]?.kind !== 'melee' && (sb.phase === 'windup' || sb.phase === 'active' || sb.phase === 'recover');
-        let clip = sb.anim === 'enter' || sb.anim === 'run' ? 'walk' : sb.anim === 'down' ? 'fall' : sb.anim === 'hurt' ? 'hurt' : casting ? (sb.phase !== 'windup' && clips.release ? 'release' : 'cast') : sb.anim;
+        let clip = sb.carried ? 'idle' : sb.anim === 'enter' || sb.anim === 'run' ? 'walk' : sb.anim === 'down' ? 'fall' : sb.anim === 'hurt' ? 'hurt' : casting ? (sb.phase !== 'windup' && clips.release ? 'release' : 'cast') : sb.anim;
         if (casting && sb.phase === 'active' && !v.castActive) { v.enemySince = this.time.now; v.castActive = true; }
         if (sb.phase === 'windup' || !casting) v.castActive = false;
         if (clip === 'dash' && !clips.dash) clip = 'strike';
@@ -750,11 +755,40 @@ export class GameScene extends Phaser.Scene {
         const def = clips[clip];
         if (def) {
           if (v.enemyClip !== clip) { v.enemyClip = clip; v.enemySince = this.time.now; }
-          if (v.enemySince !== undefined) v.enemySince += delta * (1 - pace * (sb.anim === 'run' ? ENTER_ANIM_RATE : 1));
+          if (v.enemySince !== undefined) v.enemySince += delta * ((sb.ultStopMs ?? 0) > 0 ? 1 : 1 - pace * (sb.anim === 'run' ? ENTER_ANIM_RATE : 1));
           const raw = Math.floor((this.time.now - (v.enemySince ?? this.time.now)) * def.fps / 1000);
-          const frame = def.loop && clip !== 'windup' && clip !== 'cast' && clip !== 'release' ? raw % def.frames : Math.min(def.frames - 1, raw);
+          const frame = sb.carried ? 0 : def.loop && clip !== 'windup' && clip !== 'cast' && clip !== 'release' ? raw % def.frames : Math.min(def.frames - 1, raw);
           v.sprite.setTexture(`enemy/${kind}/${clip}`, frame).setFlipX(sb.facing < 0).setPosition(x, y - lift).setDepth(y).setVisible(!(sb.boss === 'shaman' && (sb.enterMs ?? 0) > 200)).setAlpha(sb.anim === 'enter' ? Math.min(1, (this.time.now - (v.enemySince ?? this.time.now)) / 500) : sb.phase === 'recover' ? 0.7 : 1);
         }
+      }
+      if (v.sprite && !isPlayer) {
+        const sp = v.sprite;
+        const baseScale = SCALE * (ENEMY_SCALE[sb.boss || sb.kind || 'omon'] ?? 1);
+        const owner = sb.carryBy ? b.players.get(sb.carryBy) : undefined;
+        const phase = owner?.move;
+        const spinning = phase === 'a3-spin' && !sb.thrown;
+        const theta = spinning ? Math.max(0, owner?.moveT ?? 0) / RAMIL.SPIN_MS * Math.PI * 2 * RAMIL.SPIN_TURNS : 0;
+        if (sb.carried && owner) {
+          const facing = owner.facing < 0 ? -1 : 1;
+          const direction = spinning ? (Math.cos(theta) < 0 ? -1 : 1) : facing;
+          const wobble = phase === 'a2-hold' ? Math.sin(this.time.now / 160) * 0.05 : 0;
+          const progress = phase === 'a3-lift' ? Math.min(1, Math.max(0, owner.moveT ?? 0) / Math.max(1, moveDurMs('ramil', 'a3-lift', facing))) : 1;
+          const height = phase === 'a2-hold' ? 22 : phase === 'a3-lift' ? 22 + 14 * progress : 36;
+          const angle = sb.thrown ? facing * Math.PI / 2 + (sb.carryAngle ?? 0) : direction * Math.PI / 2 + wobble;
+          const perspective = spinning ? Math.max(0.35, Math.abs(Math.cos(theta))) : 1;
+          sp.setOrigin(0.5, phase === 'a2-hold' || phase === 'a3-lift' ? FEET_Y / CELL : 0.5)
+            .setRotation(angle).setFlipX(false).setScale(baseScale, baseScale * perspective)
+            .setPosition(phase === 'a2-hold' || phase === 'a3-lift' ? owner.x + facing * 26 : x,
+              phase === 'a2-hold' || phase === 'a3-lift' ? owner.y - height : y - (sb.thrown ? sb.carryHeight ?? 0 : height))
+            .setDepth(spinning ? owner.y + (Math.sin(theta) < 0 ? -0.2 : 0.2) : y + 0.2);
+          if (spinning) for (let i = 0; i < 3; i++) {
+            const arc = this.add.graphics().setDepth(y + 0.2).lineStyle(1, 0xffffff, 0.65 - i * 0.15);
+            arc.beginPath().arc(x, y - 36, 12 + i * 4, theta - 0.8, theta).strokePath();
+            this.tweens.add({targets: arc, alpha: 0, duration: 150, onComplete: () => arc.destroy()});
+          }
+        } else sp.setOrigin(0.5, FEET_Y / CELL).setRotation(0).setScale(baseScale);
+        if ((v.flashUntil ?? 0) > this.time.now) { sp.setTintMode(Phaser.TintModes.FILL).setTint(0xffffff); sp.x += Math.floor(this.time.now / 10) % 2 ? 2 : -2; }
+        else sp.clearTint();
       }
       if (v.sprite && isPlayer) {
         const lead = live && pace > 0 ? Math.min(TICK_MS, (performance.now() - this.session.snapshots[this.session.snapshots.length - 1].t) * pace) : 0;
@@ -793,7 +827,7 @@ export class GameScene extends Phaser.Scene {
     this.drawCine(latest);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
-      v.ghosts?.forEach(g => g.destroy()); v.flame?.destroy(); v.trigram?.destroy();
+      v.ghosts?.forEach(g => g.destroy()); v.trigram?.destroy();
       v.ramilFx?.forEach(f => f.destroy());
       v.storm?.zone.destroy(); v.storm?.flakes.forEach(f => f.destroy()); v.status?.destroy();
       v.ring?.destroy(); v.warning?.destroy(); v.shield?.destroy(); v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();

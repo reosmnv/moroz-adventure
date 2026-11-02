@@ -45,6 +45,54 @@
     "fps": 10,
     "loop": false
    },
+   "a1": {
+    "east": 8,
+    "west": 8,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 3,
+     "west": 3
+    }
+   },
+   "a2": {
+    "east": 4,
+    "west": 4,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 2,
+     "west": 2
+    }
+   },
+   "a2-hold": {
+    "east": 4,
+    "west": 4,
+    "fps": 8,
+    "loop": true
+   },
+   "a3-lift": {
+    "east": 3,
+    "west": 3,
+    "fps": 18,
+    "loop": false
+   },
+   "a3-spin": {
+    "east": 8,
+    "west": 8,
+    "fps": 16,
+    "loop": true
+   },
+   "a3-throw": {
+    "east": 9,
+    "west": 9,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 2,
+     "west": 2
+    }
+   },
    "flurry-in": {
     "east": 3,
     "west": 3,

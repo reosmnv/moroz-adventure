@@ -4,9 +4,9 @@ import { LEVELS, stageOf, stageProp, laneTop, laneBottom, levelW, walkBounds, cl
 import { KIND, ROLE, MAX_ALIVE, TOKENS_PER_TARGET, TOKENS_TOTAL, TOKEN_GAP_MS, WAIT_RING, GUARD_FRONT_MULT, type EnemyKind } from './enemy-data.ts';
 import { BOSS, BOSS_ATTACK, type BossId } from './boss-data.ts';
 import { ENCOUNTERS, type Spawn } from './encounters.ts';
-import type { Form } from './anims-data.ts';
+import { HERO_ANIMS, type Form } from './anims-data.ts';
 import {
-  RAMIL_ID, RAMIL, RAMIL_SMOKE_LINES, RAMIL_ULT_WORDS, HOP_MS, HOP_DIST, ATTACK_BAND, MAGNET_GAP, MAGNET_DIST, RUSH_DIST, LAUNCH_H, JUGGLE_REFRESH_MS, JUGGLE_MULT, JUGGLE_STEP, JUGGLE_MULT_MAX, JUGGLE_MAX_MS, SLAM_MULT, BOUNCE_MS, BOUNCE_H, HIT_CHAIN_MS, PIN_MS, PIN_KB_MIN, PIN_SIZE, PIN_DMG, PIN_KB, KILL_EXTEND_MS, AIR_CHARGE_MULT,
+  RAMIL_ID, RAMIL, RAMIL_SMOKE_LINES, RAMIL_FINISH_WORDS, HOP_MS, HOP_DIST, ATTACK_BAND, MAGNET_GAP, MAGNET_DIST, RUSH_DIST, LAUNCH_H, JUGGLE_REFRESH_MS, JUGGLE_MULT, JUGGLE_STEP, JUGGLE_MULT_MAX, JUGGLE_MAX_MS, SLAM_MULT, BOUNCE_MS, BOUNCE_H, HIT_CHAIN_MS, PIN_MS, PIN_KB_MIN, PIN_SIZE, PIN_DMG, PIN_KB, KILL_EXTEND_MS, AIR_CHARGE_MULT,
   AIR_MS, AIM_MS, BALL_FLIGHT_MS, BALL_LINES, BALL_PER_HIT, BALL_NEAR_NASTYA, BALL_RADIUS, BALL_THROW, BEAM_DMG, BEAM_LEN, CHAIN, CHARM_LINE, CHARM_MS, COMBO_MS, COMBO_MS_BY,
   CONTROL_ULT, DASH_DELAY_MS, DASH_DIST, FLASH_CD_MS, FLASH_SPEED, HEAVY, HERO_FORM, HERO_ID, HURT_INVULN_MS, FREEZE_MS, HITSTOP_HEAVY_MS, HITSTOP_MS,
   IMMUNE_INVULN_MS, KISS_BAND, KISS_HALF_W, KISS_SPEED, KNOCK_MULT, KRIS_ID, KRIS_LENS, NADYA_ID, NEXT_MOVE, RANGE_MULT, RUN_MULT, STORM_DMG, STORM_MS, STORM_RADIUS, STORM_TICK_MS, SPEED_MULT, STRIKES, ULT_MS,
@@ -56,10 +56,12 @@ export const CHARACTERS: Character[] = [
 export interface Player {
   idleInput?: boolean;
   viewX?: number; viewW?: number;
+  ultLevel?: number; ultWindow?: number;
   fDashMs?: number; hiddenMs?: number; heavySmokeMs?: number; fireMs?: number;
   ramil?: { marks: string[]; dash?: { fromX: number; fromY: number; x: number; y: number }; markMs: number; originX: number; originY: number; smokeMs: number; smokeLine: number;
     fireHit: string[]; tele?: { ms: number; x: number; y: number; target?: string; back: boolean };
-    ult?: { ms: number; count: number; ids: string[]; x: number; y: number }; restMs: number };
+    grab?: string; holdMs?: number; spinTurn?: number;
+    ult?: { ms: number; count: number; target: string; level: number; buffered: boolean; window: number; finish?: number; stunned: string[] } };
 
   id: string;
   char: string;
@@ -101,6 +103,10 @@ export interface Player {
 }
 
 export interface Enemy {
+  held?: { by: string }; carryAngle?: number; carryHeight?: number; carryDepth?: number;
+  thrown?: { by: string; ms: number; fromX: number; fromY: number; x: number; y: number };
+  ultStopMs?: number;
+
   burnMs?: number; burnTickMs?: number; burnBy?: string; markedBy?: string;
 
   entered?: boolean; entering?: boolean; enterMs?: number; bornTick?: number;
@@ -139,7 +145,7 @@ export interface Enemy {
   airStartH?: number;
   airHits?: number;
   bouncing?: boolean;
-  pin?: { ms: number; speed: number; dir: number; by: string; hit: string[] };
+  pin?: { ms: number; speed: number; dir: number; by: string; hit: string[]; noCollateral?: boolean };
   dummy?: boolean; // манекен: стоит, не бьёт, не умирает
   slowMs?: number; slow?: number; // замедлен: сколько ещё и какую долю скорости теряет
   stunMs?: number; // оглушён: стоит и не бьёт
@@ -193,6 +199,9 @@ export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: fa
 
 export type SimEvent =
   | { t: 'rdash'; id: string; fromX: number; fromY: number; toX: number; toY: number }
+  | { t: 'rstage'; id: string; level: number; x: number; y: number }
+  | { t: 'rland'; x: number; y: number }
+  | { t: 'rfinish'; id: string; x: number; y: number; line: string }
   | { t: 'flurry'; id: string; level: number; k: number; x: number; y: number }
   | { t: 'tele'; id: string; fromX: number; fromY: number; toX: number; toY: number; shape?: never; ms?: never }
   | { t: 'cine'; id: string; kind: string }
@@ -306,7 +315,7 @@ function spawnWave(w: World, ev: SimEvent[]) {
 }
 
 type HitOpts = {
-  flurry?: { level: number; k: number }; tick?: true; kb?: number; stun?: number; down?: boolean; launch?: boolean; slam?: boolean; pin?: boolean; fixedDmg?: boolean; everyone?: boolean; silent?: boolean;
+  noCollateral?: boolean; flurry?: { level: number; k: number }; tick?: true; kb?: number; stun?: number; down?: boolean; launch?: boolean; slam?: boolean; pin?: boolean; fixedDmg?: boolean; everyone?: boolean; silent?: boolean;
   slowMs?: number; slow?: number; stunMs?: number; single?: boolean; impact?: 1 | 2; word?: string; noCharge?: boolean; flash?: boolean;
 };
 
@@ -316,7 +325,7 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
   if (w.enc.lock) e.entered = true;
   const heavy = opts.down || opts.launch || opts.slam || opts.pin || opts.stunMs || e.frozenMs;
   const blocked = KIND[e.kind].guard && e.phase !== 'windup' && e.phase !== 'recover'
-    && (p.x - e.x) * e.facing > 0 && !heavy && !allAround && !opts.noCharge && !opts.flash;
+    && (p.x - e.x) * e.facing > 0 && !e.held && !heavy && !allAround && !opts.noCharge && !opts.flash;
   if (blocked) { dmg *= GUARD_FRONT_MULT; ev.push({ t: 'block', id: e.id }); }
   const armored = !!e.boss || ROLE[KIND[e.kind].role].armor && !heavy;
   if (e.boss ? opts.down && e.phase === 'windup' : (!blocked && !armored) || heavy) cancelAttack(w, e);
@@ -332,7 +341,7 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
     const extra = Math.min(KILL_EXTEND_MS, ULT_MS - p.ultimateExtraMs);
     p.formMs += extra; p.ultimateExtraMs += extra;
   }
-  if (!e.frozenMs && !blocked && !armored) {
+  if (!e.held && !e.thrown && !e.frozenMs && !blocked && !armored) {
     e.anim = opts.down || opts.slam || airborne ? 'down' : 'hurt';
     e.animMs = opts.down || opts.slam ? AIR_MS : (opts.stun ?? 250);
     if (opts.slam) setAir(e, BOUNCE_MS, BOUNCE_H, true);
@@ -342,10 +351,11 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
     }
     const kb = airborne || opts.launch ? 0 : (opts.kb ?? (allAround ? 30 : 8));
     if ((opts.pin || opts.down) && kb !== 0) {
-      e.pin = { ms: PIN_MS, speed: kb / PIN_MS, dir, by: p.id, hit: [] };
+      e.pin = { ms: PIN_MS, speed: kb / PIN_MS, dir, by: p.id, hit: [], noCollateral: opts.noCollateral };
     } else e.x = clampEnemyX(w, e.x + dir * kb, e);
   }
   if (e.boss && !e.frozenMs) { e.x = clampEnemyX(w, e.x + dir * (opts.kb ?? 8) * 0.25, e); e.anim = 'hurt'; e.animMs = 120; }
+  if (e.held) { e.anim = 'down'; e.animMs = AIR_MS; e.pin = undefined; e.air = 0; }
   if (opts.slowMs) { e.slowMs = opts.slowMs; e.slow = opts.slow ?? 0.5; }
   if (opts.stunMs && !e.boss) { e.stunMs = opts.stunMs; e.anim = 'hurt'; e.animMs = Math.max(e.animMs, opts.stunMs); }
   if (opts.silent) return;
@@ -426,6 +436,7 @@ function heroDown(p: Player) {
 }
 
 function heroReset(p: Player) {
+  p.ultLevel = p.ultWindow = 0; p.fDashMs = 0;
   p.ramil = undefined; p.hiddenMs = p.heavySmokeMs = p.fireMs = 0;
   p.form = HERO_FORM[p.char] ?? 'prime'; p.formMs = 0; p.combo = 0; p.comboMs = 0; p.bCombo = 0; p.bComboMs = 0; p.queued = null; p.invulnMs = 0; p.stormMs = 0; p.wantBall = false; p.hitCount = 0; p.hitCountMs = 0;
   startMove(p, 'idle');
@@ -611,10 +622,108 @@ function stepRamilEffects(w: World, dt: number, ev: SimEvent[]) {
     }
   }
 }
+function ramilFront(w: World, p: Player, range: number) {
+  return Object.values(w.enemies).filter(e => e.hp > 0 && combatReady(w, e) && (e.x-p.x)*p.facing >= 0 && Math.abs(e.x-p.x) <= range && Math.abs(e.y-p.y) <= ATTACK_BAND).sort((a,b) => Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
+}
+function clearCarry(e: Enemy) { e.carryAngle = e.carryHeight = e.carryDepth = 0; e.anim = 'down'; e.animMs = AIR_MS; }
+function releaseGrab(w: World, p: Player) {
+  const r = p.ramil; if (!r?.grab) return;
+  const e = w.enemies[r.grab]; if (e) { e.held = undefined; clearCarry(e); }
+  r.grab = undefined; p.combo = 0; p.queued = null;
+}
+function startRamilDash(w: World, p: Player, e: Enemy, max: number, ev: SimEvent[]) {
+  p.fDashMs = 0;
+  if (Math.abs(e.x-p.x) <= RAMIL.A1_REACH || Math.abs(e.x-p.x) > max) return;
+  const to = clampToLane(w, clamp(e.x-p.facing*RAMIL.A1_GAP, ...walkBounds(w)), e.y);
+  p.ramil!.dash = { fromX: p.x, fromY: p.y, ...to }; p.fDashMs = RAMIL.A1_DASH_MS;
+  ev.push({ t: 'rdash', id: p.id, fromX: p.x, fromY: p.y, toX: to.x, toY: to.y });
+}
+function ramilThrowTarget(w: World, p: Player, held: Enemy) {
+  const others = ramilTargets(w,p).filter(e => e !== held);
+  let best = { x: p.x+p.facing*RAMIL.THROW_EMPTY, y: p.y }, count = 0, distance = Infinity;
+  for (const e of others) {
+    const group = others.filter(o => Math.hypot(o.x-e.x,o.y-e.y) <= RAMIL.THROW_CLUSTER_R);
+    const x = group.reduce((n,o)=>n+o.x,0)/group.length, y = group.reduce((n,o)=>n+o.y,0)/group.length;
+    const d = Math.hypot(x-p.x,y-p.y);
+    if (group.length > count || group.length === count && d < distance) { best = {x,y}; count = group.length; distance = d; }
+  }
+  return clampToLane(w, clamp(best.x,...walkBounds(w)), best.y);
+}
+function stepRamilThrow(w: World, p: Player, e: Enemy, dt: number, ev: SimEvent[]) {
+  const t = e.thrown!; t.ms += dt; const k = Math.min(1,t.ms/RAMIL.THROW_MS);
+  e.x = t.fromX+(t.x-t.fromX)*k; e.y = t.fromY+(t.y-t.fromY)*k;
+  e.carryHeight = Math.sin(k*Math.PI)*RAMIL.THROW_ARC; e.carryAngle = k*Math.PI*4; e.carryDepth = 1;
+  if (k < 1) return;
+  e.thrown = undefined; clearCarry(e);
+  for (const o of Object.values(w.enemies)) if (o !== e && Math.hypot(o.x-e.x,o.y-e.y) <= RAMIL.THROW_AOE)
+    applyHit(w,p,o,RAMIL.THROW_DMG,o.x < e.x ? -1 : 1,ev,{noCollateral:true,down:true,kb:RAMIL.THROW_KB});
+  applyHit(w,p,e,RAMIL.THROW_HELD_DMG,p.facing,ev,{down:true,kb:0,impact:2,word:'СТРАЙК!'});
+  ev.push({t:'rland',x:e.x,y:e.y});
+}
+function stepRamilUlt(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) {
+  const r = p.ramil!, u = r.ult!;
+  p.invulnMs = RAMIL.ULT_STUN + dt;
+  if (inp.attack || inp.ult) u.buffered = true;
+  if (r.dash) {
+    u.ms += dt; const k = 1-(1-Math.min(1,u.ms/RAMIL.A1_DASH_MS))**3;
+    p.x = r.dash.fromX+(r.dash.x-r.dash.fromX)*k; p.y = r.dash.fromY+(r.dash.y-r.dash.fromY)*k;
+    p.moveT = 0;
+    if (u.ms >= RAMIL.A1_DASH_MS) { r.dash = undefined; u.ms = 0; p.fDashMs = 0; }
+    return;
+  }
+  const target = w.enemies[u.target];
+  if (target?.hp > 0 && u.finish === undefined && !(target.ultStopMs && target.ultStopMs > 0)) {
+    p.facing = target.x < p.x ? -1 : 1;
+    if (Math.abs(target.y - p.y) > ATTACK_BAND) p.y = clampToLane(w, p.x, target.y).y;
+    const gap = (target.x-p.x)*p.facing;
+    if (gap > RAMIL.A1_GAP) p.x = clamp(target.x-p.facing*RAMIL.A1_GAP,...walkBounds(w));
+  }
+  const front = ramilFront(w,p,RAMIL.ULT_RANGE);
+  for (const e of front) if (!u.stunned.includes(e.id)) u.stunned.push(e.id);
+  for (const id of u.stunned) { const e = w.enemies[id]; if (e && e.hp > 0 && u.finish === undefined) { cancelAttack(w,e); e.stunMs = RAMIL.ULT_STUN+dt; } }
+  if (u.finish !== undefined) {
+    u.finish += dt;
+    const out = u.level < 2 ? 'flurry-out' : 'flurry2-out';
+    if (u.finish >= RAMIL.ULT_FINISH_STOP) { p.move = HERO_ANIMS.ramil[out] ? out : 'idle'; p.moveT = u.finish-RAMIL.ULT_FINISH_STOP; }
+    if (u.finish >= RAMIL.ULT_FINISH_STOP + moveDurMs('ramil',out,p.facing)) { r.ult = undefined; p.ultLevel = p.ultWindow = 0; p.combo = 0; startMove(p,'idle'); }
+    return;
+  }
+  const timing = flurryTiming('u'+(u.level+1),p.facing);
+  if (u.window > 0) {
+    if (u.buffered && u.level < 5) {
+      u.level++; u.count = 0; u.ms = 0; u.window = 0; u.buffered = false; p.ultLevel = u.level+1; p.ultWindow = 0; startMove(p,'u'+(u.level+1)); ev.push({t:'rstage',id:p.id,level:u.level,x:p.x,y:p.y}); return;
+    }
+    u.window = Math.max(0,u.window-dt); p.ultWindow = u.window;
+    if (u.window > 0) return;
+  } else {
+    u.ms += dt; p.moveT = Math.min(u.ms,timing.stops.at(-1)!);
+    while (u.count < timing.count && u.ms >= timing.stops[u.count]) {
+      const k = u.count++;
+      ev.push({t:'flurry',id:p.id,level:u.level,k,x:p.x,y:p.y});
+      const stop = k === timing.count-1 ? RAMIL.ULT_LAST_STOP : RAMIL.ULT_HITSTOP[u.level];
+      for (const e of front) {
+        applyHit(w,p,e,RAMIL.ULT_DMG[u.level],p.facing,ev,{kb:0,stunMs:RAMIL.ULT_STUN+dt,flurry:{level:u.level,k}});
+        e.ultStopMs = stop ? stop + dt : 0;
+      }
+      if (target?.hp > 0) { target.x = clampEnemyX(w,target.x+p.facing*RAMIL.ULT_NUDGE,target); p.x = clamp(p.x+p.facing*RAMIL.ULT_NUDGE,...walkBounds(w)); }
+    }
+    if (u.ms < timing.activeMs) return;
+    if (u.buffered && u.level < 5) { u.level++; u.count = 0; u.ms = 0; u.buffered = false; p.ultLevel = u.level + 1; startMove(p, 'u' + (u.level + 1)); ev.push({t:'rstage',id:p.id,level:u.level,x:p.x,y:p.y}); return; }
+    if (u.level < 5) { u.window = RAMIL.ULT_WINDOW; p.ultWindow = u.window; return; }
+  }
+  for (const id of u.stunned) { const e = w.enemies[id]; if (e) e.stunMs = RAMIL.ULT_STUN; }
+  for (const e of ramilFront(w,p,RAMIL.ULT_RANGE)) {
+    applyHit(w,p,e,RAMIL.ULT_FINISH[u.level],p.facing,ev,{noCollateral:true,down:true,kb:e.id===u.target?RAMIL.ULT_MAIN_KB:RAMIL.ULT_OTHER_KB,impact:2});
+    e.ultStopMs = RAMIL.ULT_FINISH_STOP + dt;
+  }
+  u.finish = 0; p.ultWindow = 0; p.move = 'flurry2'; p.moveT = hitTimesMs('ramil','flurry2',p.facing).at(-1) ?? 0; w.slowmoMs = RAMIL.ULT_SLOWMO;
+  ev.push({t:'rfinish',id:p.id,x:p.x+p.facing*RAMIL.A1_GAP,y:p.y,line:RAMIL_FINISH_WORDS[u.level]});
+}
+
 function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) {
   if (inp.viewX !== undefined && inp.viewW !== undefined) { p.viewX = inp.viewX; p.viewW = inp.viewW; }
   p.idleInput = !!(inp.mx || inp.my || inp.attack || inp.heavy || inp.ult || inp.ult2 || inp.taunt);
-  const r = p.ramil ??= { marks: [], markMs: 0, originX: p.x, originY: p.y, smokeMs: 0, smokeLine: 0, fireHit: [], restMs: 0 };
+  const r = p.ramil ??= { marks: [], markMs: 0, originX: p.x, originY: p.y, smokeMs: 0, smokeLine: 0, fireHit: [] };
   p.invulnMs = Math.max(0, p.invulnMs - dt); p.hiddenMs = Math.max(0, (p.hiddenMs ?? 0) - dt);
   p.heavySmokeMs = Math.max(0, (p.heavySmokeMs ?? 0) - dt);
   r.markMs -= dt;
@@ -636,50 +745,64 @@ function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) 
       r.marks = [];
     }
   }
-  if (r.ult) {
-    const u = r.ult; u.ms += dt; p.invulnMs = RAMIL.ULT_STEP + dt;
-    const hitAt = hitTimesMs('ramil', 'slap', p.facing)[0];
-    while (u.count < RAMIL.ULT_HITS && u.ms >= u.count * RAMIL.ULT_STEP) {
-      const e = w.enemies[u.ids[u.count % u.ids.length]];
-      if (e && e.hp > 0) ramilTele(w, p, e.x + (u.count % 2 ? 1 : -1) * RAMIL.TELE_GAP, e.y, ev);
-      p.facing = e && e.x < p.x ? -1 : 1;
-      startMove(p, 'slap');
-      // Каждый slap ускорен до 160 мс; попадание остаётся на его hit-кадре.
-      u.count++;
-    }
-    const k = Math.min(RAMIL.ULT_HITS - 1, Math.floor(u.ms / RAMIL.ULT_STEP));
-    p.moveT = (u.ms % RAMIL.ULT_STEP) * moveDurMs('ramil', 'slap', p.facing) / RAMIL.ULT_STEP;
-    const oldT = ((u.ms - dt) - k * RAMIL.ULT_STEP) * moveDurMs('ramil', 'slap', p.facing) / RAMIL.ULT_STEP;
-    if (oldT < hitAt && p.moveT >= hitAt) {
-      const e = w.enemies[u.ids[k % u.ids.length]];
-      if (e) { applyHit(w, p, e, RAMIL.ULT_DMG, p.facing, ev, { kb: 0, stunMs: RAMIL.ULT_HITS * RAMIL.ULT_STEP - u.ms, impact: k === RAMIL.ULT_HITS - 1 ? 2 : 1, word: RAMIL_ULT_WORDS[k] }); if (e.boss) e.stunMs = RAMIL.ULT_HITS * RAMIL.ULT_STEP - u.ms; }
-    }
-    if (u.ms >= RAMIL.ULT_HITS * RAMIL.ULT_STEP) { ramilTele(w, p, u.x, u.y, ev); r.ult = undefined; r.restMs = RAMIL.ULT_REST; startMove(p, 'idle'); }
+  if (r.ult) { stepRamilUlt(w, p, inp, dt, ev); return; }
+  if (r.dash) {
+    const old = p.moveT; p.moveT += dt;
+    const u = clamp(p.moveT / RAMIL.A1_DASH_MS, 0, 1), k = 1 - (1 - u) ** 3;
+    p.x = r.dash.fromX + (r.dash.x - r.dash.fromX) * k; p.y = r.dash.fromY + (r.dash.y - r.dash.fromY) * k;
+    if (u === 1) { r.dash = undefined; startMove(p, 'a1'); }
+    if (inp.attack && old > 0) p.queued = 'attack';
     return;
   }
-  if (r.restMs > 0) { r.restMs -= dt; return; }
-  const prev = p.moveT; p.moveT += dt;
-  const flurry = /^f[1-4]$/.test(p.move) ? flurryTiming(p.move, p.facing) : undefined;
-  const s = STRIKES.ramil[p.move];
-  if (flurry) {
-    const delay = p.fDashMs ?? 0;
-    if (r.dash) { const u = clamp(p.moveT / RAMIL.F_DASH_MS, 0, 1), k = 1 - (1 - u) ** 3;
-      const to = clampToLane(w, clamp(r.dash.fromX + (r.dash.x - r.dash.fromX) * k, ...walkBounds(w)), r.dash.fromY + (r.dash.y - r.dash.fromY) * k);
-      p.x = to.x; p.y = to.y; if (u === 1) r.dash = undefined;
-    }
-    const front = Object.values(w.enemies).filter(e => e.hp > 0 && combatReady(w, e) && (e.x - p.x) * p.facing >= 0 && Math.abs(e.x - p.x) <= RAMIL.F_RANGE && Math.abs(e.y - p.y) <= ATTACK_BAND);
-    if (p.moveT >= delay && p.moveT < delay + flurry.duration) for (const e of front) if (!e.boss) { e.stunMs = delay + flurry.duration - p.moveT + RAMIL.F_STUN; }
-    flurry.times.forEach((time, k) => {
-      if (!(prev < time + delay && p.moveT >= time + delay)) return;
-      const last = k === flurry.count - 1, fin: HitOpts = last ? RAMIL.F_LAST[flurry.level] : {};
-      ev.push({ t: 'flurry', id: p.id, level: flurry.level, k, x: p.x, y: p.y });
-      for (const e of front) {
-        applyHit(w, p, e, last ? (RAMIL.F_LAST[flurry.level] as { dmg?: number }).dmg ?? RAMIL.F_DMG[flurry.level] : RAMIL.F_DMG[flurry.level], p.facing, ev, { ...fin, flurry: { level: flurry.level, k }, kb: fin.kb ?? 0, stunMs: fin.down ? undefined : delay + flurry.duration - p.moveT + RAMIL.F_STUN });
-        if (flurry.level === 3) { e.burnMs = RAMIL.BURN_MS; e.burnTickMs = RAMIL.BURN_TICK; e.burnBy = p.id; }
+  if (r.grab) {
+    const e = w.enemies[r.grab];
+    if (!e || e.hp <= 0 || !e.held || ['hurt', 'fall'].includes(p.move)) releaseGrab(w, p);
+    else if (p.move === 'a2-hold') {
+      r.holdMs = (r.holdMs ?? 0) - dt;
+      e.x = p.x + p.facing * RAMIL.HAND_X; e.y = p.y;
+      e.carryHeight = 30 + Math.sin(r.holdMs / 160) * 2; e.carryAngle = p.facing * Math.PI / 2; e.carryDepth = 1;
+      if (inp.attack || p.queued === 'attack') { p.queued = null; p.invulnMs = dt + RAMIL.SPIN_MS; startMove(p, moveDurMs('ramil', 'a3-lift', p.facing) ? 'a3-lift' : 'a3-spin'); r.spinTurn = 0; }
+      else if (r.holdMs <= 0) { releaseGrab(w, p); startMove(p, 'idle'); }
+      return;
+    } else if (['a3-lift', 'a3-spin', 'a3-throw'].includes(p.move)) {
+      p.invulnMs = dt + RAMIL.ULT_STUN;
+      const prev = p.moveT; p.moveT += dt;
+      if (p.move === 'a3-lift' && !moveBusy(p)) startMove(p, 'a3-spin');
+      else if (p.move === 'a3-spin') {
+        const angle = Math.min(1, p.moveT / RAMIL.SPIN_MS) * Math.PI * 2 * RAMIL.SPIN_TURNS;
+        e.x = p.x + Math.cos(angle) * RAMIL.SPIN_R; e.y = p.y + Math.sin(angle) * RAMIL.SPIN_R * 0.35;
+        e.carryHeight = 30; e.carryAngle = angle + Math.PI / 2; e.carryDepth = Math.sin(angle) < 0 ? -1 : 1;
+        while ((r.spinTurn ?? 0) < Math.min(RAMIL.SPIN_TURNS, Math.floor(p.moveT / (RAMIL.SPIN_MS / RAMIL.SPIN_TURNS)))) {
+          r.spinTurn = (r.spinTurn ?? 0) + 1;
+          for (const other of Object.values(w.enemies)) if (other !== e && Math.abs(other.x - p.x) <= RAMIL.SPIN_R + 26 && Math.abs(other.y - p.y) <= ATTACK_BAND)
+            applyHit(w, p, other, RAMIL.SPIN_DMG, other.x < p.x ? -1 : 1, ev, { noCollateral: true, kb: RAMIL.SPIN_KB, down: true, word: 'БУМ!' });
+          applyHit(w, p, e, RAMIL.SPIN_HELD_DMG, p.facing, ev, { kb: 0, fixedDmg: true });
+        }
+        if (p.moveT >= RAMIL.SPIN_MS) { const to = ramilThrowTarget(w, p, e); p.facing = to.x < p.x ? -1 : 1; startMove(p, 'a3-throw'); }
+      } else if (p.move === 'a3-throw' && hitTimesMs('ramil', p.move, p.facing).some(t => prev < t && p.moveT >= t)) {
+        const to = ramilThrowTarget(w, p, e);
+        e.thrown = { by: p.id, ms: 0, fromX: e.x, fromY: e.y, ...to }; e.held = undefined; r.grab = undefined; p.combo = 0;
+        ev.push({ t: 'taunt', id: p.id, line: 'ЛОВИ!' });
       }
-    });
+      return;
+    }
   }
-  if (s && hitTimesMs('ramil', p.move, p.facing).some(t => prev < t && p.moveT >= t)) ramilStrike(w, p, ev);
+  if (p.move === 'a3-throw' && moveBusy(p)) p.invulnMs = RAMIL.ULT_STUN + dt;
+  const prev = p.moveT; p.moveT += dt;
+  const s = STRIKES.ramil[p.move];
+  if (s && hitTimesMs('ramil', p.move, p.facing).some(t => prev < t && p.moveT >= t)) {
+    if (p.move === 'a1') for (const e of ramilFront(w, p, RAMIL.A1_RANGE)) applyHit(w, p, e, RAMIL.A1_DMG, p.facing, ev, s);
+    else if (p.move === 'a2') {
+      const e = ramilFront(w, p, RAMIL.A2_RANGE)[0]; p.combo = 0;
+      if (e) {
+        applyHit(w, p, e, RAMIL.A2_DMG, p.facing, ev, { kb: 0, stunMs: TICK_MS, word: 'ОПА!' });
+        if (!e.boss && !e.held && !e.thrown && e.hp > 0) {
+          cancelAttack(w, e); e.pin = undefined; e.air = 0; e.held = { by: p.id }; e.anim = 'down'; e.animMs = AIR_MS;
+          r.grab = e.id; r.holdMs = RAMIL.GRAB_HOLD_MS; p.combo = 2; startMove(p, 'a2-hold'); return;
+        }
+      }
+    } else ramilStrike(w, p, ev);
+  }
   if ((p.fireMs ?? 0) > 0) {
     p.fireMs = Math.max(0, p.fireMs! - dt);
     for (const e of Object.values(w.enemies)) {
@@ -691,17 +814,21 @@ function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) 
     }
   }
   if (r.tele) return;
-  // При продолжении f1/f3 переход обратно в стойку не нужен.
-  const skipOut = flurry?.hasOut && flurry.level % 2 === 0 && (p.queued === 'attack' || inp.attack && !inp.heavy);
-  const busy = flurry ? p.moveT < flurry.duration + (p.fDashMs ?? 0) - (skipOut ? flurry.recover : 0) : moveBusy(p);
-  if (busy) { if (s || flurry) { if (inp.heavy) p.queued = 'heavy'; else if (inp.attack) p.queued = 'attack'; } return; }
+  const busy = moveBusy(p);
+  if (busy) { if (s) { if (inp.heavy) p.queued = 'heavy'; else if (inp.attack) p.queued = 'attack'; } return; }
   p.comboMs -= dt; if (p.comboMs <= 0) p.combo = 0;
   p.bComboMs -= dt; if (p.bComboMs <= 0) p.bCombo = 0;
   const targets = ramilTargets(w, p);
   if (inp.ult && p.ult >= 100 && targets.length) {
     p.ult = 0; p.queued = null;
-    r.ult = { ms: -dt, count: 0, ids: targets.sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x)).map(e => e.id), x: p.x, y: p.y };
-    p.invulnMs = RAMIL.ULT_HITS * RAMIL.ULT_STEP + dt; ev.push({ t: 'ult', id: p.id }); return;
+    const front = targets.filter(e => (e.x - p.x) * p.facing >= 0 && Math.abs(e.x - p.x) <= RAMIL.ULT_REACH);
+    const target = (front.length ? front : targets).sort((a, b) => Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+    releaseGrab(w, p);
+    r.ult = { ms: 0, count: 0, target: target.id, level: 0, buffered: false, window: 0, stunned: [] };
+    p.invulnMs = dt + RAMIL.ULT_STUN; p.ultLevel = 1; p.ultWindow = 0;
+    p.facing = target.x < p.x ? -1 : 1;
+    startRamilDash(w, p, target, RAMIL.ULT_REACH, ev); startMove(p, 'u1');
+    ev.push({ t: 'ult', id: p.id }); ev.push({t:'rstage',id:p.id,level:0,x:p.x,y:p.y}); return;
   }
   const want = p.queued ?? (inp.heavy ? 'heavy' : inp.attack ? 'attack' : null);
   if (want) {
@@ -710,14 +837,11 @@ function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) 
       if (p.bCombo === 0 && !targets.some(e => (e.x - p.x) * p.facing >= 0)) return;
       startMove(p, HEAVY.ramil[p.bCombo]); p.bCombo = (p.bCombo + 1) % HEAVY.ramil.length; p.bComboMs = RAMIL.B_COMBO_MS;
     } else {
+      if (p.combo === 2) p.combo = 0;
       startMove(p, CHAIN.ramil[p.combo]); p.combo = (p.combo + 1) % CHAIN.ramil.length; p.comboMs = COMBO_MS_BY.ramil!;
       p.fDashMs = 0; r.dash = undefined;
-      const target = Object.values(w.enemies).filter(e => e.hp > 0 && combatReady(w, e) && (e.x - p.x) * p.facing >= 0 && Math.abs(e.y - p.y) <= ATTACK_BAND).sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x))[0];
-      if (target && Math.abs(target.x - p.x) > RAMIL.F_RANGE && Math.abs(target.x - p.x) <= RAMIL.F_DASH_MAX) {
-        const to = clampToLane(w, clamp(target.x - p.facing * RAMIL.F_GAP, ...walkBounds(w)), target.y);
-        p.fDashMs = RAMIL.F_DASH_MS; r.dash = { fromX: p.x, fromY: p.y, ...to };
-        ev.push({ t: 'rdash', id: p.id, fromX: p.x, fromY: p.y, toX: to.x, toY: to.y });
-      }
+      if (p.move === 'a1') { const target = ramilFront(w, p, RAMIL.A1_DASH_MAX)[0]; if (target) { startRamilDash(w, p, target, RAMIL.A1_DASH_MAX, ev); if (r.dash) startMove(p, 'dash'); } }
+      if (p.move === 'a2') p.x = clamp(p.x + p.facing * RAMIL.A2_STEP, ...walkBounds(w));
     }
     r.smokeMs = 0; p.anim = want === 'heavy' ? 'heavy' : 'attack'; return;
   }
@@ -975,7 +1099,7 @@ function stepPin(w: World, e: Enemy, dtMs: number, ev: SimEvent[]) {
   e.x = clampEnemyX(w, e.x + pin.dir * pin.speed * Math.min(pin.ms, dtMs), e);
   pin.ms -= dtMs;
   const p = w.players[pin.by];
-  if (p) for (const o of Object.values(w.enemies)) {
+  if (p && !pin.noCollateral) for (const o of Object.values(w.enemies)) {
     if (o === e || o.hp <= 0 || pin.hit.includes(o.id) || Math.abs(o.y - e.y) >= PIN_SIZE || o.x <= Math.min(x0, e.x) - PIN_SIZE || o.x >= Math.max(x0, e.x) + PIN_SIZE) continue;
     pin.hit.push(o.id);
     applyHit(w, p, o, PIN_DMG, pin.dir, ev, { kb: PIN_KB, stun: PIN_MS, stunMs: PIN_MS, fixedDmg: true });
@@ -1052,7 +1176,7 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
 function prepareTokens(w: World, dtMs: number) {
   const targets = livePlayers(w), enemies = Object.values(w.enemies);
   for (const e of enemies) {
-    const disabled = !combatReady(w, e) || e.hp <= 0 || (e.invulnMs ?? 0) > 0 || e.dummy || e.frozenMs || e.stunMs || e.air || e.pin || e.charmMs || !e.boss && (e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0;
+    const disabled = !!e.held || !!e.thrown || !combatReady(w, e) || e.hp <= 0 || (e.invulnMs ?? 0) > 0 || e.dummy || e.frozenMs || e.stunMs || e.air || e.pin || e.charmMs || !e.boss && (e.anim === 'hurt' || e.anim === 'down') && e.animMs > 0;
     if (disabled || e.token && !targets.some(p => p.id === e.token)) cancelAttack(w, e);
     e.targetMs = Math.max(0, (e.targetMs ?? 0) - dtMs);
     if (!e.token && !e.targetMs && targets.length) {
@@ -1075,6 +1199,7 @@ function prepareTokens(w: World, dtMs: number) {
 function enemyHit(w: World, p: Player, dmg: number, ev: SimEvent[], immunityMs?: number) {
   if (p.hp <= 0 || !p.connected || p.away || !damagePlayer(p, dmg)) return;
   if (immunityMs !== undefined) p.invulnMs = Math.min(p.invulnMs, immunityMs);
+  releaseGrab(w, p);
   ev.push({ t: 'hit', target: p.id, dmg, x: p.x, y: p.y });
   if (!p.hp) {
     p.downMs = REVIVE_MS; p.anim = 'down';
@@ -1400,6 +1525,14 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   // Враги: к ближайшему живому игроку на его дорожку, удар, пауза
   const targets = active.filter(p => p.hp > 0);
   for (const e of Object.values(w.enemies)) {
+    if (e.held || e.thrown) {
+      const owner = w.players[e.held?.by ?? e.thrown?.by ?? ''];
+      if (!owner || owner.hp <= 0 || !owner.connected || owner.away || e.hp <= 0) { if (owner) releaseGrab(w, owner); e.held = undefined; e.thrown = undefined; clearCarry(e); }
+      else if (e.thrown) stepRamilThrow(w, owner, e, dtMs, ev);
+      else { e.anim = 'down'; cancelAttack(w, e); }
+      continue;
+    }
+    if ((e.ultStopMs ?? 0) > 0) { e.ultStopMs = Math.max(0, e.ultStopMs! - dtMs); continue; }
     if (e.hp > 0 && w.enc.lock && (!e.entered || e.entering)) {
       if (e.bornTick === w.tick) continue;
       if (e.enterMs) { e.enterMs = Math.max(0, e.enterMs - dtMs); e.anim = 'enter'; if (!e.enterMs && e.phase === 'enter') e.phase = 'none'; }
