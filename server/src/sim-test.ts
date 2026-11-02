@@ -1041,7 +1041,7 @@ function ramilDummy(w: World, id: string, dx: number) { dummy(w, id, dx); w.enem
 {
   const { w, p } = setup(false, 'ramil');
   for (let i = 0; i < 3; i++) ramilDummy(w, 'e' + i, 100 + i * 40);
-  const r = run(w, 700, press([0], 'attack'));
+  const r = run(w, 900, press([0], 'attack'));
   check('Рамиль: стебли не более двух', r.hits.length === 2 && r.hits.every(d => d === 4), r.hits.join());
   check('Рамиль: притяжение к 42', Math.abs(w.enemies.e0.x - p.x - 42) < 1 && Math.abs(w.enemies.e1.x - p.x - 42) < 1);
   check('Рамиль: стебли оглушают', (w.enemies.e0.stunMs ?? 0) > 0);

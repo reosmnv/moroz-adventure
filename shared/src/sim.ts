@@ -611,7 +611,7 @@ function stepRamilEffects(w: World, dt: number, ev: SimEvent[]) {
       const v = e.pull, p = w.players[v.by]; v.ms -= dt;
       if (v.ms <= RAMIL.VINE_PULL && p) {
         if (!v.landed) { v.landed = true; applyHit(w, p, e, RAMIL.VINE_DMG, p.facing, ev, { kb: 0, stunMs: RAMIL.VINE_STUN, word: 'ИДИ СЮДА!' }); }
-        const k = clamp(1 - v.ms / RAMIL.VINE_PULL, 0, 1);
+        const u = clamp(1 - v.ms / RAMIL.VINE_PULL, 0, 1), k = u * u * (3 - 2 * u); // плавный разгон и торможение, как дуга стебля на клиенте
         e.x = v.fromX + (v.x - v.fromX) * k; e.y = v.fromY + (v.y - v.fromY) * k;
       }
       if (v.ms <= 0) e.pull = undefined;

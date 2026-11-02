@@ -60,6 +60,7 @@ export class GameScene extends Phaser.Scene {
   private telegraphs: { ev: Extract<SimEvent, { t: 'tele'; shape: string }>; until: number }[] = [];
   private vines: { ev: Extract<SimEvent, { t: 'vine' }>; since: number }[] = [];
   private vineParts: Phaser.GameObjects.Image[] = [];
+  private vineG?: Phaser.GameObjects.Graphics;
   private views = new Map<string, View>();
   constructor() { super('game'); }
 
@@ -502,21 +503,52 @@ export class GameScene extends Phaser.Scene {
     return image;
   }
 
+  // Стебель «Иди сюда!» (mr.R 02.11: лоза-аркан, плавно, без дыма). Образец: tools/ramil_vine2.py draw_vine().
+  // Каждый кадр: квадратичная дуга от ладони к груди цели; полёт ease-out, рывок ease-in-out (дуга выпрямляется), втягивание обратно.
   private drawVines(s: Snapshot) {
-    this.vineParts.forEach(p => p.destroy()); this.vineParts = [];
+    const g = this.vineG ??= this.add.graphics();
+    g.clear(); this.vineParts.forEach(p => p.setVisible(false));
     const full = RAMIL.VINE_FLIGHT + RAMIL.VINE_PULL;
     this.vines = this.vines.filter(v => this.time.now - v.since < full + RAMIL.VINE_RETRACT);
+    const easeOut = (t: number) => 1 - (1 - t) ** 3, easeIO = (t: number) => t * t * (3 - 2 * t);
+    let used = 0;
+    const part = (key: string, x: number, y: number, depth: number, frame?: number) => {
+      let im = this.vineParts[used];
+      if (!im) { im = this.add.image(0, 0, key).setScale(SCALE); this.vineParts.push(im); }
+      used++;
+      im.setTexture(key, frame).setPosition(Math.round(x), Math.round(y)).setDepth(depth).setRotation(0).setVisible(true);
+      return im;
+    };
     for (const v of this.vines) for (const id of v.ev.targets) {
       const e = s.enemies.get(id); if (!e) continue;
-      const elapsed = this.time.now - v.since;
-      const k = elapsed < RAMIL.VINE_FLIGHT ? elapsed / RAMIL.VINE_FLIGHT : elapsed < full ? 1 : 1 - (elapsed - full) / RAMIL.VINE_RETRACT;
-      const dx = (e.x - v.ev.x) * k, dy = (e.y - 30 - v.ev.y) * k;
-      const len = Math.hypot(dx, dy), angle = Math.atan2(dy, dx);
-      for (let d = 0; d < len; d += 20) {
-        this.vineParts.push(this.add.image(v.ev.x + Math.cos(angle) * d, v.ev.y + Math.sin(angle) * d, 'fx-ramil-vine-' + (Math.floor(this.time.now / 100 + d / 20) % 3)).setRotation(angle).setDepth(e.y + 0.1));
+      const t = this.time.now - v.since;
+      let grow = 1, arc = 30 * SCALE;
+      if (t < RAMIL.VINE_FLIGHT) grow = easeOut(t / RAMIL.VINE_FLIGHT);
+      else if (t < full) arc *= 1 - easeIO((t - RAMIL.VINE_FLIGHT) / RAMIL.VINE_PULL);
+      else { arc = 0; grow = 1 - easeIO((t - full) / RAMIL.VINE_RETRACT); }
+      const x0 = v.ev.x, y0 = v.ev.y, x1 = e.x, y1 = e.y - 40;
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2 - arc;
+      const at = (u: number) => { const w = 1 - u; return [w * w * x0 + 2 * w * u * cx + u * u * x1, w * w * y0 + 2 * w * u * cy + u * u * y1]; };
+      const len = Math.hypot(x1 - x0, y1 - y0) * grow, n = Math.max(8, Math.ceil(len / 3));
+      const depth = Math.max(e.y, v.ev.y + 52) + 0.1;
+      g.setDepth(depth);
+      // контур, тело, блик; к кончику тоньше
+      for (const [r, col] of [[4, 0x102212], [3, 0x3a8a32], [1.2, 0xa8e270]] as const) {
+        g.fillStyle(col, 1);
+        for (let i = 0; i <= n; i++) {
+          const [x, y] = at(grow * i / n), k = 1 - 0.35 * i / n;
+          g.fillCircle(Math.round(x), Math.round(y - (r < 2 ? SCALE : 0)), r * SCALE * k);
+        }
       }
-      this.vineParts.push(this.add.image(v.ev.x + dx, v.ev.y + dy, 'fx-ramil-vine-head').setRotation(angle).setDepth(e.y + 0.2));
-      if (elapsed >= RAMIL.VINE_FLIGHT && elapsed < full) this.vineParts.push(this.add.image(e.x, e.y - 30, 'fx-ramil-wrap', Math.floor(this.time.now / 100) % 4).setScale(SCALE).setDepth(e.y + 0.2));
+      // листья раскрываются вдоль пройденной части, по очереди сверху/снизу
+      const step = 22 * SCALE, leaves = Math.floor(len / step);
+      for (let j = 1; j <= leaves; j++) {
+        const [x, y] = at(grow * (j * step) / Math.max(len, 1));
+        const up = j % 2 === 1;
+        part(up ? 'fx-ramil-leaf-up' : 'fx-ramil-leaf-down', x, y + (up ? -8 : 8) * SCALE, depth + 0.01);
+      }
+      if (t < RAMIL.VINE_FLIGHT) { const [x, y] = at(grow); part('fx-ramil-leaf-up', x, y, depth + 0.02).setRotation(Math.PI / 2); }
+      if (t >= RAMIL.VINE_FLIGHT && t < full) part('fx-ramil-coil', e.x, e.y - 40, e.y + 0.2, Math.floor(this.time.now / 100) % 4);
     }
   }
 

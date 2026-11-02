@@ -37,11 +37,13 @@ PICK = {
 STRIPS = {"ramil-smoke": ("ramil/smoke-idle.png", 18, 30, 10, True),
           "ramil-smoke-heavy": ("ramil/smoke-heavy.png", 28, 40, 10, True),
           "ramil-mark": ("ramil/mark.png", 20, 14, 10, True),
-          "ramil-wrap": (None, 34, 26, 10, True)}
+          "ramil-wrap": (None, 34, 26, 10, True),
+          "ramil-coil": ("ramil/vine2/coil.png", 36, 30, 10, True)}
 # одиночные картинки (рисованы скриптом)
 SINGLE = {"heart": "nadya/heart-big.png", "ball": "kris/ball.png", "aim": "kris/aim-mid.png",
           **{f"beam-{p}-{i}": f"kris/beam-{p}-{i}.png" for p in ("start", "mid", "end") for i in range(3)},
-          **{f"ramil-vine-{i}": f"ramil/vines/seg-{i}.png" for i in range(3)}, "ramil-vine-head": "ramil/vines/head.png"}
+          **{f"ramil-vine-{i}": f"ramil/vines/seg-{i}.png" for i in range(3)}, "ramil-vine-head": "ramil/vines/head.png",
+          "ramil-leaf-up": "ramil/vine2/leaf-up.png", "ramil-leaf-down": "ramil/vine2/leaf-down.png"}
 
 DST.mkdir(parents=True, exist_ok=True)
 rows = []

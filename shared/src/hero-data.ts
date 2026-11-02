@@ -7,7 +7,7 @@ export const KRIS_ID = 'kris';
 export const RAMIL_ID = 'ramil';
 // Рамиль: стартовые числа приёмов и их постановки, для настройки mr.R.
 export const RAMIL = {
-  VINE_RANGE: 220, VINE_MAX: 2, VINE_FLIGHT: 150, VINE_PULL: 250, VINE_RETRACT: 120,
+  VINE_RANGE: 220, VINE_MAX: 2, VINE_FLIGHT: 200, VINE_PULL: 300, VINE_RETRACT: 180, // плавнее (mr.R 02.11: «не дёрганая»)
   VINE_GAP: 42, VINE_DMG: 4, VINE_STUN: 700, BOSS_PULL: 0.4,
   FIRE_LEN: 120, FIRE_BAND: 30, FIRE_MS: 330, FIRE_DMG: 3,
   BURN_MS: 3000, BURN_TICK: 500, BURN_DMG: 3,
