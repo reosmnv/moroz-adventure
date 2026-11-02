@@ -1018,5 +1018,22 @@ for (const dir of [-1, 1] as const) {
   }
   check(`TZ09 R4: fast windup/active dir=${dir} в границах арены`, bounded && active);
 }
+// TZ-11: метки сильного удара, добивания и обычного вражеского попадания.
+for (const hp of [1000, 1]) {
+  const { w } = setup(); dummy(w, 'e1', 24, hp);
+  const hits = [];
+  for (let t = 0; t < 700; t += TICK_MS) {
+    hits.push(...step(w, { h: { ...emptyInput(), heavy: t === 0 } }).filter(e => e.t === 'hit'));
+  }
+  const hit = hits.find(e => e.t === 'hit' && e.target === 'e1');
+  check('TZ11 uppercut ' + (hp === 1 ? 'kill' : 'impact'), hit?.t === 'hit' && (hp === 1 ? hit.kill === true && hit.impact === 2 : hit.impact === 1 && !hit.kill));
+}
+{
+  const { w, p } = setup(); dummy(w, 'e1', 24);
+  const e = w.enemies.e1;
+  e.phase = 'windup'; e.phaseMs = 1; e.atkDir = -1; e.token = p.id; e.atkX = p.x; e.atkY = p.y;
+  const hit = step(w, {}).find(e => e.t === 'hit' && e.target === p.id);
+  check('TZ11 враг без impact', hit?.t === 'hit' && hit.impact === undefined && hit.kill === undefined);
+}
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');
 process.exit(failed ? 1 : 0);

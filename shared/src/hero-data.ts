@@ -55,6 +55,7 @@ export interface Strike {
   single?: boolean; // только ближайший враг перед героем
   slowMs?: number; slow?: number; // замедление врага: длительность и доля скорости, которую он теряет
   stunMs?: number; // оглушение: враг стоит и не бьёт
+  impact?: 1 | 2;
   word?: string; // комиксное слово над попаданием
   kind?: 'flash' | 'ball' | 'kiss' | 'dash'; // особое действие в кадре удара вместо обычного попадания
 }
@@ -79,36 +80,36 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
   prime: {
     jab: { range: 52, dmg: 5, kb: 2, stun: 250 },
     cross: { range: 54, dmg: 7, kb: 3, stun: 250 },
-    teep: { range: 66, dmg: 10, kb: 14, stun: 400, word: 'БУМ!' },
-    superman: { range: 86, dmg: 15, kb: 28, stun: 500, rush: true, word: 'ВЖУХ!' },
-    highkick: { range: 70, dmg: 25, kb: 30, stun: 500 },
-    uppercut: { range: 58, dmg: 25, kb: 10, stun: 500, down: true, launch: true, word: 'ОП!' },
-    slam: { range: 70, dmg: 25, kb: 30, stun: 500, down: true, slam: true, word: 'ХРЯСЬ!' },
+    teep: { impact: 1, range: 66, dmg: 10, kb: 14, stun: 400, word: 'БУМ!' },
+    superman: { impact: 1, range: 86, dmg: 15, kb: 28, stun: 500, rush: true, word: 'ВЖУХ!' },
+    highkick: { impact: 1, range: 70, dmg: 25, kb: 30, stun: 500 },
+    uppercut: { impact: 1, range: 58, dmg: 25, kb: 10, stun: 500, down: true, launch: true, word: 'ОП!' },
+    slam: { impact: 1, range: 70, dmg: 25, kb: 30, stun: 500, down: true, slam: true, word: 'ХРЯСЬ!' },
   },
   ultimate: {
     elbow: { range: 52, dmg: 15, kb: 2, stun: 250 },
     knee: { range: 54, dmg: 20, kb: 3, stun: 250 },
-    roundhouse: { range: 72, dmg: 25, kb: 16, stun: 400, word: 'БУМ!' },
-    'spin-elbow': { range: 66, dmg: 30, kb: 24, stun: 500, down: true, launch: true, word: 'ОП!' },
-    'flying-knee': { range: 86, dmg: 35, kb: 30, stun: 500, rush: true, word: 'ВЖУХ!' },
-    hurricane: { range: 75, dmg: 30, kb: 1, stun: 400, word: 'УРАГАН!' }, // на каждое из трёх попаданий
+    roundhouse: { impact: 1, range: 72, dmg: 25, kb: 16, stun: 400, word: 'БУМ!' },
+    'spin-elbow': { impact: 1, range: 66, dmg: 30, kb: 24, stun: 500, down: true, launch: true, word: 'ОП!' },
+    'flying-knee': { impact: 1, range: 86, dmg: 35, kb: 30, stun: 500, rush: true, word: 'ВЖУХ!' },
+    hurricane: { impact: 1, range: 75, dmg: 30, kb: 1, stun: 400, word: 'УРАГАН!' }, // на каждое из трёх попаданий
   },
   // Надя: контроль, урон ниже (числа предварительные, nadezhda.md)
   nadya: {
     a1: { range: 80, dmg: 4, kb: 2, stun: 250, word: 'ХЛЯСЬ!' },
     a2: { range: 58, dmg: 5, kb: 3, stun: 450, word: 'БАМ!' },
-    a3: { range: 70, dmg: 6, kb: 14, stun: 400, around: true },
-    b1: { range: 62, dmg: 5, kb: 4, stun: 300, slowMs: 1500, slow: 0.5, word: 'ШЛЁП!' },
+    a3: { impact: 1, range: 70, dmg: 6, kb: 14, stun: 400, around: true },
+    b1: { impact: 1, range: 62, dmg: 5, kb: 4, stun: 300, slowMs: 1500, slow: 0.5, word: 'ШЛЁП!' },
     b2: { range: 50, dmg: 6, kb: 2, stun: 0, single: true, stunMs: 1800, word: 'ОЙ!' },
-    'b3-end': { range: 0, dmg: 10, kb: 6, stun: 400, slowMs: 1250, slow: 0.2, kind: 'dash' },
+    'b3-end': { impact: 1, range: 0, dmg: 10, kb: 6, stun: 400, slowMs: 1250, slow: 0.2, kind: 'dash' },
     ult: { range: 0, dmg: 0, kb: 0, stun: 0, kind: 'kiss' }, // воздушный поцелуй: без урона, только ревность
   },
   // Kris: штатив вблизи, вспышка и шар издалека (числа предварительные, kris.md)
   kris: {
     'a1-back': { range: 78, dmg: 4, kb: 0, stun: 0, stunMs: 800, word: 'СТОП!' },
-    a2: { range: 78, dmg: 5, kb: 30, stun: 0, stunMs: 800, word: 'ВЖУХ!' },
+    a2: { impact: 1, range: 78, dmg: 5, kb: 30, stun: 0, stunMs: 800, word: 'ВЖУХ!' },
     b: { range: 320, dmg: 4, kb: 2, stun: 500, kind: 'flash' },
-    ball: { range: 0, dmg: 20, kb: 20, stun: 500, kind: 'ball' },
+    ball: { impact: 1, range: 0, dmg: 20, kb: 20, stun: 500, kind: 'ball' },
   },
 };
 

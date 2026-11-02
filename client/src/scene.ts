@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { Impact } from './impact.ts';
 import { BossShow } from './boss-show.ts';
 import { ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
@@ -33,6 +34,7 @@ interface View { ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyC
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
   private bossShow?: BossShow;
+  private impact!: Impact;
   private attackBands: { x: number; y: number; h: number; until: number; grid: boolean }[] = [];
   private stageView?: StageView;
   private locationKey = '';
@@ -78,6 +80,7 @@ export class GameScene extends Phaser.Scene {
   init(data: { session: GameSession }) { this.session = data.session; }
 
   create() {
+    this.impact = new Impact(this);
     for (const [k, v] of Object.entries(VFX)) {
       this.anims.create({ key: 'fx-' + k, frames: this.anims.generateFrameNumbers('fx-' + k, { start: 0, end: k === 'boss-firework' ? 4 : v.n - 1 }), frameRate: v.fps, repeat: v.loop ? -1 : 0 });
     }
@@ -198,7 +201,11 @@ export class GameScene extends Phaser.Scene {
       if (e.t === 'phase' || e.t === 'bossDown') {
         const boss = this.session.snapshots.at(-1)?.enemies.get(e.id);
         if (boss) this.bossWord(boss.x,boss.y-105,e.t==='phase' ? (boss.boss==='shaman'?'ВСТАЮ ЕЩЁ РАЗ!':'ДОСТУП ЗАПРЕЩЁН') : (boss.boss==='shaman'?'ОТМЕНЁН!':'РАЗБЛОКИРОВАНО!'));
-        this.cameras.main.flash(120);
+        if (boss) {
+          const players = [...(this.session.snapshots.at(-1)?.players.entries() ?? [])];
+          const nearest = players.sort((a, b) => Math.hypot(a[1].x-boss.x, a[1].y-boss.y)-Math.hypot(b[1].x-boss.x, b[1].y-boss.y))[0];
+          this.impact.play(2, nearest ? this.views.get('p:' + nearest[0])?.sprite : undefined, this.views.get('e:' + e.id)?.sprite, boss.x, boss.y);
+        }
       }
       if (e.t === 'victory') void showFinale(() => this.replay());
       if (e.t === 'tele') this.telegraphs.push({ ev: e, until: this.time.now + e.ms + (e.delayMs ?? 0) });
@@ -218,14 +225,20 @@ export class GameScene extends Phaser.Scene {
       } else if (e.t === 'stage') {
         if (this.locationKey === 'old:0') this.cameras.main.fadeIn(350);
       } else if (e.t === 'hit') {
-        const t = this.add.text(e.x, e.y - 70, '-' + e.dmg, textStyle(8, '#ffd84a')).setOrigin(0.5).setDepth(1500);
-        this.tweens.add({ targets: t, y: t.y - 16, alpha: 0, duration: 500, onComplete: () => t.destroy() });
-        // Искры по герою: розовые у Нади, салатовые у Kris
         const by = this.charOf(e.by);
-        if (by === NADYA_ID) e.word === 'ШЛЁП!' ? this.fx('nadya-slap', e.x, e.y - 50, { frames: 10 }) : this.fx('nadya-hit', e.x, e.y - 45);
-        if (by === KRIS_ID) this.fx('kris-hit', e.x, e.y - 45);
-        if (e.word === 'БУМ!') this.fx('kris-ring', e.x, e.y, { depth: e.y - 0.3 });
-        if (e.word) this.word(e.x, e.y - 95, e.word, by === KRIS_ID ? '#c8ff6a' : by === NADYA_ID ? '#ff8fc4' : '#9d74d4');
+        const delay = (e.kill || e.impact) && this.views.has('e:' + e.target)
+          ? this.impact.play(e.kill ? 2 : e.impact!, this.views.get('p:' + e.by)?.sprite, this.views.get('e:' + e.target)?.sprite, e.x, e.y,
+            CHARACTERS.find(c => c.id === by)?.color) : 0;
+        const showText = () => {
+          const t = this.add.text(e.x, e.y - 70, '-' + e.dmg, textStyle(8, '#ffd84a')).setOrigin(0.5).setDepth(1500);
+          this.tweens.add({ targets: t, y: t.y - 16, alpha: 0, duration: 500, onComplete: () => t.destroy() });
+          // Искры по герою: розовые у Нади, салатовые у Kris
+          if (by === NADYA_ID) e.word === 'ШЛЁП!' ? this.fx('nadya-slap', e.x, e.y - 50, { frames: 10 }) : this.fx('nadya-hit', e.x, e.y - 45);
+          if (by === KRIS_ID) this.fx('kris-hit', e.x, e.y - 45);
+          if (e.word === 'БУМ!') this.fx('kris-ring', e.x, e.y, { depth: e.y - 0.3 });
+          if (e.word) this.word(e.x, e.y - 95, e.word, by === KRIS_ID ? '#c8ff6a' : by === NADYA_ID ? '#ff8fc4' : '#9d74d4');
+        };
+        if (delay) this.time.delayedCall(delay, showText); else showText();
         if (e.target.startsWith('e') && e.dmg >= 18) this.cameras.main.shake(90, 0.004); // сильный удар встряхивает кадр
         beep(e.target.startsWith('e') ? 520 : 180, 0.05);
       } else if (e.t === 'heal') {

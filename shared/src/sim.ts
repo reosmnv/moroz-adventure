@@ -193,7 +193,7 @@ export type SimEvent =
   | { t: 'block'; id: string }
   | { t: 'exit'; to: number }
   | { t: 'stage'; stage: number }
-  | { t: 'hit'; target: string; dmg: number; x: number; y: number; word?: string; by?: string }
+  | { t: 'hit'; target: string; dmg: number; x: number; y: number; word?: string; by?: string; impact?: 1 | 2; kill?: true }
   | { t: 'shot'; id: string; x: number; y: number; tx: number; ty: number } // вспышка Kris летит
   | { t: 'ball'; id: string; x: number; y: number; tx: number; ty: number } // шар Kris летит
   | { t: 'boom'; id: string; x: number; y: number; kind: 'ball' }
@@ -294,7 +294,7 @@ function spawnWave(w: World, ev: SimEvent[]) {
 
 type HitOpts = {
   kb?: number; stun?: number; down?: boolean; launch?: boolean; slam?: boolean; pin?: boolean; fixedDmg?: boolean; everyone?: boolean; silent?: boolean;
-  slowMs?: number; slow?: number; stunMs?: number; single?: boolean; word?: string; noCharge?: boolean; flash?: boolean;
+  slowMs?: number; slow?: number; stunMs?: number; single?: boolean; impact?: 1 | 2; word?: string; noCharge?: boolean; flash?: boolean;
 };
 
 // Одно попадание по врагу: урон, отлёт, контроль, шкалы героя, событие
@@ -341,7 +341,7 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
     p.ult = Math.min(100, p.ult + dmg * (p.char === HERO_ID && airborne ? AIR_CHARGE_MULT : 1) + control);
   }
   if (opts.flash) p.charge2 = Math.min(100, p.charge2 + BALL_PER_HIT);
-  ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, word: opts.word, by: p.id });
+  ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, word: opts.word, by: p.id, impact: e.hp <= 0 ? 2 : opts.impact, ...(e.hp <= 0 ? { kill: true as const } : {}) });
 }
 
 const combatReady = (w: World, e: Enemy) => !w.enc.lock || !e.enterMs && (e.entered || e.x >= w.enc.lock[0] && e.x <= w.enc.lock[1] + ENTER_MARGIN);
