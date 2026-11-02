@@ -1,0 +1,172 @@
+[
+ {
+  "name": "ramil_icon_attack_1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: an open hand palm strike pushing forward to the right, the palm wrapped in bright orange and yellow flames, a teal-blue jacket cuff with red zigzag pattern at the wrist, three small speed lines behind, bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 1
+  }
+ },
+ {
+  "name": "ramil_icon_attack_2",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: an open hand palm strike pushing forward to the right, the palm wrapped in bright orange and yellow flames, a teal-blue jacket cuff with red zigzag pattern at the wrist, three small speed lines behind, bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 2
+  }
+ },
+ {
+  "name": "ramil_heavy_tele_1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a puff of grey-white smoke cloud with a small dark silhouette of a man vanishing inside it and a curved arrow jumping over, bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 1
+  }
+ },
+ {
+  "name": "ramil_heavy_tele_2",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a puff of grey-white smoke cloud with a small dark silhouette of a man vanishing inside it and a curved arrow jumping over, bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 2
+  }
+ },
+ {
+  "name": "ramil_heavy_kick_1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a white chunky sneaker kicking sideways in a spinning roundhouse kick with a big curved white motion arc and a small yellow impact star, bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 1
+  }
+ },
+ {
+  "name": "ramil_heavy_kick_2",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a white chunky sneaker kicking sideways in a spinning roundhouse kick with a big curved white motion arc and a small yellow impact star, bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 2
+  }
+ },
+ {
+  "name": "ramil_heavy_fire_1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a lit cigarette with a big burst of orange and yellow fire blowing out to the right like a flamethrower, bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 1
+  }
+ },
+ {
+  "name": "ramil_heavy_fire_2",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a lit cigarette with a big burst of orange and yellow fire blowing out to the right like a flamethrower, bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 2
+  }
+ },
+ {
+  "name": "ramil_heavy_back_1",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a grey smoke puff on the left and a second smoke puff on the right connected by a dashed curved arrow pointing left (teleport back), bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 1
+  }
+ },
+ {
+  "name": "ramil_heavy_back_2",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "game UI icon: a grey smoke puff on the left and a second smoke puff on the right connected by a dashed curved arrow pointing left (teleport back), bold dark outline, centered, readable at small size",
+   "style_image_base64": "@assets/ui/raw/ref-ramil-east.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "width": 32,
+   "height": 32,
+   "max_colors": 10,
+   "seed": 2
+  }
+ }
+]

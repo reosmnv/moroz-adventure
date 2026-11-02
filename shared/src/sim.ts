@@ -675,7 +675,7 @@ function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) 
       ev.push({ t: 'flurry', id: p.id, level: flurry.level, k, x: p.x, y: p.y });
       for (const e of front) {
         applyHit(w, p, e, last ? (RAMIL.F_LAST[flurry.level] as { dmg?: number }).dmg ?? RAMIL.F_DMG[flurry.level] : RAMIL.F_DMG[flurry.level], p.facing, ev, { ...fin, flurry: { level: flurry.level, k }, kb: fin.kb ?? 0, stunMs: fin.down ? undefined : delay + flurry.duration - p.moveT + RAMIL.F_STUN });
-        if (last && flurry.level === 3) { e.burnMs = RAMIL.BURN_MS; e.burnTickMs = RAMIL.BURN_TICK; e.burnBy = p.id; }
+        if (flurry.level === 3) { e.burnMs = RAMIL.BURN_MS; e.burnTickMs = RAMIL.BURN_TICK; e.burnBy = p.id; }
       }
     });
   }

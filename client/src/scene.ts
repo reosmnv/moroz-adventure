@@ -221,7 +221,6 @@ export class GameScene extends Phaser.Scene {
       }
       if (e.t === 'flurry') {
         if (e.k === 0) this.word(e.x, e.y - 100, ['2 УДАРА!', '4 УДАРА!', '8 УДАРОВ!', '16 УДАРОВ!'][e.level], '#ff8c3c');
-        if (e.level === 3 && e.k === 15) this.word(e.x, e.y - 85, 'ПЫХ!', '#ff8c3c');
         if (e.level >= 2 && e.k === RAMIL.F_HITS[e.level] - 1) this.cameras.main.shake(90, 0.003);
         const v = this.views.get('p:' + e.id), sprite = v?.sprite;
         const snap = this.session.snapshots.at(-1)?.players.get(e.id);
@@ -235,7 +234,7 @@ export class GameScene extends Phaser.Scene {
             const spark = this.add.rectangle(x, y, 2, 2, i ? 0xff8c3c : 0xffefaa).setDepth(e.y + 1);
             this.tweens.add({ targets: spark, x: x + snap.facing * (10 + i * 5), y: y - 12 + i * 10, alpha: 0, duration: 180, onComplete: () => spark.destroy() });
           }
-          if (e.level === 3 && e.k === 15) { this.fx('ramil-crit', x, y); this.fx('ramil-fire', x, y, { flip: snap.facing < 0 }); }
+          if (e.level === 3 && e.k === 15) this.fx('ramil-crit', x, y);
         }
       }
       if (e.t === 'tele' && 'fromX' in e) {
@@ -591,7 +590,7 @@ export class GameScene extends Phaser.Scene {
       const gx = x + ((dir === 'west' ? 127 - (fist?.[0] ?? 64) : fist?.[0] ?? 64) - 64) * SCALE;
       const gy = y + ((fist?.[1] ?? FEET_Y) - FEET_Y) * SCALE;
       v.flame ??= this.add.graphics(); v.flame.clear().setDepth(y + 0.3);
-      if (pose?.active && level >= 1 && fist && sprite.visible) {
+      if (pose?.active && level >= 2 && fist && sprite.visible) {
         const radius = [0, 3, 6, 9][level] * (level === 3 ? 1 + 0.15 * Math.sin(this.time.now / 20) : 1);
         v.flame.fillStyle(0xff5b16, 0.65).fillEllipse(gx, gy - radius, radius * 2, radius * 4);
         v.flame.fillStyle(0xffe69a, 0.9).fillEllipse(gx, gy, radius, radius * 2);

@@ -46,8 +46,9 @@ const colorHex = (color: number) => '#' + color.toString(16).padStart(6, '0');
 const HERO_UI: Record<string, { dir: string; icons: string[] }> = {
   [NADYA_ID]: { dir: 'nadya', icons: ['face', 'icon-attack', 'icon-ult', 'heavy-slap', 'heavy-kick', 'heavy-sword'] },
   [KRIS_ID]: { dir: 'kris', icons: ['face', 'icon-attack', 'icon-ult', 'icon-flash', 'icon-ball'] },
-  [RAMIL_ID]: { dir: 'ramil', icons: ['face', 'icon-attack', 'icon-ult'] },
+  [RAMIL_ID]: { dir: 'ramil', icons: ['face', 'icon-attack', 'icon-ult', 'heavy-tele', 'heavy-kick', 'heavy-fire', 'heavy-back'] },
 };
+const RAMIL_HEAVY_ICON: Record<string, string> = { b1: 'heavy-tele', b2: 'heavy-kick', b3: 'heavy-fire', b4: 'heavy-back' };
 const NADYA_HEAVY_ICON: Record<string, string> = { b1: 'heavy-slap', b2: 'heavy-kick', 'b3-draw': 'heavy-sword' };
 const heroIcon = (char: string, name: string) => `ui-${HERO_UI[char].dir}-${name}`;
 
@@ -404,14 +405,25 @@ export class UIScene extends Phaser.Scene {
     this.pips.clear();
     if (me && HERO_UI[me.char ?? '']) {
       const a = this.btns.get('attack')!;
-      const n = CHAIN[(me.form ?? 'prime') as keyof typeof CHAIN]?.length ?? 3; // у Kris серия A из двух
+      const n = me.char === RAMIL_ID ? CHAIN.ramil.length : CHAIN[(me.form ?? 'prime') as keyof typeof CHAIN]?.length ?? 3; // у Kris серия A из двух
       const c = Math.min(me.combo ?? 0, n - 1);
       for (let i = 0; i < n; i++) {
         const x = a.base.x - 4 * n + 2 + i * PIP_STEP, y = a.base.y + PIP_Y;
         this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
         this.pips.fillStyle(color, i < c ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
       }
-      if (me.char === NADYA_ID) {
+      if (me.char === RAMIL_ID) {
+        const hb = this.btns.get('heavy')!;
+        const n = HEAVY.ramil.length, bc = Math.min(me.bCombo ?? 0, n - 1);
+        for (let i = 0; i < n; i++) {
+          const x = hb.base.x - 4 * n + 2 + i * PIP_STEP, y = hb.base.y + PIP_Y;
+          this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
+          this.pips.fillStyle(color, i < bc ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
+        }
+        const move = HEAVY.ramil[bc];
+        this.bHint.setText(RAMIL_MOVE_NAMES[move as keyof typeof RAMIL_MOVE_NAMES]);
+        this.setHeavyIcon(heroIcon(me.char, RAMIL_HEAVY_ICON[move]));
+      } else if (me.char === NADYA_ID) {
         // Серия B своя: под B тоже точки, иконка и подпись следующего удара
         const hb = this.btns.get('heavy')!;
         const bc = Math.min(me.bCombo ?? 0, 2);
@@ -445,9 +457,6 @@ export class UIScene extends Phaser.Scene {
       const move = HEAVY[me.form ?? 'prime'][bc];
       this.bHint.setText(MOVE_NAMES[move] ?? '');
       this.setHeavyIcon('ui-heavy-' + NASTYA_HEAVY_ICON[move]);
-    } else if (me?.char === RAMIL_ID) {
-      this.bHint.setText(RAMIL_MOVE_NAMES[HEAVY.ramil[Math.min(me.bCombo ?? 0, HEAVY.ramil.length - 1)] as keyof typeof RAMIL_MOVE_NAMES]);
-      this.setHeavyIcon('ui-icon-heavy');
     } else {
       this.bHint.setText('');
       this.setHeavyIcon('ui-icon-heavy');

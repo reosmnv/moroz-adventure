@@ -44,6 +44,8 @@
 - Ассеты (Claude): концепт GPT `assets/gen/hero4/flurry/flurry-concept-v1.png`; позы PixelLab `flurry/k1-*`, `k2-*`; анимации `tools/specs/ramil-flurry-anim.json` → полосы flurry-in/flurry/flurry-out/flurry2-in/flurry2/flurry2-out (`tools/ramil_build.py`, общая опора по стойке, `RAMIL_FISTS` по цвету кожи); круг `tools/ramil_trigram.py` → `ramil-trigram`. Превью темпа `assets/gen/hero4/flurry/preview.gif` (http://100.118.72.60:8090/assets/gen/hero4/flurry/preview.gif). PixelLab за сессию ~45 ген.
 - Код Codex: `tasks/TZ-13-ramil-flurry.md`, отчёт `TZ-13-report.md` (+ правки приёмки: рывок до 240, дымный след вместо «меча», тесты под переходы).
 - Проверено: tsc, vite build, test:sim (418), test:net на :2568 и на боевом после рестарта, Playwright офлайн: A f1-f4 (рывок, огонь, круг, «16 УДАРОВ!», поджог), B1-B4. iPhone и онлайн глазами НЕ проверены.
+- TZ-14 (отзыв mr.R): огонь на ладонях только f3-f4, без струи и «ПЫХ!» в конце, f4 поджигает каждого задетого на 3 с; HUD Рамиля чинен (был «Вспышка» от Kris и иконка лозы): новые иконки `client/public/ui/ramil/` (спека `tools/specs/ui-ramil.json`, ~10 ген.). Выложено.
+- mr.R писал «серии A и B перепутались»: в коде A (правая нижняя кнопка) = кулаки; вероятная причина — старая иконка лозы и подпись «Вспышка». Ждём подтверждения после TZ-14.
 - Ждём отзыва mr.R. Возможные доводки: темп f4 (30 мс на удар, руки сливаются), сила огня, длина переходов в стойку; числа в `RAMIL` (`shared/src/hero-data.ts`).
 
 ## Известные огрехи

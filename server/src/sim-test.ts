@@ -1054,6 +1054,41 @@ for (let level = 0; level < 4; level++) {
   if (level === 3) check('Рамиль f4: лежит и горит', w.enemies.e1.anim === 'down' && !!w.enemies.e1.burnMs);
   check('Рамиль: ладони не заряжают ульту', p.ult === 0);
 }
+// TZ14: поджог каждого попадания f4, без сложения тиков.
+for (let level = 0; level < 4; level++) {
+  const { w, p } = setup(false, 'ramil');
+  ramilDummy(w, 'e1', 40); ramilDummy(w, 'e2', 50);
+  p.combo = level; p.comboMs = 1000;
+  let lastHit = 0, firstBurn: boolean | undefined, refreshed = true, elapsed = 0;
+  for (; elapsed < 1000; elapsed += TICK_MS) {
+    const ev = step(w, { h: { ...emptyInput(), attack: elapsed === 0 } });
+    if (ev.some(e => e.t === 'hit' && !e.tick)) {
+      lastHit = elapsed;
+      if (level === 3) {
+        const burning = Object.values(w.enemies).every(e => e.burnMs === RAMIL.BURN_MS - TICK_MS && e.burnTickMs === RAMIL.BURN_TICK - TICK_MS && e.burnBy === p.id);
+        firstBurn ??= burning;
+        refreshed &&= burning;
+      }
+    }
+    if (elapsed > 0 && !/^f[1-4]$/.test(p.move)) break;
+  }
+  if (level < 3) {
+    check(`TZ14 f${level + 1}: обе цели без поджога`, Object.values(w.enemies).every(e => !e.burnMs));
+    continue;
+  }
+  check('TZ14 f4: обе цели горят с первых попаданий', firstBurn === true);
+  check('TZ14 f4: каждый удар обновляет один таймер', refreshed);
+  let ticks = 0, damageOk = true;
+  while (elapsed - lastHit < RAMIL.BURN_MS + TICK_MS) {
+    elapsed += TICK_MS;
+    const ev = step(w, {});
+    for (const e of ev) if (e.t === 'hit' && e.tick) { ticks++; damageOk &&= e.dmg === RAMIL.BURN_DMG; }
+    if (Object.values(w.enemies).every(e => !e.burnMs)) break;
+  }
+  check('TZ14 f4: горение истекает через 3000 мс после последнего удара', Math.abs(elapsed - lastHit - RAMIL.BURN_MS) <= TICK_MS, String(elapsed - lastHit));
+  check('TZ14 f4: обе цели получают по 6 тиков урона 3', ticks === 12 && damageOk, String(ticks));
+  check('TZ14 f4: после истечения тиков нет', !run(w, 1000).hits.length);
+}
 for (const dx of [40, 58, 59, 100, 150, 160, 220, 240, 241]) {
   const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', dx);
   const result = run(w, 700, press([0], 'attack'));
