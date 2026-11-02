@@ -1,7 +1,7 @@
 import { Room, type Client } from 'colyseus';
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
-  encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars,
+  encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars, switchHero, testHeal, testGod, testKillAll,
   type Input, type World,
 } from '@bc/shared';
 
@@ -27,6 +27,7 @@ export const PlayerState = schema({
   invuln: t.boolean(),
   connected: t.boolean(),
   away: t.boolean(),
+  god: t.boolean(),
 }, 'PlayerState');
 export type PlayerState = SchemaType<typeof PlayerState>;
 
@@ -66,6 +67,7 @@ export const GameState = schema({
   trans: t.number(),
   tick: t.number(),
   wave: t.number(),
+  testMode: t.boolean(),
   paused: t.boolean(),
   pausedBy: t.string(),
   players: t.map(PlayerState),
@@ -79,19 +81,20 @@ const round = (v: number) => Math.round(v * 10) / 10;
 export class GameRoom extends Room<{ state: GameState }> {
   maxClients = 4;
   state = new GameState();
-  world: World = createWorld(Date.now() & 0xffff, TEST_TOOLS);
+  world: World = createWorld(Date.now() & 0xffff, false);
   playerInputs: Record<string, Input> = {};
   private introReaders = new Set<string>();
   private introReady = new Set<string>();
 
-  onCreate(options: { level?: unknown; stage?: unknown } = {}) {
+  onCreate(options: { level?: unknown; stage?: unknown; testMode?: unknown } = {}) {
     const level = options.level === 'old' ? 'old' : 'route';
-    const stage = typeof options.stage === 'number' && Number.isInteger(options.stage) && options.stage >= 0 && options.stage < LEVELS[level].stages.length ? options.stage : 0;
-    this.world = createWorld(Date.now() & 0xffff, TEST_TOOLS, level, stage);
+    const testMode = TEST_TOOLS && options.testMode === true;
+    const stage = testMode && typeof options.stage === 'number' && Number.isInteger(options.stage) && options.stage >= 0 && options.stage < LEVELS[level].stages.length ? options.stage : 0;
+    this.world = createWorld(Date.now() & 0xffff, testMode, level, stage);
     this.state.intro = level === 'route' && stage === 0;
     this.sync();
     this.onMessage('next', (client: Client) => {
-      if (TEST_TOOLS && this.world.players[client.sessionId]) nextStage(this.world);
+      if (this.world.testTools && this.world.players[client.sessionId]) nextStage(this.world);
     });
     // Короткий код комнаты для ссылки вместо стандартного длинного id
     this.roomId = Math.random().toString(36).slice(2, 7).toUpperCase();
@@ -105,6 +108,16 @@ export class GameRoom extends Room<{ state: GameState }> {
       const p = addPlayer(this.world, client.sessionId, char);
       if (this.state.intro && !this.introReady.has(client.sessionId)) { this.introReaders.add(client.sessionId); p.away = true; }
       this.playerInputs[client.sessionId] = emptyInput();
+    });
+
+    this.onMessage('switch', (client: Client, char: string) => {
+      if (this.state.intro || !switchHero(this.world, client.sessionId, char)) {
+        client.send('pickError', 'Персонаж занят');
+        return;
+      }
+      this.playerInputs[client.sessionId] = emptyInput();
+      this.sync();
+      this.flushEvents();
     });
 
     this.onMessage('move', (client: Client, m: { mx: number; my: number; run?: boolean }) => {
@@ -126,13 +139,23 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (this.world.players[client.sessionId]?.char === 'ramil' && this.playerInputs[client.sessionId]) this.playerInputs[client.sessionId].ult2 = on === true;
     });
 
-    // Тестовая кнопка «+3 врага»; в релизе TEST_TOOLS = false
+    // Тестовые команды доступны только в режиме комнаты
     this.onMessage('spawn', (client: Client) => {
-      if (TEST_TOOLS && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
+      if (this.world.testTools && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
     });
 
     this.onMessage('charge', (client: Client) => {
-      if (TEST_TOOLS) chargeUlt(this.world, client.sessionId);
+      if (this.world.testTools) chargeUlt(this.world, client.sessionId);
+    });
+
+    this.onMessage('heal', (client: Client) => {
+      if (this.world.testTools && this.world.players[client.sessionId]) testHeal(this.world);
+    });
+    this.onMessage('god', (client: Client, on: unknown) => {
+      if (this.world.testTools && typeof on === 'boolean') testGod(this.world, client.sessionId, on);
+    });
+    this.onMessage('killall', (client: Client) => {
+      if (this.world.testTools && this.world.players[client.sessionId]) testKillAll(this.world);
     });
 
     this.onMessage('introDone', (client: Client) => {
@@ -158,8 +181,17 @@ export class GameRoom extends Room<{ state: GameState }> {
     this.setSimulationInterval(() => this.tick(), TICK_MS);
   }
 
+  private flushEvents() {
+    const events = this.world.events?.splice(0);
+    if (events?.length) this.broadcast('ev', events);
+  }
+
+  private unpause(id: string) {
+    if (this.state.pausedBy === id) { this.state.paused = false; this.state.pausedBy = ''; }
+  }
+
   tick() {
-    if (this.state.paused || this.state.intro) { this.sync(); return; }
+    if (this.state.paused || this.state.intro) { this.sync(); this.flushEvents(); return; }
     const events = step(this.world, this.playerInputs);
     for (const [id, inp] of Object.entries(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.skip = false; if (this.world.players[id]?.char !== 'ramil') inp.ult2 = false; }
     this.sync();
@@ -173,6 +205,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     s.zones.clear(); for (const zone of w.zones) s.zones.push(new ZoneState({ x: zone.x, y: zone.y, r: zone.r, ms: zone.ms }));
     s.pauseMs = w.pauseMs ?? 0; s.slowmoMs = w.slowmoMs ?? 0;
     s.halt = w.halt; s.cineId = w.cine?.id ?? ''; s.cineKind = w.cine?.kind ?? ''; s.cineMs = w.cine?.ms ?? 0;
+    s.testMode = w.testTools;
     s.level = w.level; s.stage = w.stage; s.trans = w.trans?.ms ?? 0;
     s.tick = w.tick;
     s.wave = w.wave;
@@ -187,7 +220,7 @@ export class GameRoom extends Room<{ state: GameState }> {
       ps.char = p.char; ps.x = round(p.x); ps.y = round(p.y); ps.hp = p.hp; ps.facing = p.facing;
       ps.anim = p.anim; ps.ult = Math.floor(p.ult);
       ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.bCombo = p.bCombo; ps.hitCount = p.hitCount; ps.charge2 = Math.floor(p.charge2); ps.storm = Math.round(p.stormMs); ps.invuln = p.invulnMs > 0;
-      ps.connected = p.connected; ps.away = p.away;
+      ps.connected = p.connected; ps.away = p.away; ps.god = !!p.god;
     }
     for (const id of [...s.enemies.keys()]) if (!w.enemies[id]) s.enemies.delete(id);
     for (const e of Object.values(w.enemies)) {
@@ -210,6 +243,7 @@ export class GameRoom extends Room<{ state: GameState }> {
 
   // Обрыв без согласия (iOS убил сокет, пока игрок в мессенджере): держим место
   onDrop(client: Client) {
+    this.unpause(client.sessionId);
     const p = this.world.players[client.sessionId];
     if (p) { p.connected = false; this.playerInputs[client.sessionId] = emptyInput(); }
     console.log(`[${this.roomId}] drop ${client.sessionId}`);
@@ -223,6 +257,7 @@ export class GameRoom extends Room<{ state: GameState }> {
   }
 
   onLeave(client: Client) {
+    this.unpause(client.sessionId);
     if (this.state.introHost === client.sessionId) {
       this.state.introHost = this.clients.find(c => c.sessionId !== client.sessionId)?.sessionId ?? '';
       if (this.introReady.has(this.state.introHost)) this.state.intro = false;

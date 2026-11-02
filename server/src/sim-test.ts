@@ -1,5 +1,5 @@
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { RAMIL, HERO_ANIMS, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
+import { CHARACTERS, HERO_FORM, PLAYER_HP, switchHero, testHeal, testGod, testKillAll, chargeUlt, nextStage, RAMIL, HERO_ANIMS, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -1298,6 +1298,121 @@ for (const sign of [-1,1]) {
   check('TZ16 Рамиля можно бить после подкида',p.hp<hp && !!e.thrown && p.combo===0);
   addPlayer(w,'buddy',NADYA_ID); p.hp=0; const r=run(w,1100);
   check('TZ16 метеор долетает после поражения Рамиля',!e.thrown && r.events.includes('rland'));
+}
+
+// TZ-18A: смена всех героев во время атаки, очистка связей и тестовый режим.
+for (const from of CHARACTERS) for (const to of CHARACTERS) {
+  if (from.id === to.id) continue;
+  const { w, p } = setup(false, from.id); ramilDummy(w, 'e', 100);
+  step(w, { h: { ...emptyInput(), attack: true } });
+  check(`TZ18 ${from.id} → ${to.id}: посреди атаки`, p.move !== 'idle');
+  p.hp = 63; p.ult = 47; p.facing = -1; p.connected = false; p.away = true; p.god = true;
+  p.cdMs = p.tauntCdMs = p.hitstopMs = p.stormMs = p.stormTickMs = p.formMs = p.invulnMs = 500;
+  p.combo = p.bCombo = 2; p.comboMs = p.bComboMs = 500; p.queued = 'heavy';
+  p.charge2 = 100; p.wantBall = true; p.hitCount = 8; p.hitCountMs = 300; p.ultimateExtraMs = 200;
+  p.fDashMs = p.hiddenMs = p.heavySmokeMs = p.fireMs = p.ultLevel = p.ultWindow = 500;
+  p.approach = { x: p.x, y: p.y, tx: p.x + 80, ty: p.y, ms: 500, rush: true, target: 'e' };
+  p.hop = { from: p.x, to: p.x + 80 }; p.dashFrom = p.x; p.charmSaid = true;
+  check(`TZ18 ${from.id} → ${to.id}: успех`, switchHero(w, p.id, to.id));
+  const q = w.players.h;
+  check(`TZ18 ${from.id} → ${to.id}: сохранение`, q.id === p.id && q.char === to.id && q.x === p.x && q.y === p.y && q.facing === -1
+    && q.hp / PLAYER_HP === p.hp / PLAYER_HP && q.ult === 47 && !q.connected && q.away && q.god === true);
+  check(`TZ18 ${from.id} → ${to.id}: сброс боя`, q.anim === 'idle' && q.move === 'idle' && q.form === HERO_FORM[to.id]
+    && [q.animMs,q.moveT,q.cdMs,q.tauntCdMs,q.downMs,q.formMs,q.invulnMs,q.hitstopMs,q.stormMs,q.stormTickMs,q.combo,q.comboMs,q.bCombo,q.bComboMs,q.charge2,q.dashFrom,q.hitCount,q.hitCountMs,q.ultimateExtraMs].every(n => n === 0)
+    && !q.queued && !q.ramil && !q.approach && !q.hop && !q.wantBall && !q.charmSaid
+    && !q.fDashMs && !q.hiddenMs && !q.heavySmokeMs && !q.fireMs && !q.ultLevel && !q.ultWindow);
+  const ev = step(w, {});
+  check(`TZ18 ${from.id} → ${to.id}: событие один раз`, ev.some(e => e.t === 'switch' && e.id === p.id && e.char === to.id) && !step(w, {}).some(e => e.t === 'switch'));
+}
+{
+  const { w, p, e } = grabSetup(); const hp = e.hp;
+  check('TZ18 смена во время захвата', !!e.held && switchHero(w, p.id, KRIS_ID));
+  check('TZ18 враг освобождён стоя без урона', !e.held && !e.thrown && !e.pin && !e.height && !e.carryAngle && !e.carryHeight && e.anim === 'idle' && e.animMs === 0 && e.hp === hp);
+}
+{
+  const { w, p, e } = grabSetup(); step(w, { h: { ...emptyInput(), attack: true } });
+  for (let i = 0; i < 100 && !e.thrown; i++) step(w, {});
+  const hp = e.hp;
+  check('TZ18 метеор уже летит', !!e.thrown);
+  switchHero(w, p.id, NADYA_ID);
+  check('TZ18 метеор отпущен стоя без урона', !e.thrown && !e.held && e.anim === 'idle' && !e.carryHeight && e.hp === hp);
+}
+{
+  const { w, p } = setup(false, KRIS_ID); ramilDummy(w, 'e', 40); p.charge2 = 100;
+  for (let i = 0; i < 100 && !w.pending.some(d => d.kind === 'aoe'); i++) step(w, { h: { ...emptyInput(), ult2: i === 0 } });
+  const hp = w.enemies.e.hp;
+  check('TZ18 шар Kris в полёте', w.pending.some(d => d.owner === p.id && d.kind === 'aoe'));
+  switchHero(w, p.id, NADYA_ID);
+  check('TZ18 шар отменён после смены', !w.pending.some(d => d.owner === p.id));
+  const r = run(w, 1500);
+  check('TZ18 шар не бьёт от нового героя', w.enemies.e.hp === hp && !r.events.includes('boom'));
+}
+{
+  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'own', 40); ramilDummy(w, 'other', 300);
+  const e = w.enemies.own, other = w.enemies.other;
+  Object.assign(e, { markedBy: p.id, burnBy: p.id, burnMs: 900, burnTickMs: 100, charmBy: p.id, charmMs: 800,
+    pin: { by: p.id, ms: 200, dir: 1, speed: 1, hit: [] }, token: p.id, target: p.id, targetMs: 800, phase: 'windup',
+    ultStopBy: p.id, ultStopMs: 600, ultStunBy: p.id, stunMs: 600, frozenBy: p.id, frozenMs: 800 });
+  Object.assign(other, { burnBy: 'buddy', burnMs: 900, ultStopBy: 'buddy', ultStopMs: 600 });
+  w.pending.push({ owner: p.id, kind: 'hits', ms: 500, ids: ['own'], strike: { range: 20, dmg: 50, kb: 0, stun: 0 } },
+    { owner: 'buddy', kind: 'hits', ms: 500, ids: ['own'], strike: { range: 20, dmg: 50, kb: 0, stun: 0 } });
+  switchHero(w, p.id, HERO_ID);
+  check('TZ18 внешние связи сняты', !e.markedBy && !e.burnBy && !e.burnMs && !e.burnTickMs && !e.charmBy && !e.charmMs && !e.pin && !e.token && !e.target && !e.targetMs && e.phase === 'none' && !e.ultStopMs && !e.stunMs && !e.frozenMs);
+  check('TZ18 эффекты союзника сохранены', other.burnBy === 'buddy' && other.burnMs === 900 && other.ultStopMs === 600 && w.pending.length === 1 && w.pending[0].owner === 'buddy');
+}
+for (const char of ['ramil', HERO_ID]) {
+  const { w, p } = setup(false, char); ramilDummy(w, 'e', 40); p.ult = 100;
+  step(w, { h: { ...emptyInput(), ...(char === 'ramil' ? { ult: true } : { ult2: true }) } });
+  for (let i = 0; i < 40 && !(w.enemies.e.ultStopMs || w.enemies.e.frozenMs); i++) step(w, {});
+  const e = w.enemies.e;
+  check(`TZ18 ${char}: остановка ультой`, !!(e.ultStopMs || e.frozenMs));
+  switchHero(w, p.id, NADYA_ID);
+  check(`TZ18 ${char}: остановка ультой снята`, !e.ultStopMs && !e.stunMs && !e.frozenMs);
+}
+{
+  const { w, p } = setup(); addPlayer(w, 'buddy', NADYA_ID);
+  for (const char of [HERO_ID, NADYA_ID, 'unknown']) {
+    const before = JSON.stringify(w);
+    check(`TZ18 отказ ${char} без изменений`, !switchHero(w, p.id, char) && JSON.stringify(w) === before);
+  }
+  check('TZ18 нет игрока', !switchHero(w, 'missing', KRIS_ID));
+  w.trans = { ms: 900, to: 1 }; check('TZ18 переход запрещает смену', !switchHero(w, p.id, KRIS_ID)); w.trans = undefined;
+  w.cine = { id: 'e', kind: 'omon', ms: 100 }; check('TZ18 кинематика запрещает смену', !switchHero(w, p.id, KRIS_ID)); w.cine = undefined;
+  w.pauseMs = 400; check('TZ18 смена фазы запрещает смену', !switchHero(w, p.id, KRIS_ID)); w.pauseMs = 0;
+  w.won = true; check('TZ18 финал запрещает смену', !switchHero(w, p.id, KRIS_ID));
+}
+{
+  const { w, p } = setup(); dummy(w, 'e', 24); p.hp = 20; p.ult = 21;
+  const before = JSON.stringify(w);
+  testHeal(w); testGod(w, p.id, true); testKillAll(w); chargeUlt(w, p.id); spawnEnemies(w, 3); nextStage(w);
+  check('TZ18 все тестовые функции без режима не меняют мир', JSON.stringify(w) === before);
+}
+{
+  const { w, p } = setup(); w.testTools = true; const b = addPlayer(w, 'buddy', NADYA_ID);
+  p.hp = 20; p.ult = 37; b.hp = 0; b.move = 'fall'; b.anim = 'down'; b.downMs = 5000; b.connected = false; b.away = true;
+  testGod(w, b.id, true); testHeal(w);
+  check('TZ18 лечение всех, включая лежащего отключённого', p.hp === PLAYER_HP && p.ult === 37 && b.hp === PLAYER_HP && b.move === 'idle' && (b.anim as string) === 'idle' && b.downMs === 0 && !b.connected && b.away && b.god === true);
+}
+{
+  const { w, p, e } = arenaSetup(); testGod(w, p.id, true);
+  const hp = p.hp; const r = run(w, 2000);
+  check('TZ18 бессмертие блокирует удары', p.god === true && p.hp === hp && r.hits.length === 0);
+  testGod(w, p.id, false); p.invulnMs = 0; e.cdMs = 0; run(w, 1500);
+  check('TZ18 выключение бессмертия возвращает урон', p.god === false && p.hp < hp);
+}
+{
+  const w = createWorld(18, true); w.introduced = Object.keys(ENEMY_INTRO); const p = addPlayer(w, 'h', HERO_ID); p.x = 300;
+  step(w, {}); const index = w.enc.index; const cleared = w.enc.cleared;
+  for (let i = 0; i < 100 && w.enc.cleared === cleared; i++) { testKillAll(w); step(w, {}); }
+  check('TZ18 killAll засчитывает встречу обычным путём', w.enc.cleared === cleared + 1 && w.enc.index === index + 1 && !w.enc.lock);
+}
+{
+  const { w, p, e } = arenaSetup(); e.boss = 'shaman'; e.hp = 400; e.invulnMs = 1000;
+  ramilDummy(w, 'held', 40); const held = w.enemies.held; held.held = { by: p.id }; held.dummy = true;
+  testKillAll(w);
+  check('TZ18 killAll оставляет боссу 1 HP и убивает захваченного манекена', e.hp === 1 && held.hp === 0 && !held.held && !held.dummy);
+  const ev = step(w, {});
+  check('TZ18 killAll даёт событие смерти и удаление', !w.enemies.held && ev.some(v => v.t === 'hit' && v.target === held.id && v.kill === true));
 }
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');

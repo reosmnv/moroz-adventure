@@ -20,7 +20,7 @@ export const LANE_TOP = 168; // линия стены на фоне уровня
 export const LANE_BOTTOM = 255;
 export const LEVEL_W = 1920; // длина уровня: 4 экрана по 480
 
-// Тестовые инструменты (манекен вместо волн, кнопка «+3 врага»). false перед релизом
+// Доступность тест-режима в меню. Режим игры хранится в world.testTools
 export const TEST_TOOLS = true;
 
 const PLAYER_SPEED = 90; // единиц в секунду
@@ -54,6 +54,7 @@ export const CHARACTERS: Character[] = [
 ];
 
 export interface Player {
+  god?: boolean;
   idleInput?: boolean;
   viewX?: number; viewW?: number;
   ultLevel?: number; ultWindow?: number;
@@ -105,7 +106,7 @@ export interface Player {
 export interface Enemy {
   held?: { by: string }; carryAngle?: number; carryHeight?: number;
   thrown?: { by: string; ms: number; fromX: number; fromY: number; x: number; y: number };
-  ultStopMs?: number;
+  ultStopMs?: number; ultStopBy?: string; ultStunBy?: string;
 
   burnMs?: number; burnTickMs?: number; burnBy?: string; markedBy?: string;
 
@@ -136,6 +137,7 @@ export interface Enemy {
   anim: Anim;
   animMs: number;
   cdMs: number;
+  frozenBy?: string;
   frozenMs?: number; // заморожен: стоит и не бьёт, получает урон без отбрасывания
   air?: number; // мс до приземления
   height?: number; // высота над землёй из sim
@@ -175,6 +177,7 @@ export interface World {
   players: Record<string, Player>;
   enemies: Record<string, Enemy>;
   testTools: boolean;
+  events?: SimEvent[]; // события команд до ближайшего тика
   pending: Pending[]; // отложенные удары: долетевшая вспышка, взрыв шара, урон после рывка, луч, летящий поцелуй
 }
 
@@ -198,6 +201,7 @@ export interface Input {
 export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: false, taunt: false, ult: false, ult2: false, run: false });
 
 export type SimEvent =
+  | { t: 'switch'; id: string; char: string }
   | { t: 'rdash'; id: string; fromX: number; fromY: number; toX: number; toY: number }
   | { t: 'rstage'; id: string; level: number; x: number; y: number }
   | { t: 'rspinHit'; id: string; target: string; x: number; y: number }
@@ -263,16 +267,85 @@ export function addPlayer(w: World, id: string, char: string): Player {
   // Новичок появляется рядом с живым игроком, а не в начале уровня
   const buddy = Object.values(w.players).find(p => p.connected && p.hp > 0);
   const i = Object.keys(w.players).length;
-  const p: Player = {
-    id, char,
-    ...clampToLane(w, buddy ? buddy.x - 30 * i : stageOf(w).spawn[0], buddy ? buddy.y + 20 * i : stageOf(w).spawn[1]),
+  const pos = clampToLane(w, buddy ? buddy.x - 30 * i : stageOf(w).spawn[0], buddy ? buddy.y + 20 * i : stageOf(w).spawn[1]);
+  const p = freshPlayer(id, char, pos.x, pos.y);
+  w.players[id] = p;
+  return p;
+}
+
+function freshPlayer(id: string, char: string, x: number, y: number): Player {
+  return {
+    id, char, x, y,
     hp: PLAYER_HP, facing: 1, anim: 'idle', animMs: 0, cdMs: 0, tauntCdMs: 0, ult: 0, downMs: 0,
     connected: true, away: false,
     form: HERO_FORM[char] ?? 'prime', move: 'idle', moveT: 0, combo: 0, comboMs: 0, queued: null, formMs: 0, invulnMs: 0, hitstopMs: 0, stormMs: 0, stormTickMs: 0,
     hitCount: 0, hitCountMs: 0, ultimateExtraMs: 0, bCombo: 0, bComboMs: 0, charge2: 0, dashFrom: 0, charmSaid: false, wantBall: false,
   };
-  w.players[id] = p;
-  return p;
+}
+
+export function switchHero(w: World, id: string, char: string): boolean {
+  const p = w.players[id];
+  if (!p || p.char === char || !CHARACTERS.some(c => c.id === char)
+    || Object.values(w.players).some(o => o.id !== id && o.char === char)
+    || w.trans || w.cine || w.pauseMs || w.won) return false;
+
+  for (const e of Object.values(w.enemies)) {
+    if (e.held?.by === id || e.thrown?.by === id) {
+      e.held = e.thrown = undefined;
+      e.carryAngle = e.carryHeight = e.height = e.air = e.airTotal = e.airHits = 0;
+      e.airSpan = e.airPeak = e.airStartH = undefined; e.bouncing = false;
+      e.pin = undefined; e.stunMs = 0;
+      cancelAttack(w, e); e.anim = 'idle'; e.animMs = 0;
+    }
+    if (e.markedBy === id) e.markedBy = undefined;
+    if (e.burnBy === id) { e.burnBy = undefined; e.burnMs = e.burnTickMs = 0; }
+    if (e.charmBy === id) { e.charmBy = undefined; e.charmMs = 0; }
+    if (e.pin?.by === id) e.pin = undefined;
+    if (e.frozenBy === id) { e.frozenBy = undefined; e.frozenMs = 0; }
+    if (e.ultStopBy === id) { e.ultStopBy = undefined; e.ultStopMs = 0; }
+    if (e.ultStunBy === id) {
+      e.ultStunBy = undefined;
+      if (e.stunMs) { e.stunMs = 0; e.animMs = 0; if (e.anim === 'hurt') e.anim = 'idle'; }
+    }
+    if (e.token === id) { cancelAttack(w, e); if (['windup', 'strike', 'dash', 'recover'].includes(e.anim)) { e.anim = 'idle'; e.animMs = 0; } }
+    if (e.target === id) { e.target = undefined; e.targetMs = 0; }
+  }
+  w.pending = w.pending.filter(d => d.owner !== id);
+  w.players[id] = { ...freshPlayer(id, char, p.x, p.y),
+    facing: p.facing, connected: p.connected, away: p.away, hp: p.hp, ult: p.ult, god: p.god,
+    viewX: p.viewX, viewW: p.viewW };
+  (w.events ??= []).push({ t: 'switch', id, char });
+  return true;
+}
+
+export function testHeal(w: World): void {
+  if (!w.testTools) return;
+  for (const p of Object.values(w.players)) {
+    const amount = PLAYER_HP - p.hp;
+    if (p.hp <= 0) {
+      heroReset(p); p.anim = 'idle'; p.animMs = p.cdMs = p.hitstopMs = 0;
+      p.approach = p.hop = undefined;
+    }
+    p.hp = PLAYER_HP; p.downMs = 0;
+    if (amount > 0) (w.events ??= []).push({ t: 'heal', id: p.id, amount });
+  }
+}
+
+export function testGod(w: World, id: string, on: boolean): void {
+  if (w.testTools && w.players[id] && typeof on === 'boolean') w.players[id].god = on;
+}
+
+export function testKillAll(w: World): void {
+  if (!w.testTools) return;
+  for (const e of Object.values(w.enemies)) {
+    if (e.hp <= 0) continue;
+    if (e.boss) { e.hp = 1; continue; }
+    const dmg = e.hp; e.hp = 0; e.dummy = false;
+    cancelAttack(w, e); e.held = e.thrown = e.pin = undefined;
+    e.ultStopMs = e.stunMs = e.air = e.height = e.carryAngle = e.carryHeight = 0;
+    e.anim = 'down'; e.animMs = AIR_MS;
+    (w.events ??= []).push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, kill: true, impact: 2 });
+  }
 }
 
 export function removePlayer(w: World, id: string) {
@@ -289,11 +362,17 @@ function ensureDummy(w: World) {
 }
 
 export function chargeUlt(w: World, id: string) {
+  if (!w.testTools) return;
   const p = w.players[id];
   if (p) { p.ult = 100; p.charge2 = 100; } // тестовая кнопка: и ульта, и шар Kris
 }
 
 export function spawnEnemies(w: World, count: number) {
+  if (!w.testTools) return;
+  spawnGrunts(w, count);
+}
+
+function spawnGrunts(w: World, count: number) {
   if (w.won) return;
   const cx = focusX(w);
   for (let i = 0; i < count; i++) {
@@ -311,7 +390,7 @@ export function spawnEnemies(w: World, count: number) {
 
 function spawnWave(w: World, ev: SimEvent[]) {
   w.wave++;
-  spawnEnemies(w, 2 + w.wave);
+  spawnGrunts(w, 2 + w.wave);
   ev.push({ t: 'wave', n: w.wave });
 }
 
@@ -358,7 +437,7 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
   if (e.boss && !e.frozenMs) { e.x = clampEnemyX(w, e.x + dir * (opts.kb ?? 8) * 0.25, e); e.anim = 'hurt'; e.animMs = 120; }
   if (e.held) { e.anim = 'down'; e.animMs = AIR_MS; e.pin = undefined; e.air = 0; }
   if (opts.slowMs) { e.slowMs = opts.slowMs; e.slow = opts.slow ?? 0.5; }
-  if (opts.stunMs && !e.boss) { e.stunMs = opts.stunMs; e.anim = 'hurt'; e.animMs = Math.max(e.animMs, opts.stunMs); }
+  if (opts.stunMs && !e.boss) { e.stunMs = opts.stunMs; e.ultStunBy = undefined; e.anim = 'hurt'; e.animMs = Math.max(e.animMs, opts.stunMs); }
   if (opts.silent) return;
   if (p.char !== RAMIL_ID && !opts.noCharge && p.form !== 'ultimate') { // в Ultimate шкала не копится
     const control = p.form === 'nadya' && (opts.slowMs || opts.stunMs) ? CONTROL_ULT : 0;
@@ -699,7 +778,7 @@ function stepRamilUlt(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[
   }
   const front = ramilFront(w,p,RAMIL.ULT_RANGE);
   for (const e of front) if (!u.stunned.includes(e.id)) u.stunned.push(e.id);
-  for (const id of u.stunned) { const e = w.enemies[id]; if (e && e.hp > 0 && u.finish === undefined) { cancelAttack(w,e); e.stunMs = RAMIL.ULT_STUN+dt; } }
+  for (const id of u.stunned) { const e = w.enemies[id]; if (e && e.hp > 0 && u.finish === undefined) { cancelAttack(w,e); e.stunMs = RAMIL.ULT_STUN+dt; e.ultStunBy = p.id; } }
   if (u.finish !== undefined) {
     u.finish += dt;
     const out = u.level < 2 ? 'flurry-out' : 'flurry2-out';
@@ -722,7 +801,7 @@ function stepRamilUlt(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[
       const stop = k === timing.count-1 ? RAMIL.ULT_LAST_STOP : RAMIL.ULT_HITSTOP[u.level];
       for (const e of front) {
         applyHit(w,p,e,RAMIL.ULT_DMG[u.level],p.facing,ev,{kb:0,stunMs:RAMIL.ULT_STUN+dt,flurry:{level:u.level,k}});
-        e.ultStopMs = stop ? stop + dt : 0;
+        e.ultStopMs = stop ? stop + dt : 0; e.ultStopBy = e.ultStunBy = p.id;
       }
       if (target?.hp > 0) { target.x = clampEnemyX(w,target.x+p.facing*RAMIL.ULT_NUDGE,target); p.x = clamp(p.x+p.facing*RAMIL.ULT_NUDGE,...walkBounds(w)); }
     }
@@ -730,10 +809,10 @@ function stepRamilUlt(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[
     if (u.buffered && u.level < 5) { u.level++; u.count = 0; u.ms = 0; u.buffered = false; p.ultLevel = u.level + 1; startMove(p, 'u' + (u.level + 1)); ev.push({t:'rstage',id:p.id,level:u.level,x:p.x,y:p.y}); return; }
     if (u.level < 5) { u.window = RAMIL.ULT_WINDOW; p.ultWindow = u.window; return; }
   }
-  for (const id of u.stunned) { const e = w.enemies[id]; if (e) e.stunMs = RAMIL.ULT_STUN; }
+  for (const id of u.stunned) { const e = w.enemies[id]; if (e) { e.stunMs = RAMIL.ULT_STUN; e.ultStunBy = p.id; } }
   for (const e of ramilFront(w,p,RAMIL.ULT_RANGE)) {
     applyHit(w,p,e,RAMIL.ULT_FINISH[u.level],p.facing,ev,{noCollateral:true,down:true,kb:e.id===u.target?RAMIL.ULT_MAIN_KB:RAMIL.ULT_OTHER_KB,impact:2});
-    e.ultStopMs = RAMIL.ULT_FINISH_STOP + dt;
+    e.ultStopMs = RAMIL.ULT_FINISH_STOP + dt; e.ultStopBy = e.ultStunBy = p.id;
   }
   u.finish = 0; p.ultWindow = 0; p.move = 'flurry2'; p.moveT = hitTimesMs('ramil','flurry2',p.facing).at(-1) ?? 0; w.slowmoMs = RAMIL.ULT_SLOWMO;
   ev.push({t:'rfinish',id:p.id,x:p.x+p.facing*RAMIL.A1_GAP,y:p.y,line:RAMIL_FINISH_WORDS[u.level]});
@@ -814,7 +893,7 @@ function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) 
               const dir = -Math.sin(theta)*p.facing < 0 ? -1 : 1;
               applyHit(w,p,other,RAMIL.SPIN_DMG,dir,ev,{noCollateral:true,kb:RAMIL.SPIN_KB,down:true,word:['БУМ!','БАХ!','ХРЯСЬ!'][(r.spinHits!.length-1)%3]});
               other.y = clamp(other.y + Math.cos(theta)*RAMIL.SPIN_LANE_KB,laneTop(w,other.x),laneBottom(w));
-              other.ultStopMs = RAMIL.SPIN_STOP_MS + dt;
+              other.ultStopMs = RAMIL.SPIN_STOP_MS + dt; other.ultStopBy = p.id;
               ev.push({t:'rspinHit',id:p.id,target:other.id,x:other.x,y:other.y});
             }
           }
@@ -912,7 +991,7 @@ function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) 
 
 // Враг ударил игрока. false, если удар пропал (неуязвимость)
 function damagePlayer(p: Player, dmg: number): boolean {
-  if (p.invulnMs > 0) return false;
+  if (p.god || p.invulnMs > 0) return false;
   p.hp = Math.max(0, p.hp - dmg);
   if (isHero(p) && p.hp > 0) {
     // Ultimate: иммунитет к контролю, урон проходит, но героиню не сбивает с действия
@@ -939,7 +1018,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       p.stormTickMs += STORM_TICK_MS;
       for (const e of Object.values(w.enemies)) {
         if (!combatReady(w, e) || Math.hypot(e.x - p.x, e.y - p.y) > STORM_RADIUS) continue;
-        e.frozenMs = FREEZE_MS / (e.boss ? 2 : 1);
+        e.frozenMs = FREEZE_MS / (e.boss ? 2 : 1); e.frozenBy = p.id;
         applyHit(w, p, e, STORM_DMG, p.facing, ev, { noCharge: true });
       }
     }
@@ -1479,7 +1558,7 @@ function finishTransition(w: World, ev: SimEvent[]) {
 }
 
 export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimEvent[] {
-  const ev: SimEvent[] = [];
+  const ev: SimEvent[] = w.events?.splice(0) ?? [];
   let dt = dtMs / 1000;
   const players = Object.values(w.players);
   const active = players.filter(p => p.connected && !p.away);
@@ -1575,7 +1654,11 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
       else { e.anim = 'down'; cancelAttack(w, e); }
       continue;
     }
-    if ((e.ultStopMs ?? 0) > 0) { e.ultStopMs = Math.max(0, e.ultStopMs! - dtMs); continue; }
+    if ((e.ultStopMs ?? 0) > 0) {
+      e.ultStopMs = Math.max(0, e.ultStopMs! - dtMs);
+      if (!e.ultStopMs) e.ultStopBy = undefined;
+      continue;
+    }
     if (e.hp > 0 && w.enc.lock && (!e.entered || e.entering)) {
       if (e.bornTick === w.tick) continue;
       if (e.enterMs) { e.enterMs = Math.max(0, e.enterMs - dtMs); e.anim = 'enter'; if (!e.enterMs && e.phase === 'enter') e.phase = 'none'; }
@@ -1618,10 +1701,11 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     }
     stepPin(w, e, dtMs, ev);
     if (e.slowMs) e.slowMs = Math.max(0, e.slowMs - dtMs);
-    if (e.stunMs) e.stunMs = Math.max(0, e.stunMs - dtMs);
+    if (e.stunMs) { e.stunMs = Math.max(0, e.stunMs - dtMs); if (!e.stunMs) e.ultStunBy = undefined; }
     if (e.charmMs) e.charmMs = Math.max(0, e.charmMs - dtMs);
     if (e.frozenMs) {
       e.frozenMs = Math.max(0, e.frozenMs - dtMs);
+      if (!e.frozenMs) e.frozenBy = undefined;
       if (e.hp <= 0) { if (e.dummy) e.hp = e.maxHp; else { delete w.enemies[e.id]; continue; } }
       e.anim = 'idle'; e.animMs = 0;
       continue; // замёрзший стоит и не бьёт

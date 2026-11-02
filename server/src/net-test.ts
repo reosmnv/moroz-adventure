@@ -11,9 +11,55 @@ function check(name: string, ok: boolean, info = '') {
 }
 const players = (r: Room) => (r.state as any).players as Map<string, any>;
 
+async function testNormalMode() {
+  const r = await new Client(URL).create('game', { level: 'old', stage: 1 });
+  r.reconnection.enabled = false; r.onMessage('ev', () => {});
+  r.send('pause', true); r.send('pick', 'anastasia');
+  await sleep(400);
+  const s = () => r.state as any;
+  check('TZ18 обычная комната: режим false по умолчанию, stage 0', s().testMode === false && s().stage === 0);
+  const before = { enemies: s().enemies.size, ult: players(r).get(r.sessionId)?.ult, hp: players(r).get(r.sessionId)?.hp };
+  for (const command of ['spawn', 'next', 'charge', 'heal', 'killall']) r.send(command);
+  r.send('god', true); await sleep(400);
+  check('TZ18 обычная комната отклоняет все тестовые команды', s().enemies.size === before.enemies && s().stage === 0 && !s().trans
+    && players(r).get(r.sessionId)?.ult === before.ult && players(r).get(r.sessionId)?.hp === before.hp && players(r).get(r.sessionId)?.god === false);
+  r.send('switch', 'kris'); await sleep(200);
+  check('TZ18 switch доступен в обычной комнате', players(r).get(r.sessionId)?.char === 'kris');
+  const guest = await new Client(URL).joinById(r.roomId, { testMode: true, stage: 1 });
+  guest.reconnection.enabled = false; guest.onMessage('ev', () => {}); await sleep(200);
+  check('TZ18 вход по коду не меняет обычный режим', (guest.state as any).testMode === false && (guest.state as any).stage === 0);
+  await guest.leave(true); await r.leave(true);
+  for (const testMode of ['true', 1]) {
+    const invalid = await new Client(URL).create('game', { level: 'old', stage: 1, testMode });
+    invalid.reconnection.enabled = false; invalid.onMessage('ev', () => {}); await sleep(200);
+    check(`TZ18 testMode=${JSON.stringify(testMode)} не включает тест`, (invalid.state as any).testMode === false && (invalid.state as any).stage === 0);
+    await invalid.leave(true);
+  }
+}
+
+async function testStageAndTools() {
+  const r = await new Client(URL).create('game', { testMode: true, stage: 2 });
+  r.reconnection.enabled = false; r.onMessage('ev', () => {});
+  r.send('pause', true); r.send('pick', 'anastasia'); await sleep(400);
+  const s = () => r.state as any;
+  check('TZ18 тестовая комната принимает stage', s().testMode === true && s().stage === 2);
+  r.send('god', true); r.send('charge'); r.send('spawn'); await sleep(300);
+  check('TZ18 тестовые god/charge/spawn', players(r).get(r.sessionId)?.god === true && players(r).get(r.sessionId)?.ult === 100 && s().enemies.size === 3);
+  r.send('god', 'false'); await sleep(200);
+  check('TZ18 god принимает только boolean', players(r).get(r.sessionId)?.god === true);
+  r.send('god', false); r.send('heal'); r.send('killall'); await sleep(300);
+  check('TZ18 тестовые god(false)/heal/killall', players(r).get(r.sessionId)?.god === false && players(r).get(r.sessionId)?.hp === 150
+    && [...s().enemies.values()].every((e: any) => e.hp === 0));
+  r.send('next'); await sleep(200);
+  check('TZ18 тестовый next', s().trans > 0);
+  await r.leave(true);
+}
+
 async function main() {
+  await testNormalMode();
+  await testStageAndTools();
   // 1. Хост создаёт комнату и выбирает персонажа
-  const a = await new Client(URL).create('game', { level: 'old' });
+  const a = await new Client(URL).create('game', { level: 'old', testMode: true });
   a.reconnection.enabled = false;
   a.onMessage('ev', () => {});
   check('комната создана, короткий код', /^[A-Z0-9]{5}$/.test(a.roomId), a.roomId);
@@ -40,6 +86,9 @@ async function main() {
   // 3. Второй входит по коду в середине партии
   const b = await new Client(URL).joinById(a.roomId);
   b.reconnection.enabled = false;
+  b.onMessage('ev', () => {});
+  await sleep(200);
+  check('TZ18 второй клиент видит тестовый режим комнаты', (b.state as any).testMode === true);
   let pickError = '';
   b.onMessage('pickError', (m: string) => { pickError = m; });
   b.send('pick', 'anastasia');
@@ -50,6 +99,24 @@ async function main() {
   const pa = players(a).get(a.sessionId), pb = players(a).get(b.sessionId);
   check('второй появился у хоста', !!pb);
   check('второй рядом с первым', !!pb && Math.abs(pb.x - pa.x) < 60, pb ? `dx ${Math.round(pb.x - pa.x)}` : '');
+
+  // TZ18: смена при общей паузе, ошибки выбора и очистка накопленного ввода.
+  let switchError = '', switchesA = 0, switchesB = 0;
+  a.onMessage('pickError', (m: string) => { switchError = m; });
+  a.onMessage('ev', (evs: any[]) => { switchesA += evs.filter(e => e.t === 'switch' && e.id === a.sessionId).length; });
+  b.onMessage('ev', (evs: any[]) => { switchesB += evs.filter(e => e.t === 'switch' && e.id === a.sessionId).length; });
+  a.send('pause', true); a.send('move', { mx: 1, my: 0 }); a.send('btn', 'attack'); a.send('switch', 'kris');
+  await sleep(400);
+  check('TZ18 switch меняет того же игрока у обоих', players(a).get(a.sessionId)?.char === 'kris' && players(b).get(a.sessionId)?.char === 'kris' && switchesA === 1 && switchesB === 1);
+  a.send('pick', 'ramil'); await sleep(200);
+  check('TZ18 повторный pick запрещён', players(a).get(a.sessionId)?.char === 'kris');
+  a.send('switch', 'nadezhda'); await sleep(300);
+  check('TZ18 switch занятого героя отклонён', switchError === 'Персонаж занят' && players(a).get(a.sessionId)?.char === 'kris' && switchesA === 1 && switchesB === 1);
+  const switchedX = players(a).get(a.sessionId)?.x;
+  a.send('pause', false); await sleep(250);
+  check('TZ18 switch очищает движение и очередь кнопок', players(a).get(a.sessionId)?.x === switchedX && players(a).get(a.sessionId)?.move === 'idle');
+  a.send('switch', 'anastasia'); await sleep(300);
+  check('TZ18 обратная смена работает', players(a).get(a.sessionId)?.char === 'anastasia');
 
   // 4. Удар по врагу: урон считает сервер, событие приходит обоим
   let hits = 0;
@@ -119,17 +186,23 @@ async function main() {
   b.send('away', false);
 
   // 6. B обрывается без согласия (как iOS в фоне), затем возвращается по токену
+  b.send('pause', true); await sleep(200);
   const token = b.reconnectionToken;
   b.connection.close(4999, 'simulated drop');
   await sleep(600);
+  check('TZ18 обрыв поставившего паузу снимает её', (a.state as any).paused === false && (a.state as any).pausedBy === '');
   check('после обрыва место держится', players(a).get(b.sessionId)?.connected === false);
   const b2 = await new Client(URL).reconnect(token);
+  b2.onMessage('ev', () => {});
   await sleep(400);
   check('вернулся по токену тем же игроком', b2.sessionId === b.sessionId && players(a).get(b.sessionId)?.connected === true);
 
   // 7. B уходит насовсем: игра у A продолжается соло
+  check('TZ18 режим сохраняется при reconnect', (b2.state as any).testMode === true);
+  b2.send('pause', true); await sleep(200);
   await b2.leave(true);
   await sleep(400);
+  check('TZ18 выход поставившего паузу снимает её', (a.state as any).paused === false && (a.state as any).pausedBy === '');
   const t1 = (a.state as any).tick;
   await sleep(300);
   check('после ухода второго A играет соло', !players(a).has(b.sessionId) && (a.state as any).tick > t1);
