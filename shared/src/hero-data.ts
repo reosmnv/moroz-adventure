@@ -7,8 +7,10 @@ export const KRIS_ID = 'kris';
 export const RAMIL_ID = 'ramil';
 // Рамиль: стартовые числа приёмов и их постановки, для настройки mr.R.
 export const RAMIL = {
-  VINE_RANGE: 220, VINE_MAX: 2, VINE_FLIGHT: 200, VINE_PULL: 300, VINE_RETRACT: 180, // плавнее (mr.R 02.11: «не дёрганая»)
-  VINE_GAP: 42, VINE_DMG: 4, VINE_STUN: 700, BOSS_PULL: 0.4,
+  F_HITS: [2, 4, 8, 16], F_STEP: [160, 80, 45, 30], F_DMG: [3, 2, 2, 1], // число, интервал и урон ладоней
+  F_LAST: [{ kb: 6 }, { kb: 10, impact: 1 }, { kb: 16, impact: 1 }, { kb: 30, dmg: 6, down: true, impact: 2 }],
+  F_RANGE: 58, F_DASH_MAX: 240, F_DASH_MS: 140, F_GAP: 40, F_RECOVER: 120, F_STUN: 150, // рывок и выход
+  KICK_MAX: 2, KICK_RANGE: 66, KICK_DMG: 20, RETURN_RANGE: 70, // серия B
   FIRE_LEN: 120, FIRE_BAND: 30, FIRE_MS: 330, FIRE_DMG: 3,
   BURN_MS: 3000, BURN_TICK: 500, BURN_DMG: 3,
   TELE_MS: 150, TELE_GAP: 34, RETURN_GAP: 40, TELE_DMG: 5, RETURN_DMG: 6,
@@ -19,7 +21,7 @@ export const RAMIL = {
 } as const;
 export const RAMIL_SMOKE_LINES = ['Ща-ща, подождите, докурю', 'Минуту, я на перекуре', 'Не торопите', 'Ещё затяжечку', 'Сейчас-сейчас', 'Пять минут, мужики'];
 export const RAMIL_ULT_WORDS = ['РАЗ', 'ДВА', 'ТРИ', 'ЧЕТЫРЕ', 'ПЯТЬ', 'ШЕСТЬ', 'СЕМЬ', 'ВСЁ.'];
-export const RAMIL_MOVE_NAMES = { b1: 'Телепорт', b2: 'С разворота', b3: 'Назад' };
+export const RAMIL_MOVE_NAMES = { b1: 'Телепорт', b2: 'С разворота', b3: 'Огонь', b4: 'К ним' };
 
 // Персонаж -> его стартовый набор спрайтов (у Анастасии две формы, у остальных одна)
 export const HERO_FORM: Record<string, Form> = { [HERO_ID]: 'prime', [NADYA_ID]: 'nadya', [KRIS_ID]: 'kris', [RAMIL_ID]: 'ramil' };
@@ -81,14 +83,14 @@ export const AIR_MS = 900; // сколько враг летит после по
 // Анастасия: независимые серии A и B по три удара.
 // Надя: B своя серия из трёх. Kris: два взмаха и отскок, B всегда вспышка
 export const CHAIN: Record<Form, string[]> = {
-  ramil: ['a1', 'a2', 'a3'],
+  ramil: ['f1', 'f2', 'f3', 'f4'],
   prime: ['superman', 'highkick', 'teep'],
   ultimate: ['flying-knee', 'elbow', 'roundhouse'],
   nadya: ['a1', 'a2', 'a3'],
   kris: ['a1-back', 'a2', 'hop'],
 };
 export const HEAVY: Record<Form, string[]> = {
-  ramil: ['b1', 'b2', 'b3'],
+  ramil: ['b1', 'b2', 'b3', 'b4'],
   prime: ['uppercut', 'cross', 'slam'],
   ultimate: ['spin-elbow', 'knee', 'hurricane'],
   nadya: ['b1', 'b2', 'b3-draw'],
@@ -97,12 +99,10 @@ export const HEAVY: Record<Form, string[]> = {
 
 export const STRIKES: Record<Form, Record<string, Strike>> = {
   ramil: {
-    a1: { range: RAMIL.VINE_RANGE, dmg: RAMIL.VINE_DMG, kb: 0, stun: RAMIL.VINE_STUN, word: 'ИДИ СЮДА!' },
-    a2: { range: 62, dmg: 8, kb: 0, stun: 400, launch: true, impact: 1, word: 'ОП!' },
-    a3: { range: RAMIL.FIRE_LEN, dmg: RAMIL.FIRE_DMG, kb: 0, stun: 0, word: 'ПЫХ!' },
     b1: { range: 0, dmg: RAMIL.TELE_DMG, kb: 0, stun: 0, word: 'ВЖУХ' },
-    b2: { range: 66, dmg: 20, kb: RAMIL.KICK_FLY, stun: 400, down: true, single: true, impact: 2, word: 'ПОКА!' },
-    b3: { range: 0, dmg: RAMIL.RETURN_DMG, kb: 0, stun: 0, word: 'Я ТУТ' },
+    b2: { range: RAMIL.KICK_RANGE, dmg: RAMIL.KICK_DMG, kb: RAMIL.KICK_FLY, stun: 400, down: true, impact: 2, word: 'ПОКА!' },
+    b3: { range: RAMIL.FIRE_LEN, dmg: RAMIL.FIRE_DMG, kb: 0, stun: 0 },
+    b4: { range: 0, dmg: RAMIL.RETURN_DMG, kb: 0, stun: 0, word: 'Я ТУТ' },
     slap: { range: 0, dmg: RAMIL.ULT_DMG, kb: 0, stun: 0 },
   },
   prime: {
@@ -197,7 +197,7 @@ export const STORM_RADIUS = Math.round(STRIKES.ultimate.hurricane.range * RANGE_
 export const SPEED_MULT: Record<Form, number> = { prime: 1, ultimate: 2.5, nadya: 1, kris: 1, ramil: 1 };
 
 export const dirOf = (facing: number): 'east' | 'west' => (facing >= 0 ? 'east' : 'west');
-export const moveAnim = (form: Form, move: string) => form === 'prime' && move === 'slam' ? SLAM_ANIM : move;
+export const moveAnim = (form: Form, move: string) => form === 'ramil' && /^f[1-4]$/.test(move) ? (+move[1] < 3 ? 'flurry' : 'flurry2') : form === 'prime' && move === 'slam' ? SLAM_ANIM : move;
 export const animDef = (form: Form, move: string): AnimDef | undefined => HERO_ANIMS[form][moveAnim(form, move)];
 export const isLoop = (form: Form, move: string) => !!animDef(form, move)?.loop;
 
@@ -218,4 +218,25 @@ export function hitTimesMs(form: Form, move: string, facing: number): number[] {
   if (!a) return [];
   const frames = a.hits ?? (a.hit ? [a.hit[dirOf(facing)]] : []);
   return frames.map(f => (f * 1000) / (a.fps * moveSpeed(form, move)));
+}
+
+// Один цикл может содержать несколько ладоней: каждому hit отведён свой шаг.
+export function flurryTiming(move: string, facing: number, def = HERO_ANIMS.ramil[moveAnim('ramil', move)]) {
+  const level = Number(move[1]) - 1, clip = level < 2 ? 'flurry' : 'flurry2';
+  const n = def[dirOf(facing)], marks = def.hits ?? [def.hit?.[dirOf(facing)] ?? 0];
+  const step = RAMIL.F_STEP[level], count = RAMIL.F_HITS[level];
+  const intro = (level === 0 || level === 2) ? moveDurMs('ramil', clip + '-in', facing) : 0;
+  const recover = moveDurMs('ramil', clip + '-out', facing) || RAMIL.F_RECOVER;
+  const times = Array.from({ length: count }, (_, k) => intro + (Math.floor(k / marks.length) + marks[k % marks.length] / n) * step * marks.length);
+  return { level, clip, n, marks, step, count, intro, recover, hasOut: !!HERO_ANIMS.ramil[clip + '-out'], times, duration: intro + count * step + recover };
+}
+export function flurryPose(move: string, t: number, facing: number, dashMs = 0) {
+  const f = flurryTiming(move, facing);
+  if (t < dashMs) return { clip: 'dash', frame: Math.floor(t * HERO_ANIMS.ramil.dash.fps / 1000) % HERO_ANIMS.ramil.dash[dirOf(facing)], active: false };
+  t = Math.max(0, t - dashMs);
+  if (t < f.intro) return { clip: f.clip + '-in', frame: Math.floor(t * HERO_ANIMS.ramil[f.clip + '-in'].fps / 1000), active: false };
+  t -= f.intro;
+  if (t < f.count * f.step) return { clip: f.clip, frame: Math.floor((t % (f.step * f.marks.length)) / (f.step * f.marks.length) * f.n), active: true };
+  const out = f.clip + '-out', def = HERO_ANIMS.ramil[out];
+  return { clip: def ? out : 'idle', frame: def ? Math.min(def[dirOf(facing)] - 1, Math.floor((t - f.count * f.step) * def.fps / 1000)) : 0, active: false };
 }

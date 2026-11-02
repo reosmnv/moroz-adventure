@@ -34,5 +34,6 @@ export const VFX: Record<string, { w: number; h: number; n: number; fps: number;
   'ramil-mark': { w: 20, h: 14, n: 8, fps: 10, loop: true },
   'ramil-wrap': { w: 34, h: 26, n: 4, fps: 10, loop: true },
   'ramil-coil': { w: 36, h: 30, n: 4, fps: 10, loop: true },
+  'ramil-trigram': { w: 112, h: 40, n: 32, fps: 10, loop: true },
 };
 export const VFX_IMAGES = ["heart", "ball", "aim", "beam-start-0", "beam-start-1", "beam-start-2", "beam-mid-0", "beam-mid-1", "beam-mid-2", "beam-end-0", "beam-end-1", "beam-end-2", "ramil-vine-0", "ramil-vine-1", "ramil-vine-2", "ramil-vine-head", "ramil-leaf-up", "ramil-leaf-down"];

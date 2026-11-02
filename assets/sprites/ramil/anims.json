@@ -45,35 +45,53 @@
     "fps": 10,
     "loop": false
    },
-   "a1": {
-    "east": 12,
-    "west": 12,
+   "flurry-in": {
+    "east": 3,
+    "west": 3,
+    "fps": 18,
+    "loop": false
+   },
+   "flurry": {
+    "east": 5,
+    "west": 5,
     "fps": 18,
     "loop": false,
     "hit": {
-     "east": 4,
-     "west": 4
+     "east": 2,
+     "west": 2
     }
    },
-   "a2": {
-    "east": 9,
-    "west": 9,
+   "flurry-out": {
+    "east": 3,
+    "west": 3,
+    "fps": 18,
+    "loop": false
+   },
+   "flurry2-in": {
+    "east": 4,
+    "west": 4,
+    "fps": 18,
+    "loop": false
+   },
+   "flurry2": {
+    "east": 6,
+    "west": 6,
     "fps": 18,
     "loop": false,
+    "hits": [
+     2,
+     5
+    ],
     "hit": {
-     "east": 4,
-     "west": 4
+     "east": 2,
+     "west": 2
     }
    },
-   "a3": {
-    "east": 12,
-    "west": 12,
+   "flurry2-out": {
+    "east": 3,
+    "west": 3,
     "fps": 18,
-    "loop": false,
-    "hit": {
-     "east": 3,
-     "west": 3
-    }
+    "loop": false
    },
    "b1": {
     "east": 6,
@@ -96,6 +114,16 @@
     }
    },
    "b3": {
+    "east": 12,
+    "west": 12,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 3,
+     "west": 3
+    }
+   },
+   "b4": {
     "east": 6,
     "west": 6,
     "fps": 18,

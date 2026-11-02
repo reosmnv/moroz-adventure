@@ -6,7 +6,7 @@ import {
 } from '@bc/shared';
 
 export const PlayerState = schema({
-  idleInput: t.boolean(), hiddenMs: t.number(), heavySmokeMs: t.number(), fireMs: t.number(),
+  fDashMs: t.number(), idleInput: t.boolean(), hiddenMs: t.number(), heavySmokeMs: t.number(), fireMs: t.number(),
   char: t.string(),
   x: t.number(),
   y: t.number(),
@@ -180,7 +180,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const p of Object.values(w.players)) {
       let ps = s.players.get(p.id);
       if (!ps) { ps = new PlayerState(); s.players.set(p.id, ps); }
-      ps.idleInput = !!p.idleInput; ps.hiddenMs = p.hiddenMs ?? 0; ps.heavySmokeMs = p.heavySmokeMs ?? 0; ps.fireMs = p.fireMs ?? 0;
+      ps.fDashMs = p.fDashMs ?? 0; ps.idleInput = !!p.idleInput; ps.hiddenMs = p.hiddenMs ?? 0; ps.heavySmokeMs = p.heavySmokeMs ?? 0; ps.fireMs = p.fireMs ?? 0;
       ps.char = p.char; ps.x = round(p.x); ps.y = round(p.y); ps.hp = p.hp; ps.facing = p.facing;
       ps.anim = p.anim; ps.ult = Math.floor(p.ult);
       ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.bCombo = p.bCombo; ps.hitCount = p.hitCount; ps.charge2 = Math.floor(p.charge2); ps.storm = Math.round(p.stormMs); ps.invuln = p.invulnMs > 0;

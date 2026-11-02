@@ -446,7 +446,7 @@ export class UIScene extends Phaser.Scene {
       this.bHint.setText(MOVE_NAMES[move] ?? '');
       this.setHeavyIcon('ui-heavy-' + NASTYA_HEAVY_ICON[move]);
     } else if (me?.char === RAMIL_ID) {
-      this.bHint.setText(RAMIL_MOVE_NAMES[HEAVY.ramil[Math.min(me.bCombo ?? 0, 2)] as keyof typeof RAMIL_MOVE_NAMES]);
+      this.bHint.setText(RAMIL_MOVE_NAMES[HEAVY.ramil[Math.min(me.bCombo ?? 0, HEAVY.ramil.length - 1)] as keyof typeof RAMIL_MOVE_NAMES]);
       this.setHeavyIcon('ui-icon-heavy');
     } else {
       this.bHint.setText('');

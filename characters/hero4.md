@@ -90,3 +90,15 @@
 - Эффекты: vfx_workbench паки `assets/vfx/ramil/{poof,hits,fire,burn}` (My effects PixelLab), кодом: дым `ramil_smoke.py`, стебли с листьями конопли `ramil_vines.py`, метка `ramil_mark.py`. В клиент `tools/vfx_copy.py` (ключи ramil-*).
 - Постановка всех приёмов: `tools/ramil_preview.py` → `assets/gen/hero4/moves/*.gif`, страница http://100.118.72.60:8090/assets/gen/hero4/moves.html
 - Код: TZ-12 (`tasks/TZ-12-ramil.md`), ветка tz-12, Codex gpt-6.1-sol high.
+- 02.11 mr.R: стебли «плохо выглядят». Эскизы 4 вариантов (`assets/gen/hero4/vines/`), выбор «гибрид 1+3», затем «лоза-аркан лучше, главное не дёрганая». Сделано (37491ec): дуга-безье от ладони к груди врага, рисуется каждый кадр (Graphics + листья `ramil-leaf-up/down`, петля `ramil-coil`), полёт ease-out 200 мс, рывок ease-in-out 300 мс (и в sim тоже), втягивание 180 мс. Образец `tools/ramil_vine2.py`.
+
+## Новые серии A и B (mr.R 02.11, заменяет «Приёмы: решено» в части A и B)
+- Старая серия A (лоза, пинок вверх, огонь как A A A) неудачна целиком.
+- A (по мотивам «64 ладоней» Неджи Хьюги): рывок к врагу, если он не рядом, и удары руками; каждое нажатие даёт вдвое больше ударов и вдвое быстрее: 2, 4, 8, 16. Чем больше ударов, тем больше огня на кулаках.
+- B: 1 дымный телепорт за спину, 2 удар с разворота отправляет до 2 врагов в обратную сторону (к своим), 3 огонь изо рта (старый A A A), 4 дымный телепорт к отброшенным.
+- Числа и детали (стартовые, Claude): `tasks/TZ-13-ramil-flurry.md`. 4-й шаг A = 16 ударов (допущение по «и так до 16»).
+- Временно серия A играет удар ладонью из ульты (`flurry` = `slap-s2` в `tools/ramil_build.py`), в клиент приходит `RAMIL_FISTS` (передний край руки по кадрам) для огня.
+- Концепт стиля ударов GPT: `assets/gen/hero4/flurry/flurry-concept-v1.png` (1 рука в кармане + кулак, 2 ладони обеими, 3 боксёрская серия, 4 рука в кармане + ладонь; снизу 4 уровня огня). Ждёт выбора mr.R, потом PixelLab полоса.
+- 02.11 mr.R: f1-f2 как концепт 4 (рука в кармане, ладонь), с f3 «максимально близко к Неджи» (обе ладони, низкая стойка). Добавлено Claude: огненный круг восьми триграмм под ногами на f3-f4 (`tools/ramil_trigram.py` → `assets/vfx/ramil/trigram.png`, ключ `ramil-trigram`), отсчёт «2 УДАРА!…16 УДАРОВ!».
+- Ключевые позы PixelLab edit pro flash (`tools/specs/ramil-flurry-keys.json`, ~30 ген.): `assets/gen/hero4/flurry/k1-ready-1..3`, `k2-stance-1..3`. Взяты k1-ready-2 и стойки k2-2/k2-3 (сравнение по анимациям).
+- Анимации pixminimax (`tools/specs/ramil-flurry-anim.json`, 14 задач): fl-in, fl-loop, fl-out, fl2-in, fl2-loop, fl2-out → `assets/pixellab/ramil/`. Код TZ-13 у Codex (ветка tz-13).

@@ -20,12 +20,18 @@ CFG = {
     'hurt':      ('hurt-s1',  [3, 4, 5, 6, 7, 8], 14, False, None),     # 0-2: чужой кулак в кадре
     'fall':      ('fall-s2',  [4, 5, 6, 7, 8, 9, 10, 11, 12], 12, False, None),  # 2-3: чужой кулак
     'getup':     ('getup-s1', None, 10, False, None),
-    'a1':        ('a1-s2',    list(range(12)), STRIKE_FPS, False, 4),   # стебли: рука вперёд (4), рывок на себя (8)
-    'a2':        ('a2-s1',    list(range(9)), STRIKE_FPS, False, 4),    # нога вверх, руки в карманах
-    'a3':        ('a3-s2',    list(range(12)), STRIKE_FPS, False, 3),   # выдох огня: 3-8 рот открыт
+    # серия A переделана 02.11 (mr.R: стебли/пинок/огонь неудачны): рывок + 2/4/8/16 ударов руками, анимация одна, петлёй
+    # mr.R 02.11: f1-f2 «рука в кармане, ладонь» (концепт 4), f3-f4 «стойка Неджи, ладони обеими» (концепт 2)
+    'flurry-in': ('fl-in-s2', [2, 3, 4], STRIKE_FPS, False, None),       # рука выходит из кармана к ладони наготове
+    'flurry':    ('fl-loop-s3', [1, 2, 3, 4, 5], STRIKE_FPS, False, 2),  # цикл: 2 смаз, 3 ладонь-копьё (hit), 5 назад; играется петлёй в темпе шага
+    'flurry-out': ('fl-out-s1', [1, 3, 4], STRIKE_FPS, False, None),     # рука обратно в карман (2: лишний выпад)
+    'flurry2-in': ('fl2-in-k3', [1, 2, 3, 4], STRIKE_FPS, False, None),  # вынимает вторую руку, низкая стойка Неджи
+    'flurry2':   ('fl2-loop-k3-s1', [1, 2, 3, 4, 5, 7], STRIKE_FPS, False, [2, 5]),  # два удара на цикл: задняя (3) и передняя (7) ладонь
+    'flurry2-out': ('fl2-out-k3', [3, 4, 8], STRIKE_FPS, False, None),   # 1-2: мусорные точки на полу
     'b1':        ('tele-s1',  [0, 1, 2, 3, 4, 5], STRIKE_FPS, False, 3),  # затяжка и выдох, затем исчезает в дыму
     'b2':        ('b2-s3',    [0, 1, 2, 3, 7, 8, 9, 10, 11, 12, 13], STRIKE_FPS, False, 5),  # разворот, удар вправо; 4-6 нога назад выкинуты
-    'b3':        ('tele-s1',  [0, 1, 2, 3, 4, 5], STRIKE_FPS, False, 3),
+    'b3':        ('a3-s2',    list(range(12)), STRIKE_FPS, False, 3),   # огонь (бывший A A A): 3-8 рот открыт
+    'b4':        ('tele-s1',  [0, 1, 2, 3, 4, 5], STRIKE_FPS, False, 3),  # телепорт к отброшенным
     'slap':      ('slap-s2',  None, STRIKE_FPS, False, 3),              # удары ульты (8 телепортов)
     'smoke':     ('smoke-s1', list(range(16)), 10, True, None),         # «Перекур»: держать кнопку
     'taunt':     ('taunt-s1', list(range(12)), 10, False, None),
@@ -43,9 +49,25 @@ def tip(cell):
     return best
 
 
+def fist(cell):
+    """Бьющая ладонь: самый правый пиксель цвета кожи ниже головы (y 68..95 в ячейке east).
+    Нет кожи (рука в смазе) -> передний край силуэта в той же полосе."""
+    px = cell.load(); skin = edge = None
+    for y in range(68, 96):
+        for x in range(CELL - 1, -1, -1):
+            r, g, b, a = px[x, y]
+            if not a: continue
+            if edge is None or x > edge[0]: edge = (x, y)
+            if r > 200 and 140 < g < 225 and 100 < b < 180 and r - b > 60 and (skin is None or x > skin[0]): skin = (x, y)
+    return skin or edge
+
+
+FIST_ANIMS = ('flurry', 'flurry2')
+
+
 def main():
     OD.mkdir(parents=True, exist_ok=True); (OD / 'gif').mkdir(exist_ok=True)
-    manifest, tips = {}, {}
+    manifest, tips, fists = {}, {}, {}
     for name, (src, keep, fps, loop, hit) in CFG.items():
         p = RAW / f'{src}.png'
         if not p.exists():
@@ -56,17 +78,21 @@ def main():
             g = Image.new('RGBA', (CELL, CELL)); g.paste(s.crop((i * c, 0, (i + 1) * c, c)), ((CELL - c) // 2, CELL - c)); cells.append(g)
         keep = keep if keep is not None else list(range(n - 1))
         ax, ay = anchor([cells[0]])  # опора по первому кадру (стойка): весь клип сдвигается одинаково
+        if name.startswith('flurry'):  # клипы серии A стыкуются друг с другом: опора одна, по исходной стойке (иначе широкая стойка Неджи прыгает на 5 px)
+            ax, ay = anchor([Image.open(ROOT / 'assets/gen/hero4/ramil-base128.png').convert('RGBA')])
         fr = []
         for i in keep:
             g = Image.new('RGBA', (CELL, CELL)); g.paste(cells[i], (CELL // 2 - ax, FEET_Y - ay), cells[i]); fr.append(g)
         tips[name] = [list(t) if (t := tip(f)) else None for f in fr]
+        if name in FIST_ANIMS: fists[name] = [list(fist(f)) for f in fr]
         for d in ('east', 'west'):
             cs = fr if d == 'east' else [ImageOps.mirror(f) for f in fr]
             strip = Image.new('RGBA', (CELL * len(cs), CELL))
             for i, f in enumerate(cs): strip.paste(f, (i * CELL, 0))
             strip.save(OD / f'{name}-{d}.png')
         m = {'east': len(fr), 'west': len(fr), 'fps': fps, 'loop': loop}
-        if hit is not None: m['hit'] = {'east': hit, 'west': hit}
+        if isinstance(hit, list): m['hits'] = hit; m['hit'] = {'east': hit[0], 'west': hit[0]}
+        elif hit is not None: m['hit'] = {'east': hit, 'west': hit}
         manifest[name] = m
         bg = [Image.alpha_composite(Image.new('RGBA', (CELL, CELL), (200, 200, 205, 255)), f).resize((CELL * 3, CELL * 3), Image.NEAREST) for f in fr]
         bg[0].save(OD / 'gif' / f'{name}.gif', save_all=True, append_images=bg[1:], duration=int(1000 / fps), loop=0)
@@ -79,7 +105,9 @@ def main():
     ts = ['// Сгенерировано tools/ramil_build.py, руками не править.',
           '// Кончик сигареты Рамиля в каждом кадре анимации: [x, y] в ячейке east 128x128 (ступни y=112), null = сигареты не видно.',
           '// Для west: x -> 127 - x.',
-          f'export const RAMIL_TIPS: Record<string, ([number, number] | null)[]> = {json.dumps(tips)};', '']
+          f'export const RAMIL_TIPS: Record<string, ([number, number] | null)[]> = {json.dumps(tips)};',
+          '// Передний край бьющей руки в кадрах серии ударов (огонь на кулаках), те же координаты.',
+          f'export const RAMIL_FISTS: Record<string, [number, number][]> = {json.dumps(fists)};', '']
     (ROOT / 'client/src/ramil-tips.ts').write_text('\n'.join(ts))
     print(json.dumps({k: (v['east'], v.get('hit')) for k, v in manifest.items()}, ensure_ascii=False))
     miss = {k: sum(t is None for t in v) for k, v in tips.items() if any(t is None for t in v)}
