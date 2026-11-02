@@ -30,7 +30,7 @@ const ENEMY_LOOK: Record<string, [number, number, number]> = {
 const ICE = 0x66b8ff; // цвет замороженного врага
 
 interface Storm { zone: Phaser.GameObjects.Ellipse; flakes: Phaser.GameObjects.Rectangle[]; seed: number[] }
-interface View { meteor?: Phaser.GameObjects.Graphics; spinFxAt?: number; spinDustAt?: number; stopUntil?: number; stoppedFrame?: number; stoppedX?: number; stoppedY?: number; flashUntil?: number; ghosts?: Phaser.GameObjects.Image[]; history?: { texture: string; frame: number; at: number }[]; trigram?: Phaser.GameObjects.Image; trigramAt?: number; trigramEnd?: number; ramilFx?: Map<string, Phaser.GameObjects.Image>; warmAt?: number; warmSince?: number; ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
+interface View { tornado?: Phaser.GameObjects.Image; tornadoAt?: number; debrisAt?: number; tornadoWord?: Phaser.GameObjects.Text; meteor?: Phaser.GameObjects.Graphics; spinFxAt?: number; spinDustAt?: number; stopUntil?: number; stoppedFrame?: number; stoppedX?: number; stoppedY?: number; flashUntil?: number; ghosts?: Phaser.GameObjects.Image[]; history?: { texture: string; frame: number; at: number }[]; trigram?: Phaser.GameObjects.Image; trigramAt?: number; trigramEnd?: number; ramilFx?: Map<string, Phaser.GameObjects.Image>; warmAt?: number; warmSince?: number; ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
@@ -605,6 +605,46 @@ export class GameScene extends Phaser.Scene {
     const blink = sb.invuln && form !== 'ultimate' && !sb.ultLevel && !action.startsWith('a3-') && !/^(transform|ult|b3)/.test(move) && move !== 'hop' && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
     sprite.setVisible(!(sb.hiddenMs && sb.hiddenMs > 0));
     sprite.setAlpha(away ? 0.35 : blink ? 0.45 : 1);
+    const spin = ramilSpin(t);
+    const tornado = form === 'ramil' && action === 'a3-spin' && spin.turn > 0;
+    if (tornado) {
+      if (!v.tornado) {
+        v.tornadoAt = this.time.now;
+        v.tornado = this.add.image(x, y, 'fx-ramil-tornado').setOrigin(0.5, 1);
+        v.tornadoWord = this.add.text(x, y - HEAD * 1.3, 'ВЖЖЖЖ!', textStyle(12, '#d8c4a0')).setOrigin(0.5);
+        this.fx('ramil-dust', x, y, { scale: 0.6 });
+      }
+      const age = this.time.now - v.tornadoAt!;
+      const scale = HEAD * 1.3 / 92 * (0.4 + 0.6 * Math.min(1, age / 100)) * (1 + Math.sin(age / 35) * 0.04);
+      v.tornado.setPosition(x + Math.sin(age / 27) * 2, y).setDepth(y + 0.1).setScale(scale)
+        .setFrame(Math.floor(age * (20 + (spin.turn - 1) * 2.5) / 1000) % 12);
+      sprite.setAlpha(0.3);
+      v.tornadoWord?.setPosition(x + Math.sin(age) , y - HEAD * 1.3).setDepth(y + 0.4).setAlpha(Math.max(0, 1 - age / 500));
+      this.cameras.main.shake(60, spin.turn === 5 ? 0.0012 : 0.0004);
+      if (this.time.now - (v.spinDustAt ?? 0) >= 80) {
+        v.spinDustAt = this.time.now;
+        this.fx('ramil-dust', x, y, { scale: 0.6, depth: y - 0.05 });
+      }
+      if (this.time.now - (v.debrisAt ?? 0) >= 50) {
+        v.debrisAt = this.time.now;
+        for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) {
+          const angle = spin.angle + i * Math.PI * 2 / 3;
+          const distance = 40 + Math.random() * 50, kind = Math.floor(Math.random() * 3);
+          const bit = this.add.graphics().setPosition(x + Math.cos(angle) * 20, y - 25).setDepth(y + 0.3);
+          bit.fillStyle([0x444444, 0xd8c4a0, 0xffdd55][kind]);
+          if (kind === 2) { bit.fillRect(-1.5, -0.5, 3, 1); bit.fillRect(-0.5, -1.5, 1, 3); }
+          else bit.fillRect(-1, -1, kind === 0 ? 2 : 3, kind === 0 ? 2 : 3);
+          const bx = bit.x, by = bit.y;
+          this.tweens.addCounter({from: 0, to: 1, duration: 350,
+            onUpdate: tween => { const u = tween.getValue() ?? 0; bit.setPosition(bx - Math.sin(angle) * distance * u, by + Math.cos(angle) * distance * u * 0.4 + 25 * u * u).setAlpha(1 - u); },
+            onComplete: () => bit.destroy()});
+        }
+      }
+    } else if (v.tornado) {
+      this.fx('ramil-poof', x, y, { scale: 0.8, depth: y + 0.1 });
+      v.tornado.destroy(); v.tornado = undefined;
+      v.tornadoWord?.destroy(); v.tornadoWord = undefined;
+    }
     if (form === 'ramil') {
       const level = pose ? Number(action[1]) - 1 : -1;
       v.ghosts ??= []; v.history ??= [];
@@ -802,13 +842,13 @@ export class GameScene extends Phaser.Scene {
           const heldScale = sb.thrown ? baseScale : Math.min(baseScale, Math.max(0.1, (-handY - 10) / 46));
           sp.setTexture(`enemy/${sb.boss || sb.kind || 'omon'}/hurt`, 0)
             .setOrigin(0.5, (FEET_Y - 46) / CELL).setScale(heldScale).setFlipX(facing < 0)
-            .setRotation(sb.thrown ? sb.carryAngle ?? 0 : spinning ? -Math.cos(theta) * facing * tilt : -facing * (7 + wobble * 3) * Math.PI / 180)
+            .setRotation(sb.thrown ? sb.carryAngle ?? 0 : spinning ? (spin.turn > 0 ? -facing * 80 * Math.PI / 180 : -Math.cos(theta) * facing * tilt) : -facing * (7 + wobble * 3) * Math.PI / 180)
             .setPosition(sb.thrown ? x : spinning ? sx : sx + handX * SCALE,
               sb.thrown ? y - (sb.carryHeight ?? 0) - neck : sy + handY)
             .setDepth(sb.thrown ? y + 2 : owner!.y + (spinning && Math.sin(theta) < 0 ? -0.2 : 0.2))
-            .setAlpha(spinning && Math.sin(theta) < 0 ? 0.5 : 1);
+            .setAlpha(spinning && Math.sin(theta) < 0 ? (spin.turn > 0 ? 0 : 0.5) : 1);
           if (!sb.thrown) v.shadow?.setPosition(sp.x,sy).setScale(1);
-          if (spinning && this.time.now - (v.spinFxAt ?? 0) >= 45) {
+          if (spinning && spin.turn === 0 && this.time.now - (v.spinFxAt ?? 0) >= 45) {
             v.spinFxAt = this.time.now;
             const ox = owner!.x, oy = owner!.y;
             for (let i = 0; i < 3; i++) {
@@ -822,22 +862,9 @@ export class GameScene extends Phaser.Scene {
               arc.strokePath();
               this.tweens.add({targets: arc, alpha: 0, duration: 120, onComplete: () => arc.destroy()});
             }
-            for (let i = 1; i <= RAMIL.SPIN_GHOSTS[spin.turn]; i++) {
-              const a = theta - i * 0.16;
-              const ghost = this.add.image(ox + Math.cos(a) * RAMIL.SPIN_R * facing,
-                oy + handY + Math.sin(a) * RAMIL.SPIN_R * 0.3, sp.texture.key, 0)
-                .setOrigin(sp.originX,sp.originY).setScale(heldScale).setRotation(-Math.cos(a)*facing*tilt).setFlipX(facing<0)
-                .setTintMode(Phaser.TintModes.FILL).setTint(0xffffff).setAlpha(0.4*(1-i/(RAMIL.SPIN_GHOSTS[spin.turn]+1))).setDepth(oy-0.1);
-              this.tweens.add({targets: ghost, alpha: 0, duration: 100, onComplete: () => ghost.destroy()});
-            }
-            if (spin.turn === 2) {
-              const wind = this.add.graphics().setDepth(oy+0.4).lineStyle(1,0xffffff,0.5);
-              for (let i = 0; i < 4; i++) wind.lineBetween(ox-65+i*12,oy-30-i*12,ox+25+i*12,oy-35-i*12);
-              this.tweens.add({targets: wind, alpha: 0, duration: 100, onComplete: () => wind.destroy()});
-            }
             this.cameras.main.shake(55,0.0004*(spin.turn+1));
           }
-          if (spinning && this.time.now - (v.spinDustAt ?? 0) >= RAMIL.SPIN_DUST_MS) {
+          if (spinning && spin.turn === 0 && this.time.now - (v.spinDustAt ?? 0) >= RAMIL.SPIN_DUST_MS) {
             v.spinDustAt = this.time.now;
             this.fx('ramil-dust', owner!.x, owner!.y, { scale: 0.6, depth: owner!.y - 0.05 })?.setRotation(theta);
           }
@@ -896,7 +923,7 @@ export class GameScene extends Phaser.Scene {
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
       v.ghosts?.forEach(g => g.destroy()); v.trigram?.destroy();
-      v.meteor?.destroy();
+      v.meteor?.destroy(); v.tornado?.destroy(); v.tornadoWord?.destroy();
       v.ramilFx?.forEach(f => f.destroy());
       v.storm?.zone.destroy(); v.storm?.flakes.forEach(f => f.destroy()); v.status?.destroy();
       v.ring?.destroy(); v.warning?.destroy(); v.shield?.destroy(); v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();

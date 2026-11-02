@@ -39,7 +39,8 @@ STRIPS = {"ramil-smoke": ("ramil/smoke-idle.png", 18, 30, 10, True),
           "ramil-mark": ("ramil/mark.png", 20, 14, 10, True),
           "ramil-wrap": (None, 34, 26, 10, True),
           "ramil-coil": ("ramil/vine2/coil.png", 36, 30, 10, True),
-          "ramil-trigram": ("ramil/trigram.png", 112, 40, 10, True)}  # круг восьми триграмм под ногами (tools/ramil_trigram.py)
+          "ramil-trigram": ("ramil/trigram.png", 112, 40, 10, True),
+          "ramil-tornado": ("ramil/tornado.png", 72, 92, 20, True)}  # смерч «тасманского дьявола» (tools/ramil_tornado.py)  # круг восьми триграмм под ногами (tools/ramil_trigram.py)
 # одиночные картинки (рисованы скриптом)
 SINGLE = {"heart": "nadya/heart-big.png", "ball": "kris/ball.png", "aim": "kris/aim-mid.png",
           **{f"beam-{p}-{i}": f"kris/beam-{p}-{i}.png" for p in ("start", "mid", "end") for i in range(3)},

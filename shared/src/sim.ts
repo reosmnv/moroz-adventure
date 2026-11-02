@@ -787,6 +787,7 @@ function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) 
       else if (r.holdMs <= 0) { releaseGrab(w,p); startMove(p,'idle'); }
       return;
     } else if (['a3-spin', 'a3-throw'].includes(p.move)) {
+      p.invulnMs = dt + RAMIL.ULT_STUN;
       if (p.move === 'a3-spin') {
         p.invulnMs = dt + RAMIL.ULT_STUN;
         moveRamilCarry(w,p,inp,dt,RAMIL.SPIN_SPEED_MULT);
