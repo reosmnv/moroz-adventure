@@ -21,10 +21,27 @@ PICK = {
     "kris-ring": ("kris", "flash", "shockwave_ring"),
     "kris-charge": ("kris", "flash", "charge_up"),
     "kris-boom": ("kris", "ball", "cartoon_boom"),
+    # Рамиль (02.11): телепорт, удары, огонь, горение
+    "ramil-poof": ("ramil", "poof", "smoke_poof"),
+    "ramil-hit": ("ramil", "hits", "hit_star"),
+    "ramil-crit": ("ramil", "hits", "crit_hit"),
+    "ramil-rise": ("ramil", "hits", "rising_slash"),
+    "ramil-dash": ("ramil", "hits", "dash_slash"),
+    "ramil-ring": ("ramil", "hits", "shockwave_ring"),
+    "ramil-dust": ("ramil", "hits", "dust_kick"),
+    "ramil-fire": ("ramil", "fire", "flamethrower"),
+    "ramil-burn-back": ("ramil", "burn", "flame_aura"),
+    "ramil-burn": ("ramil", "burn", "burn_status"),
 }
+# полосы, нарисованные скриптами (tools/ramil_smoke.py, ramil_mark.py): ключ -> (файл, w, h, fps, loop)
+STRIPS = {"ramil-smoke": ("ramil/smoke-idle.png", 18, 30, 10, True),
+          "ramil-smoke-heavy": ("ramil/smoke-heavy.png", 28, 40, 10, True),
+          "ramil-mark": ("ramil/mark.png", 20, 14, 10, True),
+          "ramil-wrap": (None, 34, 26, 10, True)}
 # одиночные картинки (рисованы скриптом)
 SINGLE = {"heart": "nadya/heart-big.png", "ball": "kris/ball.png", "aim": "kris/aim-mid.png",
-          **{f"beam-{p}-{i}": f"kris/beam-{p}-{i}.png" for p in ("start", "mid", "end") for i in range(3)}}
+          **{f"beam-{p}-{i}": f"kris/beam-{p}-{i}.png" for p in ("start", "mid", "end") for i in range(3)},
+          **{f"ramil-vine-{i}": f"ramil/vines/seg-{i}.png" for i in range(3)}, "ramil-vine-head": "ramil/vines/head.png"}
 
 DST.mkdir(parents=True, exist_ok=True)
 rows = []
@@ -49,6 +66,15 @@ for key, name in BOSS.items():
     fps = round(1000 / j["frames"][0]["duration"])
     loop = name == "boss-pyro-pillar"
     rows.append(f"  '{key}': {{ w: {w}, h: {h}, n: {len(fr)}, fps: {fps}, loop: {str(loop).lower()} }},")
+for key, (rel, w, h, fps, loop) in STRIPS.items():
+    if rel is None:  # петля стеблей: 4 кадра в полосу
+        strip = Image.new("RGBA", (w * 4, h))
+        for i in range(4):
+            strip.paste(Image.open(SRC / f"ramil/vines/wrap-{i}.png"), (i * w, 0))
+        strip.save(DST / f"{key}.png"); n = 4
+    else:
+        shutil.copyfile(SRC / rel, DST / f"{key}.png"); n = Image.open(SRC / rel).width // w
+    rows.append(f"  '{key}': {{ w: {w}, h: {h}, n: {n}, fps: {fps}, loop: {str(loop).lower()} }},")
 for key, rel in SINGLE.items():
     shutil.copyfile(SRC / rel, DST / f"{key}.png")
 ts = ["// Сгенерировано tools/vfx_copy.py, руками не править.",

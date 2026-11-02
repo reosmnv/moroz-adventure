@@ -6,6 +6,7 @@ import {
 } from '@bc/shared';
 
 export const PlayerState = schema({
+  idleInput: t.boolean(), hiddenMs: t.number(), heavySmokeMs: t.number(), fireMs: t.number(),
   char: t.string(),
   x: t.number(),
   y: t.number(),
@@ -29,6 +30,7 @@ export const PlayerState = schema({
 export type PlayerState = SchemaType<typeof PlayerState>;
 
 export const EnemyState = schema({
+  burnMs: t.number(), markedBy: t.string(),
   enterMs: t.number(), boss: t.string(), bossPhase: t.number(), atk: t.string(),
   kind: t.string(),
   phase: t.string(),
@@ -114,6 +116,14 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (inp && (b === 'skip' || b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult' || b === 'ult2')) inp[b] = true;
     });
 
+    this.onMessage('view', (client: Client, v: { x?: number; width?: number }) => {
+      const inp = this.playerInputs[client.sessionId];
+      if (inp && Number.isFinite(v?.x) && Number.isFinite(v?.width)) { inp.viewX = Math.max(0, Math.min(10000, v.x!)); inp.viewW = Math.max(480, Math.min(810, v.width!)); }
+    });
+    this.onMessage('smoke', (client: Client, on: unknown) => {
+      if (this.world.players[client.sessionId]?.char === 'ramil' && this.playerInputs[client.sessionId]) this.playerInputs[client.sessionId].ult2 = on === true;
+    });
+
     // Тестовая кнопка «+3 врага»; в релизе TEST_TOOLS = false
     this.onMessage('spawn', (client: Client) => {
       if (TEST_TOOLS && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
@@ -149,7 +159,7 @@ export class GameRoom extends Room<{ state: GameState }> {
   tick() {
     if (this.state.paused || this.state.intro) { this.sync(); return; }
     const events = step(this.world, this.playerInputs);
-    for (const inp of Object.values(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.ult2 = inp.skip = false; }
+    for (const [id, inp] of Object.entries(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.skip = false; if (this.world.players[id]?.char !== 'ramil') inp.ult2 = false; }
     this.sync();
     if (events.length) this.broadcast('ev', events);
   }
@@ -170,6 +180,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const p of Object.values(w.players)) {
       let ps = s.players.get(p.id);
       if (!ps) { ps = new PlayerState(); s.players.set(p.id, ps); }
+      ps.idleInput = !!p.idleInput; ps.hiddenMs = p.hiddenMs ?? 0; ps.heavySmokeMs = p.heavySmokeMs ?? 0; ps.fireMs = p.fireMs ?? 0;
       ps.char = p.char; ps.x = round(p.x); ps.y = round(p.y); ps.hp = p.hp; ps.facing = p.facing;
       ps.anim = p.anim; ps.ult = Math.floor(p.ult);
       ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.bCombo = p.bCombo; ps.hitCount = p.hitCount; ps.charge2 = Math.floor(p.charge2); ps.storm = Math.round(p.stormMs); ps.invuln = p.invulnMs > 0;
@@ -179,6 +190,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     for (const e of Object.values(w.enemies)) {
       let es = s.enemies.get(e.id);
       if (!es) { es = new EnemyState(); s.enemies.set(e.id, es); }
+      es.burnMs = e.burnMs ?? 0; es.markedBy = e.markedBy ?? '';
       es.enterMs = e.enterMs ?? 0;
       es.boss = e.boss ?? ''; es.bossPhase = e.bossPhase ?? 0; es.atk = e.atk ?? '';
       es.kind = e.boss ?? e.kind; es.phase = e.phase;

@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { CHAIN, CHARACTERS, HEAVY, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, TEST_TOOLS, ULT_MS, VIEW_H } from '@bc/shared';
+import { NADYA_MOVE_NAMES, RAMIL_ID, RAMIL_MOVE_NAMES, CHAIN, CHARACTERS, HEAVY, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, TEST_TOOLS, ULT_MS, VIEW_H } from '@bc/shared';
 import type { Button, EntitySnap, GameSession } from './session.ts';
 
 // Интерфейс поверх боя: стик, кнопки, панели игроков. Отдельная сцена, поэтому встряска
@@ -46,6 +46,7 @@ const colorHex = (color: number) => '#' + color.toString(16).padStart(6, '0');
 const HERO_UI: Record<string, { dir: string; icons: string[] }> = {
   [NADYA_ID]: { dir: 'nadya', icons: ['face', 'icon-attack', 'icon-ult', 'heavy-slap', 'heavy-kick', 'heavy-sword'] },
   [KRIS_ID]: { dir: 'kris', icons: ['face', 'icon-attack', 'icon-ult', 'icon-flash', 'icon-ball'] },
+  [RAMIL_ID]: { dir: 'ramil', icons: ['face', 'icon-attack', 'icon-ult'] },
 };
 const NADYA_HEAVY_ICON: Record<string, string> = { b1: 'heavy-slap', b2: 'heavy-kick', 'b3-draw': 'heavy-sword' };
 const heroIcon = (char: string, name: string) => `ui-${HERO_UI[char].dir}-${name}`;
@@ -89,6 +90,7 @@ export class UIScene extends Phaser.Scene {
   init(data: { session: GameSession }) { this.session = data.session; }
 
   preload() {
+    this.load.spritesheet('ramil/static-east', 'sprites/ramil/static-east.png', { frameWidth: 128, frameHeight: 128 });
     for (const k of ['btn', 'stick', 'frame', 'icon-attack', 'icon-heavy', 'icon-ult', 'icon-snow', 'icon-taunt', 'face-prime', 'face-ultimate']) {
       this.load.image('ui-' + k, `ui/${k}.png`);
     }
@@ -98,6 +100,10 @@ export class UIScene extends Phaser.Scene {
   }
 
   create() {
+    const cg = this.add.graphics();
+    cg.fillStyle(0xf0e5d1).fillRect(12, 28, 35, 6); cg.fillStyle(0xe8743b).fillRect(45, 28, 9, 6);
+    cg.lineStyle(2, 0xc0c0c0).beginPath().moveTo(53, 26).lineTo(48, 20).lineTo(54, 12).strokePath();
+    cg.generateTexture('ramil-cigarette', 64, 64); cg.destroy();
     this.shownHits = 0;
     this.hitText = this.add.text(0, HITS_Y, '', { ...textStyle(), fontSize: HITS_FONT }).setOrigin(1, 0).setScrollFactor(0);
     this.waveText = this.add.text(0, 44, '', textStyle()).setOrigin(0.5, 0);
@@ -135,7 +141,8 @@ export class UIScene extends Phaser.Scene {
     kb.on('keydown-K', key('heavy'));
     kb.on('keydown-L', key('taunt'));
     kb.on('keydown-U', key('ult'));
-    kb.on('keydown-I', key('ult2'));
+    kb.on('keydown-I', (e: KeyboardEvent) => { this.smokeKey = true; if (this.session.snapshots.at(-1)?.players.get(this.session.me)?.char !== RAMIL_ID) key('ult2')(e); else this.syncSmoke(); });
+    kb.on('keyup-I', () => { this.smokeKey = false; this.syncSmoke(); });
     // Палец ушёл в системный жест или окно потеряло фокус: отпускаем стик и кнопки
     this.game.events.on('blur', () => this.releaseAll());
   }
@@ -163,13 +170,16 @@ export class UIScene extends Phaser.Scene {
       v.base.setPosition(x, y);
       v.icon.setPosition(x, y + ICON_Y + v.held * ICON_DROP);
     }
+    const u2pos = this.btns.get('ult2')!.base;
+    this.smokeLabel?.setPosition(u2pos.x, u2pos.y + 25);
     const h = btnPos(this.activeLayout[1], w);
     this.bHint.setPosition(h.x - HINT_GAP, h.y);
   }
 
   private tap(b: Button) {
     if (!this.session.hasMe()) return;
-    this.session.press(b);
+    if (b !== 'ult2' || this.session.snapshots.at(-1)?.players.get(this.session.me)?.char !== RAMIL_ID) this.session.press(b);
+    this.syncSmoke();
     if (b === 'taunt') this.portraitUntil = this.time.now + PRESS_MS;
     else this.setHeld(b, true);
     this.time.delayedCall(PRESS_MS, () => { if (b !== 'taunt' && ![...this.heldBy.values()].includes(b)) this.setHeld(b, false); });
@@ -222,7 +232,7 @@ export class UIScene extends Phaser.Scene {
 
   private onUp(p: Phaser.Input.Pointer) {
     const b = this.heldBy.get(p.id);
-    if (b) { this.heldBy.delete(p.id); this.setHeld(b, false); }
+    if (b) { this.heldBy.delete(p.id); this.setHeld(b, false); this.syncSmoke(); }
     if (p.id !== this.joyId) return;
     this.joyId = -1;
     this.joyBase.setPosition(JOY_REST.x, JOY_REST.y).setAlpha(JOY_IDLE_ALPHA);
@@ -230,6 +240,9 @@ export class UIScene extends Phaser.Scene {
   }
 
   // Иконки кнопок под своего героя (A, U, вторая кнопка); у Нади второй кнопки нет
+  private smokeLabel?: Phaser.GameObjects.Text;
+  private smokeKey = false;
+  private smokeSent = false;
   private iconsFor = '';
   private setHeroIcons(char: string) {
     if (this.iconsFor === char) return;
@@ -238,7 +251,9 @@ export class UIScene extends Phaser.Scene {
     this.btns.get('attack')!.icon.setTexture(h ? heroIcon(char, 'icon-attack') : 'ui-icon-attack');
     this.btns.get('ult')!.icon.setTexture(h ? heroIcon(char, 'icon-ult') : 'ui-icon-ult');
     const u2 = this.btns.get('ult2')!;
-    u2.icon.setTexture(char === KRIS_ID ? heroIcon(char, 'icon-ball') : 'ui-icon-snow');
+    u2.icon.setTexture(char === RAMIL_ID ? 'ramil-cigarette' : char === KRIS_ID ? heroIcon(char, 'icon-ball') : 'ui-icon-snow');
+    this.smokeLabel ??= this.add.text(0, 0, 'Перекур', textStyle(7)).setOrigin(0.5).setScrollFactor(0);
+    this.smokeLabel.setVisible(char === RAMIL_ID);
     const has2 = char !== NADYA_ID;
     this.activeLayout = LAYOUT[has2 ? 4 : 3];
     this.layout();
@@ -253,7 +268,13 @@ export class UIScene extends Phaser.Scene {
     icon.setScale(BTN_SCALE);
   }
 
+  private syncSmoke() {
+    const on = this.session.snapshots.at(-1)?.players.get(this.session.me)?.char === RAMIL_ID && (this.smokeKey || [...this.heldBy.values()].includes('ult2'));
+    if (on !== this.smokeSent) { this.smokeSent = on; this.session.holdSmoke(on); }
+  }
+
   private releaseAll() {
+    this.smokeKey = false; this.smokeSent = false; this.session.holdSmoke(false);
     for (const [id, b] of this.heldBy) { this.heldBy.delete(id); this.setHeld(b, false); }
     if (this.joyId !== -1) this.onUp({ id: this.joyId } as Phaser.Input.Pointer);
   }
@@ -290,12 +311,13 @@ export class UIScene extends Phaser.Scene {
   private drawPanel(p: Panel, sb: EntitySnap, me: boolean, width: number, index: number) {
     p.root.setVisible(true);
     const ch = CHARACTERS.find(c => c.id === sb.char);
-    const hero = sb.char === HERO_ID || !!HERO_UI[sb.char ?? ''];
+    const hero = sb.char === RAMIL_ID || sb.char === HERO_ID || !!HERO_UI[sb.char ?? ''];
     const ultimate = sb.form === 'ultimate';
     p.portrait.setVisible(hero);
     p.badge.setFillStyle(hero ? NAVY : ch?.color ?? PLUM);
     const face = sb.char === HERO_ID ? (ultimate ? 'ui-face-ultimate' : 'ui-face-prime') : HERO_UI[sb.char ?? ''] ? heroIcon(sb.char!, 'face') : '';
     if (face && p.portrait.texture.key !== face) p.portrait.setTexture(face);
+    p.portrait.setScale(1);
     p.health.setText(`${Math.ceil(Math.max(0, sb.hp))} HP`).setVisible(width < PANEL_W);
     p.name.setFontSize(width < PANEL_W ? 5 : 8).setText((ch?.name ?? '?') + (me || width < PANEL_W ? '' : ` ${index + 1}P`)).setColor(colorHex(heroColor(sb.char)));
     const pressed = me && this.time.now < this.portraitUntil;
@@ -365,7 +387,7 @@ export class UIScene extends Phaser.Scene {
     const s2 = this.btns.get('ult2')!;
     const storm = me?.storm ?? 0;
     const kris = me?.char === KRIS_ID;
-    const ready2 = !!me && (kris ? (me.charge2 ?? 0) >= 100 : (me.ult ?? 0) >= 100 && storm <= 0);
+    const ready2 = !!me && (me.char === RAMIL_ID || (kris ? (me.charge2 ?? 0) >= 100 : (me.ult ?? 0) >= 100 && storm <= 0));
     s2.base.setAlpha(ready2 ? 1 : 0.5);
     s2.icon.setAlpha(ready2 ? 1 : 0.5);
     if (kris && (me?.charge2 ?? 0) > 0) {
@@ -399,7 +421,7 @@ export class UIScene extends Phaser.Scene {
           this.pips.fillStyle(color, i < bc ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
         }
         const move = HEAVY.nadya[bc];
-        this.bHint.setText(MOVE_NAMES[move] ?? '');
+        this.bHint.setText(NADYA_MOVE_NAMES[move] ?? '');
         this.setHeavyIcon(heroIcon(me.char, NADYA_HEAVY_ICON[move]));
       } else {
         this.bHint.setText(MOVE_NAMES.b);
@@ -423,6 +445,9 @@ export class UIScene extends Phaser.Scene {
       const move = HEAVY[me.form ?? 'prime'][bc];
       this.bHint.setText(MOVE_NAMES[move] ?? '');
       this.setHeavyIcon('ui-heavy-' + NASTYA_HEAVY_ICON[move]);
+    } else if (me?.char === RAMIL_ID) {
+      this.bHint.setText(RAMIL_MOVE_NAMES[HEAVY.ramil[Math.min(me.bCombo ?? 0, 2)] as keyof typeof RAMIL_MOVE_NAMES]);
+      this.setHeavyIcon('ui-icon-heavy');
     } else {
       this.bHint.setText('');
       this.setHeavyIcon('ui-icon-heavy');

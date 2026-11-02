@@ -1,7 +1,7 @@
 // Сгенерировано tools/gen_anims_ts.py из assets/sprites/anims.json, руками не править.
 
 // Набор спрайтов: формы Анастасии и герои с одной формой
-export type Form = 'prime' | 'ultimate' | 'nadya' | 'kris';
+export type Form = 'prime' | 'ultimate' | 'nadya' | 'kris' | 'ramil';
 export interface AnimDef { east: number; west: number; fps: number; loop: boolean; hit?: { east: number; west: number }; hits?: number[] }
 
 export const HERO_ANIMS: Record<Form, Record<string, AnimDef>> = {
@@ -71,5 +71,23 @@ export const HERO_ANIMS: Record<Form, Record<string, AnimDef>> = {
     'ult-out': { east: 4, west: 4, fps: 18, loop: false },
     'ult-setup': { east: 10, west: 10, fps: 18, loop: false, hit: { east: 9, west: 9 } },
     'walk': { east: 8, west: 8, fps: 10, loop: true },
+  },
+  ramil: {
+    'a1': { east: 12, west: 12, fps: 18, loop: false, hit: { east: 4, west: 4 } },
+    'a2': { east: 9, west: 9, fps: 18, loop: false, hit: { east: 4, west: 4 } },
+    'a3': { east: 12, west: 12, fps: 18, loop: false, hit: { east: 3, west: 3 } },
+    'b1': { east: 6, west: 6, fps: 18, loop: false, hit: { east: 3, west: 3 } },
+    'b2': { east: 11, west: 11, fps: 18, loop: false, hit: { east: 5, west: 5 } },
+    'b3': { east: 6, west: 6, fps: 18, loop: false, hit: { east: 3, west: 3 } },
+    'dash': { east: 8, west: 8, fps: 14, loop: true },
+    'fall': { east: 9, west: 9, fps: 12, loop: false },
+    'getup': { east: 12, west: 12, fps: 10, loop: false },
+    'hurt': { east: 6, west: 6, fps: 14, loop: false },
+    'idle': { east: 8, west: 8, fps: 8, loop: true },
+    'idle-warm': { east: 16, west: 16, fps: 10, loop: false },
+    'slap': { east: 8, west: 8, fps: 18, loop: false, hit: { east: 3, west: 3 } },
+    'smoke': { east: 16, west: 16, fps: 10, loop: true },
+    'taunt': { east: 12, west: 12, fps: 10, loop: false },
+    'walk': { east: 8, west: 8, fps: 9, loop: true },
   },
 };

@@ -1,0 +1,138 @@
+{
+ "cell": 128,
+ "feetY": 112,
+ "states": {
+  "ramil": {
+   "idle": {
+    "east": 8,
+    "west": 8,
+    "fps": 8,
+    "loop": true
+   },
+   "idle-warm": {
+    "east": 16,
+    "west": 16,
+    "fps": 10,
+    "loop": false
+   },
+   "walk": {
+    "east": 8,
+    "west": 8,
+    "fps": 9,
+    "loop": true
+   },
+   "dash": {
+    "east": 8,
+    "west": 8,
+    "fps": 14,
+    "loop": true
+   },
+   "hurt": {
+    "east": 6,
+    "west": 6,
+    "fps": 14,
+    "loop": false
+   },
+   "fall": {
+    "east": 9,
+    "west": 9,
+    "fps": 12,
+    "loop": false
+   },
+   "getup": {
+    "east": 12,
+    "west": 12,
+    "fps": 10,
+    "loop": false
+   },
+   "a1": {
+    "east": 12,
+    "west": 12,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 4,
+     "west": 4
+    }
+   },
+   "a2": {
+    "east": 9,
+    "west": 9,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 4,
+     "west": 4
+    }
+   },
+   "a3": {
+    "east": 12,
+    "west": 12,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 3,
+     "west": 3
+    }
+   },
+   "b1": {
+    "east": 6,
+    "west": 6,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 3,
+     "west": 3
+    }
+   },
+   "b2": {
+    "east": 11,
+    "west": 11,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 5,
+     "west": 5
+    }
+   },
+   "b3": {
+    "east": 6,
+    "west": 6,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 3,
+     "west": 3
+    }
+   },
+   "slap": {
+    "east": 8,
+    "west": 8,
+    "fps": 18,
+    "loop": false,
+    "hit": {
+     "east": 3,
+     "west": 3
+    }
+   },
+   "smoke": {
+    "east": 16,
+    "west": 16,
+    "fps": 10,
+    "loop": true
+   },
+   "taunt": {
+    "east": 12,
+    "west": 12,
+    "fps": 10,
+    "loop": false
+   },
+   "static": {
+    "east": 1,
+    "west": 1,
+    "fps": 1,
+    "loop": true
+   }
+  }
+ }
+}

@@ -143,7 +143,7 @@ function showPicker() {
       const b = document.createElement('button');
       b.textContent = c.name;
       b.style.background = '#' + c.color.toString(16).padStart(6, '0');
-      const portrait = c.id === HERO_ID ? 'ui/portrait-prime.png' : c.id === NADYA_ID ? 'ui/nadya/portrait.png' : c.id === KRIS_ID ? 'ui/kris/portrait.png' : '';
+      const portrait = c.id === HERO_ID ? 'ui/portrait-prime.png' : c.id === NADYA_ID ? 'ui/nadya/portrait.png' : c.id === KRIS_ID ? 'ui/kris/portrait.png' : c.id === 'ramil' ? 'ui/ramil/portrait.png' : '';
       if (portrait) {
         // Портрет героя над именем, пиксели без сглаживания
         const img = document.createElement('img');

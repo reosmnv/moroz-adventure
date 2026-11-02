@@ -815,7 +815,7 @@ for (const dodge of [false, true]) {
   const hp: number[] = [];
   for (const n of [1, 4]) {
     const w = createWorld(31, false);
-    for (let i = 0; i < n; i++) addPlayer(w, `p${i}`, [HERO_ID, NADYA_ID, KRIS_ID, 'd'][i]);
+    for (let i = 0; i < n; i++) addPlayer(w, `p${i}`, [HERO_ID, NADYA_ID, KRIS_ID, 'ramil'][i]);
     w.players.p0.x = 300; step(w, {});
     const enemies = Object.values(w.enemies);
     hp.push(enemies[0].maxHp);
@@ -1035,5 +1035,109 @@ for (const hp of [1000, 1]) {
   const hit = step(w, {}).find(e => e.t === 'hit' && e.target === p.id);
   check('TZ11 враг без impact', hit?.t === 'hit' && hit.impact === undefined && hit.kill === undefined);
 }
+function ramilDummy(w: World, id: string, dx: number) { dummy(w, id, dx); w.enemies[id].slowMs = 1e8; w.enemies[id].slow = 1; }
+
+// TZ12: Рамиль, независимые серии и длительные эффекты.
+{
+  const { w, p } = setup(false, 'ramil');
+  for (let i = 0; i < 3; i++) ramilDummy(w, 'e' + i, 100 + i * 40);
+  const r = run(w, 700, press([0], 'attack'));
+  check('Рамиль: стебли не более двух', r.hits.length === 2 && r.hits.every(d => d === 4), r.hits.join());
+  check('Рамиль: притяжение к 42', Math.abs(w.enemies.e0.x - p.x - 42) < 1 && Math.abs(w.enemies.e1.x - p.x - 42) < 1);
+  check('Рамиль: стебли оглушают', (w.enemies.e0.stunMs ?? 0) > 0);
+  check('Рамиль: попадания не заряжают ульту', p.ult === 0);
+}
+{
+  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 40);
+  p.combo = 1; p.comboMs = 1000;
+  run(w, 300, press([0], 'attack'));
+  check('Рамиль: a2 подбрасывает', (w.enemies.e1.air ?? 0) > 0 && w.enemies.e1.hp === 992);
+}
+{
+  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 80);
+  p.combo = 2; p.comboMs = 1000;
+  const r = run(w, 4000, press([0], 'attack'));
+  check('Рамиль: огонь один раз + 6 тиков', r.hits.length === 7 && r.hits.every(d => d === 3), r.hits.join());
+  check('Рамиль: поджог окончен через 3 с', !w.enemies.e1.burnMs && w.enemies.e1.hp === 979);
+}
+{
+  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 60); ramilDummy(w, 'e2', 160);
+  const origin = p.x;
+  run(w, 500, press([0], 'heavy'));
+  check('Рамиль: b1 за спиной дальнего', p.x === w.enemies.e2.x + 34 && p.facing === -1, `${p.x}`);
+  check('Рамиль: метка дальнему', w.enemies.e2.markedBy === p.id && p.ramil?.mark === 'e2');
+  const before = w.enemies.e2.x;
+  run(w, 800, press([0], 'heavy'));
+  check('Рамиль: b2 уносит на 300 с клампом', Math.abs(w.enemies.e2.x - Math.max(p.x - 300, before - 300)) < 1, `${before}->${w.enemies.e2.x}`);
+  check('Рамиль: b2 сбивает', w.enemies.e2.anim === 'down');
+  run(w, 500, press([0], 'heavy'));
+  check('Рамиль: b3 к метке и снимает', Math.abs(p.x - w.enemies.e2.x) === 40 && !p.ramil?.mark && !w.enemies.e2.markedBy);
+  check('Рамиль: урон b1+b2+b3', w.enemies.e2.hp === 969, `${w.enemies.e2.hp}`);
+  p.bCombo = 2; p.bComboMs = 1200;
+  run(w, 500, press([0], 'heavy'));
+  check('Рамиль: b3 без метки к началу b1', p.x === origin);
+}
+for (const n of [1, 3]) {
+  const { w, p } = setup(false, 'ramil');
+  for (let i = 0; i < n; i++) ramilDummy(w, 'e' + i, 60 + i * 50);
+  const x = p.x, y = p.y; p.ult = 100;
+  const r = run(w, 1500, press([0], 'ult'));
+  check(`Рамиль: ульта ${n} целей, 8 ударов`, r.hits.length === 8 && r.hits.every(d => d === 12), r.hits.join());
+  check(`Рамиль: ульта ${n} распределение`, Array.from({ length: n }, (_, i) => 1000 - w.enemies['e' + i].hp).join() === (n === 1 ? '96' : '36,36,24'));
+  check(`Рамиль: ульта ${n} возврат`, p.x === x && p.y === y && p.ult === 0);
+}
+{
+  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'offscreen', 800); p.ult = 100;
+  run(w, 100, press([0], 'ult'));
+  check('Рамиль: пустая ульта не тратит заряд', p.ult === 100);
+  w.enemies.offscreen.x = p.x + 800;
+  check('Рамиль: пустой b1 не начинается', !run(w, 100, press([0], 'heavy')).log.includes('b1'));
+}
+{
+  const { w, p } = setup(false, 'ramil');
+  run(w, 1000, () => ({ ult2: true, mx: 1 }));
+  check('Рамиль: перекур 20/с', Math.abs(p.ult - 20) < 0.5, `${p.ult}`);
+  check('Рамиль: при перекуре стоит', p.x === 200 && p.move === 'smoke');
+  const u = p.ult;
+  run(w, 500);
+  check('Рамиль: отпускание прекращает перекур', p.ult === u && p.move === 'idle');
+  ramilDummy(w, 'e1', 24);
+  const e = w.enemies.e1; e.phase = 'windup'; e.phaseMs = 1; e.atkDir = -1; e.token = p.id; e.atkX = p.x; e.atkY = p.y;
+  step(w, { h: { ...emptyInput(), ult2: true } });
+  check('Рамиль: удар прерывает перекур', p.hp < 150 && p.move === 'hurt');
+  const after = p.ult; run(w, 200, () => ({ ult2: true }));
+  check('Рамиль: hurt не копит заряд', p.ult === after);
+  run(w, 1000);
+  const done = run(w, 5100, () => ({ ult2: true }));
+  check('Рамиль: полный заряд + реплика', p.ult === 100 && done.events.includes('taunt:Всё, погнали'));
+  check('Рамиль: реплики перекура', done.events.some(e => e.includes('подождите, докурю')));
+}
+
+
+{
+  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 50);
+  w.enc.lock = [0, 1000]; w.enemies.e1.entered = true; w.introduced.push('omon');
+  p.bCombo = 1; p.bComboMs = 1200;
+  const start = w.enemies.e1.x;
+  run(w, 750, press([0], 'heavy'));
+  check('Рамиль: b2 полный полёт 300 в арене', w.enemies.e1.x === start + 300, `${start}->${w.enemies.e1.x}`);
+}
+{
+  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 100);
+  run(w, 500, press([0], 'heavy'));
+  delete w.enemies.e1; ramilDummy(w, 'far', 800);
+  p.bCombo = 2; p.bComboMs = 1200;
+  run(w, 500, press([0], 'heavy'));
+  check('Рамиль: b3 при смерти метки возвращает к b1', p.x === 200 && !p.ramil?.mark);
+}
+{
+  const { w, p } = setup(false, 'ramil'); ramilDummy(w, 'e1', 100);
+  const b = addPlayer(w, 'ally', NADYA_ID); b.x = 450; b.y = 200;
+  run(w, 500, press([0], 'heavy'));
+  p.bCombo = 2; p.bComboMs = 1200;
+  run(w, 500, press([0], 'heavy'));
+  check('Рамиль: b3 со стороны союзника', p.x === w.enemies.e1.x + 40);
+}
+
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');
 process.exit(failed ? 1 : 0);

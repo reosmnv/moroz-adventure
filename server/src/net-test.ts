@@ -70,7 +70,7 @@ async function main() {
 
   // 5. Третий и четвёртый входят, пятый — нет.
   const extra: Room[] = [];
-  for (const char of ['kris', 'd']) {
+  for (const char of ['kris', 'ramil']) {
     const r = await new Client(URL).joinById(a.roomId);
     r.reconnection.enabled = false; r.onMessage('ev', () => {});
     r.send('pick', char); await sleep(400);
@@ -79,6 +79,16 @@ async function main() {
     r.send('move', { mx: 1, my: 0 }); await sleep(500);
     r.send('move', { mx: 0, my: 0 }); await sleep(150);
     check(`${char}: движение`, players(a).get(r.sessionId)?.x > x + 20);
+    if (char === 'ramil') {
+      const initial = players(a).get(r.sessionId)?.ult ?? 0;
+      r.send('smoke', true); await sleep(1000);
+      const charged = players(a).get(r.sessionId)?.ult ?? 0;
+      check('Рамиль: сетевое удержание перекура', charged >= initial + 17 && charged <= initial + 23, `${initial}->${charged}`);
+      r.send('smoke', false); await sleep(250);
+      const released = players(a).get(r.sessionId)?.ult ?? 0;
+      await sleep(300);
+      check('Рамиль: сетевое отпускание перекура', players(a).get(r.sessionId)?.ult === released);
+    }
     extra.push(r);
   }
   let rejected = false;

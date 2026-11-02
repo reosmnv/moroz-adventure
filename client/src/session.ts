@@ -8,6 +8,7 @@ import {
 
 export interface EntitySnap {
   x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean; air?: number; height?: number; frozen?: boolean; storm?: number;
+  idleInput?: boolean; hiddenMs?: number; heavySmokeMs?: number; fireMs?: number; burnMs?: number; markedBy?: string;
   form?: Form; move?: string; moveT?: number; formMs?: number; combo?: number; hitCount?: number; bCombo?: number; charge2?: number; invuln?: boolean;
   enterMs?: number; kind?: string; phase?: string; boss?: string; bossPhase?: number; atk?: string;
   slow?: boolean; stun?: boolean; charm?: boolean;
@@ -27,6 +28,8 @@ export interface GameSession {
   onEvents: (evs: SimEvent[]) => void;
   move(mx: number, my: number, run: boolean): void;
   press(b: Button): void;
+  holdSmoke(on: boolean): void;
+  view(x: number, width: number): void;
   spawn(): void;
   next(): void;
   charge(): void;
@@ -71,7 +74,8 @@ export class LocalSession implements GameSession {
   private tick() {
     if (document.hidden || this.paused) return; // офлайн-пауза в фоне и по кнопке
     const evs = this.intro ? [] : step(this.world, { [this.me]: this.input });
-    this.input.attack = this.input.heavy = this.input.taunt = this.input.ult = this.input.ult2 = this.input.skip = false;
+    this.input.attack = this.input.heavy = this.input.taunt = this.input.ult = this.input.skip = false;
+    if (this.world.players[this.me]?.char !== 'ramil') this.input.ult2 = false;
     const players = new Map<string, EntitySnap>();
     for (const p of Object.values(this.world.players)) players.set(p.id, { ...p, storm: p.stormMs, invuln: p.invulnMs > 0 });
     const enemies = new Map<string, EntitySnap>();
@@ -82,6 +86,8 @@ export class LocalSession implements GameSession {
 
   move(mx: number, my: number, run: boolean) { this.input.mx = mx; this.input.my = my; this.input.run = run; }
   press(b: Button) { this.input[b] = true; }
+  view(x: number, width: number) { this.input.viewX = x; this.input.viewW = width; }
+  holdSmoke(on: boolean) { this.input.ult2 = on; }
   next() { if (TEST_TOOLS) nextStage(this.world); }
   spawn() { if (TEST_TOOLS) spawnEnemies(this.world, 3); }
   charge() { if (TEST_TOOLS) chargeUlt(this.world, this.me); }
@@ -154,9 +160,9 @@ export class OnlineSession implements GameSession {
     room.onStateChange((state: any) => {
       this.intro = state.intro;
       const players = new Map<string, EntitySnap>();
-      state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
+      state.players.forEach((p: any, id: string) => players.set(id, { x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, idleInput: p.idleInput, hiddenMs: p.hiddenMs, heavySmokeMs: p.heavySmokeMs, fireMs: p.fireMs, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
-      state.enemies.forEach((e: any, id: string) => enemies.set(id, { enterMs: e.enterMs, boss: e.boss, bossPhase: e.bossPhase, atk: e.atk, kind: e.kind, phase: e.phase, x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
+      state.enemies.forEach((e: any, id: string) => enemies.set(id, { burnMs: e.burnMs, markedBy: e.markedBy, enterMs: e.enterMs, boss: e.boss, bossPhase: e.bossPhase, atk: e.atk, kind: e.kind, phase: e.phase, x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
       pushSnap(this.snapshots, { pauseMs: state.pauseMs, slowmoMs: state.slowmoMs, halt: state.halt, cineId: state.cineId, cineKind: state.cineKind, cineMs: state.cineMs, shots: Array.from(state.shots, (s: any) => ({ x: s.x, y: s.y, dir: s.dir })), zones: Array.from(state.zones, (z: any) => ({ x: z.x, y: z.y, r: z.r, ms: z.ms })), t: performance.now(), players, enemies, lockX0: state.lockX0, lockX1: state.lockX1, encDone: state.encDone, encTotal: state.encTotal, won: state.won, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;
@@ -197,6 +203,12 @@ export class OnlineSession implements GameSession {
     this.room.send('move', { mx, my, run });
   }
   press(b: Button) { this.room.send('btn', b); }
+  private lastView = '';
+  view(x: number, width: number) {
+    const key = Math.round(x) + ':' + width;
+    if (key !== this.lastView) { this.lastView = key; this.safeSend('view', { x: Math.round(x), width }); }
+  }
+  holdSmoke(on: boolean) { this.safeSend('smoke', on); }
   next() { this.safeSend('next', true); }
   spawn() { this.safeSend('spawn', true); }
   charge() { this.safeSend('charge', true); }

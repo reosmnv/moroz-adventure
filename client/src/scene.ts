@@ -1,7 +1,8 @@
 import * as Phaser from 'phaser';
 import { Impact } from './impact.ts';
 import { BossShow } from './boss-show.ts';
-import { ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { RAMIL_TIPS } from './ramil-tips.ts';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { showFinale } from './story.ts';
@@ -29,7 +30,7 @@ const ENEMY_LOOK: Record<string, [number, number, number]> = {
 const ICE = 0x66b8ff; // цвет замороженного врага
 
 interface Storm { zone: Phaser.GameObjects.Ellipse; flakes: Phaser.GameObjects.Rectangle[]; seed: number[] }
-interface View { ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
+interface View { ramilFx?: Map<string, Phaser.GameObjects.Image>; warmAt?: number; warmSince?: number; ring?: Phaser.GameObjects.Ellipse; castActive?: boolean; enemyClip?: string; enemySince?: number; shield?: Phaser.GameObjects.Rectangle; warning?: Phaser.GameObjects.Text; status?: Phaser.GameObjects.Sprite; storm?: Storm; sprite?: Phaser.GameObjects.Image; shadow?: Phaser.GameObjects.Ellipse; body: Phaser.GameObjects.Rectangle; fist: Phaser.GameObjects.Rectangle; label?: Phaser.GameObjects.Text; hp: Phaser.GameObjects.Rectangle; bubble?: Phaser.GameObjects.Text }
 
 export class GameScene extends Phaser.Scene {
   session!: GameSession;
@@ -56,7 +57,9 @@ export class GameScene extends Phaser.Scene {
   private exitLabel?: Phaser.GameObjects.Text;
   private stopped = false;
   private stoppedAt = 0;
-  private telegraphs: { ev: Extract<SimEvent, { t: 'tele' }>; until: number }[] = [];
+  private telegraphs: { ev: Extract<SimEvent, { t: 'tele'; shape: string }>; until: number }[] = [];
+  private vines: { ev: Extract<SimEvent, { t: 'vine' }>; since: number }[] = [];
+  private vineParts: Phaser.GameObjects.Image[] = [];
   private views = new Map<string, View>();
   constructor() { super('game'); }
 
@@ -107,6 +110,7 @@ export class GameScene extends Phaser.Scene {
     target = Math.max(0, Math.min(Math.max(0, this.worldWidth - this.scale.width), target));
     this.camX = this.camX === undefined ? target : this.camX + (target - this.camX) * (1 - Math.exp(-dt / CAM_TAU));
     cam.setScroll(Math.round(this.camX), 0);
+    this.session.view(cam.scrollX, this.scale.width);
   }
 
   // Одноразовый эффект из листа: проигрался и исчез (frames: сколько кадров показать у петельных)
@@ -126,7 +130,7 @@ export class GameScene extends Phaser.Scene {
 
   // Комиксное слово над попаданием: «ШЛЁП!», «БАМ!»
   private word(x: number, y: number, text: string, color: string) {
-    const t = this.add.text(x, y, text, { ...textStyle(16, color), strokeThickness: 4 }).setOrigin(0.5).setDepth(1550).setAngle(-8).setScale(0.4);
+    const t = this.add.text(x, y, text, { ...textStyle(text === 'ПОКА!' || text === 'ВСЁ.' ? 21 : 16, color), strokeThickness: 4 }).setOrigin(0.5).setDepth(1550).setAngle(-8).setScale(0.4);
     this.tweens.add({ targets: t, scale: 1, duration: 120, ease: 'Back.easeOut' });
     this.tweens.add({ targets: t, y: y - 12, alpha: 0, delay: 350, duration: 300, onComplete: () => t.destroy() });
   }
@@ -207,11 +211,23 @@ export class GameScene extends Phaser.Scene {
           this.impact.play(2, nearest ? this.views.get('p:' + nearest[0])?.sprite : undefined, this.views.get('e:' + e.id)?.sprite, boss.x, boss.y);
         }
       }
+      if (e.t === 'vine') this.vines.push({ ev: e, since: this.time.now });
+      if (e.t === 'tele' && 'fromX' in e) {
+        const v = this.views.get('p:' + e.id);
+        if (v?.sprite && new URLSearchParams(location.search).get('fx') !== '0') {
+          const sp = v.sprite;
+          const silhouette = this.add.image(e.fromX, e.fromY, sp.texture.key, sp.frame.name).setOrigin(sp.originX, sp.originY).setScale(sp.scaleX, sp.scaleY).setTintMode(Phaser.TintModes.FILL).setTint(0xffffff).setDepth(e.fromY + 0.1);
+          this.time.delayedCall(17, () => silhouette.destroy());
+        }
+        this.fx('ramil-poof', e.fromX, e.fromY - 35);
+        const ms = this.session.snapshots.at(-1)?.players.get(e.id)?.move === 'slap' ? 0 : RAMIL.TELE_MS;
+        this.time.delayedCall(ms, () => { this.fx('ramil-poof', e.toX, e.toY - 35); this.fx('ramil-dust', e.toX, e.toY, { depth: e.toY + 0.1 }); });
+      }
       if (e.t === 'victory') void showFinale(() => this.replay());
-      if (e.t === 'tele') this.telegraphs.push({ ev: e, until: this.time.now + e.ms + (e.delayMs ?? 0) });
+      if (e.t === 'tele' && e.shape !== undefined) this.telegraphs.push({ ev: e, until: this.time.now + e.ms + (e.delayMs ?? 0) });
       if (e.t === 'phase') { this.phaseUntil = this.time.now + 1000; this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id); }
       if (e.t === 'bossDown') this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id);
-      if (e.t === 'restart' || e.t === 'stage') { this.telegraphs = []; this.attackBands = []; this.bossShow?.destroy(); this.bossShow = undefined; }
+      if (e.t === 'restart' || e.t === 'stage') { this.telegraphs = []; this.vines = []; this.attackBands = []; this.bossShow?.destroy(); this.bossShow = undefined; }
 
       if (e.t === 'lock') { this.lockNoticeUntil = this.time.now + 1200; this.forwardFrom = undefined; }
       if (e.t === 'clear') {
@@ -230,16 +246,29 @@ export class GameScene extends Phaser.Scene {
           ? this.impact.play(e.kill ? 2 : e.impact!, this.views.get('p:' + e.by)?.sprite, this.views.get('e:' + e.target)?.sprite, e.x, e.y,
             CHARACTERS.find(c => c.id === by)?.color) : 0;
         const showText = () => {
-          const t = this.add.text(e.x, e.y - 70, '-' + e.dmg, textStyle(8, '#ffd84a')).setOrigin(0.5).setDepth(1500);
+          const t = this.add.text(e.x, e.y - 70, '-' + e.dmg, textStyle(e.tick ? 6 : 8, '#ffd84a')).setOrigin(0.5).setDepth(1500);
           this.tweens.add({ targets: t, y: t.y - 16, alpha: 0, duration: 500, onComplete: () => t.destroy() });
           // Искры по герою: розовые у Нади, салатовые у Kris
           if (by === NADYA_ID) e.word === 'ШЛЁП!' ? this.fx('nadya-slap', e.x, e.y - 50, { frames: 10 }) : this.fx('nadya-hit', e.x, e.y - 45);
+          if (by === RAMIL_ID) {
+            if (!e.tick) {
+              this.fx('ramil-hit', e.x, e.y - 45);
+              this.cameras.main.shake(e.impact === 2 ? 150 : 60, 0.003);
+            }
+            if (e.word === 'ОП!') this.fx('ramil-rise', e.x, e.y - 45);
+            if (e.word === 'ПОКА!') {
+              this.fx('ramil-crit', e.x, e.y - 45);
+              const target = this.session.snapshots.at(-1)?.enemies.get(e.target);
+              const dir = this.session.snapshots.at(-1)?.players.get(e.by!)?.facing ?? 1;
+              this.time.delayedCall(300, () => { const at = this.session.snapshots.at(-1)?.enemies.get(e.target); this.fx('ramil-ring', at?.x ?? (target?.x ?? e.x) + dir * RAMIL.KICK_FLY, at?.y ?? e.y); });
+            }
+          }
           if (by === KRIS_ID) this.fx('kris-hit', e.x, e.y - 45);
           if (e.word === 'БУМ!') this.fx('kris-ring', e.x, e.y, { depth: e.y - 0.3 });
-          if (e.word) this.word(e.x, e.y - 95, e.word, by === KRIS_ID ? '#c8ff6a' : by === NADYA_ID ? '#ff8fc4' : '#9d74d4');
+          if (e.word) this.word(e.x, e.y - 95, e.word, by === RAMIL_ID ? e.word === 'ИДИ СЮДА!' ? '#a0eb6e' : e.word === 'ПЫХ!' ? '#ff8c3c' : e.word === 'ПОКА!' || e.word === 'ВСЁ.' ? '#ff5a50' : '#e8743b' : by === KRIS_ID ? '#c8ff6a' : by === NADYA_ID ? '#ff8fc4' : '#9d74d4');
         };
         if (delay) this.time.delayedCall(delay, showText); else showText();
-        if (e.target.startsWith('e') && e.dmg >= 18) this.cameras.main.shake(90, 0.004); // сильный удар встряхивает кадр
+        if (by !== RAMIL_ID && e.target.startsWith('e') && e.dmg >= 18) this.cameras.main.shake(90, 0.004); // сильный удар встряхивает кадр
         beep(e.target.startsWith('e') ? 520 : 180, 0.05);
       } else if (e.t === 'heal') {
         const v = this.views.get('p:' + e.id);
@@ -451,6 +480,9 @@ export class GameScene extends Phaser.Scene {
 
   // Значок над врагом: ревность (сердечки), оглушение (звёзды), замедление (стрелки)
   private drawStatus(v: View, sb: EntitySnap, x: number, y: number) {
+    this.ramilOverlay(v, 'ramil-burn-back', (sb.burnMs ?? 0) > 0, x, y - 35, y - 0.05);
+    this.ramilOverlay(v, 'ramil-burn', (sb.burnMs ?? 0) > 0, x, y - 30, y + 0.1);
+    this.ramilOverlay(v, 'ramil-mark', !!sb.markedBy, x, y - 100, y + 0.2);
     const key = sb.charm ? 'nadya-charm' : sb.stun ? 'stun' : sb.slow ? 'slow' : '';
     if (!key) { v.status?.destroy(); v.status = undefined; return; }
     if (v.status?.anims.currentAnim?.key !== 'fx-' + key) {
@@ -460,6 +492,34 @@ export class GameScene extends Phaser.Scene {
     v.status.setPosition(x, key === 'slow' ? y - 30 : y - 88).setDepth(y + 0.8);
   }
 
+  private ramilOverlay(v: View, key: string, on: boolean, x: number, y: number, depth: number, ox = 0.5, oy = 0.5) {
+    v.ramilFx ??= new Map();
+    let image = v.ramilFx.get(key);
+    if (!on) { image?.setVisible(false); return image; }
+    if (!image) { image = this.add.image(x, y, 'fx-' + key).setScale(SCALE); v.ramilFx.set(key, image); }
+    const def = VFX[key];
+    image.setVisible(true).setPosition(x, y).setOrigin(ox, oy).setDepth(depth).setFrame(Math.floor(this.time.now * def.fps / 1000) % def.n);
+    return image;
+  }
+
+  private drawVines(s: Snapshot) {
+    this.vineParts.forEach(p => p.destroy()); this.vineParts = [];
+    const full = RAMIL.VINE_FLIGHT + RAMIL.VINE_PULL;
+    this.vines = this.vines.filter(v => this.time.now - v.since < full + RAMIL.VINE_RETRACT);
+    for (const v of this.vines) for (const id of v.ev.targets) {
+      const e = s.enemies.get(id); if (!e) continue;
+      const elapsed = this.time.now - v.since;
+      const k = elapsed < RAMIL.VINE_FLIGHT ? elapsed / RAMIL.VINE_FLIGHT : elapsed < full ? 1 : 1 - (elapsed - full) / RAMIL.VINE_RETRACT;
+      const dx = (e.x - v.ev.x) * k, dy = (e.y - 30 - v.ev.y) * k;
+      const len = Math.hypot(dx, dy), angle = Math.atan2(dy, dx);
+      for (let d = 0; d < len; d += 20) {
+        this.vineParts.push(this.add.image(v.ev.x + Math.cos(angle) * d, v.ev.y + Math.sin(angle) * d, 'fx-ramil-vine-' + (Math.floor(this.time.now / 100 + d / 20) % 3)).setRotation(angle).setDepth(e.y + 0.1));
+      }
+      this.vineParts.push(this.add.image(v.ev.x + dx, v.ev.y + dy, 'fx-ramil-vine-head').setRotation(angle).setDepth(e.y + 0.2));
+      if (elapsed >= RAMIL.VINE_FLIGHT && elapsed < full) this.vineParts.push(this.add.image(e.x, e.y - 30, 'fx-ramil-wrap', Math.floor(this.time.now / 100) % 4).setScale(SCALE).setDepth(e.y + 0.2));
+    }
+  }
+
   // Кадр героини из снимка: анимация по имени и времени с её начала, east/west отдельными полосами
   private drawHero(v: View, sb: EntitySnap, x: number, y: number, f: number, away: boolean, lead = 0) {
     const form = sb.form ?? HERO_FORM[sb.char ?? ''] ?? 'prime';
@@ -467,9 +527,22 @@ export class GameScene extends Phaser.Scene {
     const action = sb.move ?? 'idle';
     let move = moveAnim(form, action);
     if (!HERO_ANIMS[form][move]) move = 'idle';
+    let warmT: number | undefined;
+    if (form === 'ramil') {
+      if (move !== 'idle' || sb.idleInput || sb.anim === 'taunt' || away) { v.warmSince = undefined; v.warmAt = undefined; }
+      else {
+        v.warmAt ??= this.time.now + RAMIL.IDLE_MIN + Math.random() * (RAMIL.IDLE_MAX - RAMIL.IDLE_MIN);
+        if (this.time.now >= v.warmAt) v.warmSince ??= this.time.now;
+        if (v.warmSince !== undefined) {
+          warmT = this.time.now - v.warmSince;
+          if (warmT < HERO_ANIMS.ramil['idle-warm'].east * 1000 / HERO_ANIMS.ramil['idle-warm'].fps) move = 'idle-warm';
+          else { v.warmSince = undefined; v.warmAt = undefined; warmT = undefined; }
+        }
+      }
+    }
     const def = HERO_ANIMS[form][move];
     const n = def[dir];
-    const t = Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS + lead);
+    const t = warmT ?? Math.max(0, (sb.moveT ?? 0) - (1 - f) * TICK_MS + lead);
     const raw = Math.floor((t * def.fps * moveSpeed(form, action)) / 1000);
     const frame = def.loop ? raw % n : Math.min(n - 1, raw);
     const sprite = v.sprite!;
@@ -477,7 +550,19 @@ export class GameScene extends Phaser.Scene {
     sprite.setTexture(`${form}/${move}-${dir}`, frame).setPosition(x, y - lift).setDepth(y);
     // Неуязвимость после удара мигает; во время превращения не мигает, там своя анимация
     const blink = sb.invuln && form !== 'ultimate' && !/^(transform|ult|b3)/.test(move) && move !== 'hop' && move !== 'getup' && Math.floor(this.time.now / 70) % 2 === 0;
+    sprite.setVisible(!(sb.hiddenMs && sb.hiddenMs > 0));
     sprite.setAlpha(away ? 0.35 : blink ? 0.45 : 1);
+    if (form === 'ramil') {
+      const tip = RAMIL_TIPS[move]?.[frame];
+      const heavy = ['smoke', 'b1', 'b3'].includes(move) || (sb.heavySmokeMs ?? 0) > 0;
+      const tx = x + ((dir === 'west' ? 127 - (tip?.[0] ?? 64) : tip?.[0] ?? 64) - 64) * SCALE;
+      const ty = y - lift + ((tip?.[1] ?? FEET_Y) - FEET_Y) * SCALE;
+      const visible = !!tip && sprite.visible;
+      this.ramilOverlay(v, 'ramil-smoke', visible && !heavy, tx, ty, y + 0.2, 0.62, 1)?.setRotation(-sb.facing * 0.15);
+      this.ramilOverlay(v, 'ramil-smoke-heavy', visible && heavy, tx, ty, y + 0.2, 0.62, 1)?.setRotation(-sb.facing * 0.15);
+      const fire = this.ramilOverlay(v, 'ramil-fire', visible && (sb.fireMs ?? 0) > 0, tx, ty, y + 0.1, 0, 0.5);
+      fire?.setFlipX(dir === 'west').setOrigin(dir === 'west' ? 1 : 0, 0.5);
+    }
     v.shadow!.setPosition(x, y).setDepth(y - 0.1).setAlpha(away ? 0.1 : 0.3);
   }
 
@@ -646,9 +731,11 @@ export class GameScene extends Phaser.Scene {
     if (LEVELS[latest.level].stages[latest.stage].tunnel && this.stopped && this.time.now - this.stoppedAt < 1000) { this.exitLabel?.setVisible(false); this.prompt?.setVisible(false); }
     if (latest.won) void showFinale(() => this.replay());
     for (const [id, sb] of b.enemies) draw('e:' + id, false, a.enemies.get(id), sb);
+    this.drawVines(latest);
     this.drawCine(latest);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
+      v.ramilFx?.forEach(f => f.destroy());
       v.storm?.zone.destroy(); v.storm?.flakes.forEach(f => f.destroy()); v.status?.destroy();
       v.ring?.destroy(); v.warning?.destroy(); v.shield?.destroy(); v.sprite?.destroy(); v.shadow?.destroy(); v.body.destroy(); v.fist.destroy(); v.hp.destroy(); v.label?.destroy(); v.bubble?.destroy();
       this.views.delete(key);

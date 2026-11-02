@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "assets/sprites"
 data = json.loads((SRC / "anims.json").read_text())
-HEROES = ("nadya", "kris")  # одна форма, свой набор спрайтов (tools/hero_build.py)
+HEROES = ("nadya", "kris", "ramil")  # одна форма, свой набор спрайтов (tools/hero_build.py)
 srcdir = {form: SRC / form for form in data["states"]}
 for h in HEROES:
     hd = json.loads((SRC / h / "anims.json").read_text())

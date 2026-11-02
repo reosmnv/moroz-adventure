@@ -1,0 +1,250 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Ramil hits",
+ "fps": 16,
+ "frame_ms": 63,
+ "frames": 9,
+ "loop": false,
+ "canvas": {
+  "w": 153,
+  "h": 137
+ },
+ "anchor": {
+  "kind": "origin",
+  "x": 70,
+  "y": 66
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 143,
+    "h": 131
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -63,
+    "y": -63
+   }
+  },
+  {
+   "name": "behind",
+   "title": "everything behind the sprite",
+   "depth": "behind",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 110,
+    "h": 42
+   },
+   "sheets": [
+    {
+     "file": "behind.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -55,
+    "y": -21
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 143,
+    "h": 131
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -63,
+    "y": -63
+   }
+  },
+  {
+   "name": "part-hit_star",
+   "title": "the hit star part",
+   "part": "hit_star",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 52,
+    "h": 48
+   },
+   "sheets": [
+    {
+     "file": "part-hit_star.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -25,
+    "y": -25
+   }
+  },
+  {
+   "name": "part-crit_hit",
+   "title": "the crit hit part",
+   "part": "crit_hit",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 78,
+    "h": 77
+   },
+   "sheets": [
+    {
+     "file": "part-crit_hit.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -42,
+    "y": -34
+   }
+  },
+  {
+   "name": "part-rising_slash",
+   "title": "the rising slash part",
+   "part": "rising_slash",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 53,
+    "h": 131
+   },
+   "sheets": [
+    {
+     "file": "part-rising_slash.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -28,
+    "y": -63
+   }
+  },
+  {
+   "name": "part-dash_slash",
+   "title": "the dash slash part",
+   "part": "dash_slash",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 143,
+    "h": 36
+   },
+   "sheets": [
+    {
+     "file": "part-dash_slash.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -63,
+    "y": -21
+   }
+  },
+  {
+   "name": "part-shockwave_ring",
+   "title": "the shockwave ring part",
+   "part": "shockwave_ring",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 110,
+    "h": 42
+   },
+   "sheets": [
+    {
+     "file": "part-shockwave_ring.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -55,
+    "y": -21
+   }
+  },
+  {
+   "name": "part-dust_kick",
+   "title": "the dust kick part",
+   "part": "dust_kick",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 8,
+   "frame": {
+    "w": 49,
+    "h": 21
+   },
+   "sheets": [
+    {
+     "file": "part-dust_kick.png",
+     "first_frame": 0,
+     "frames": 8,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -25,
+    "y": -10
+   }
+  }
+ ]
+}

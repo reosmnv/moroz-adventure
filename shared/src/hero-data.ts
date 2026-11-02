@@ -4,16 +4,33 @@ import { HERO_ANIMS, type AnimDef, type Form } from './anims-data.ts';
 export const HERO_ID = 'anastasia';
 export const NADYA_ID = 'nadezhda';
 export const KRIS_ID = 'kris';
+export const RAMIL_ID = 'ramil';
+// Рамиль: стартовые числа приёмов и их постановки, для настройки mr.R.
+export const RAMIL = {
+  VINE_RANGE: 220, VINE_MAX: 2, VINE_FLIGHT: 150, VINE_PULL: 250, VINE_RETRACT: 120,
+  VINE_GAP: 42, VINE_DMG: 4, VINE_STUN: 700, BOSS_PULL: 0.4,
+  FIRE_LEN: 120, FIRE_BAND: 30, FIRE_MS: 330, FIRE_DMG: 3,
+  BURN_MS: 3000, BURN_TICK: 500, BURN_DMG: 3,
+  TELE_MS: 150, TELE_GAP: 34, RETURN_GAP: 40, TELE_DMG: 5, RETURN_DMG: 6,
+  MARK_MS: 6000, KICK_FLY: 300, B_COMBO_MS: 1200,
+  ULT_HITS: 8, ULT_STEP: 160, ULT_DMG: 12, ULT_REST: 400,
+  SMOKE_RATE: 20, SMOKE_LINE_MS: 1600, HEAVY_SMOKE_MS: 300,
+  HAND_X: 30, HAND_Y: -52, IDLE_MIN: 4000, IDLE_MAX: 7000,
+} as const;
+export const RAMIL_SMOKE_LINES = ['Ща-ща, подождите, докурю', 'Минуту, я на перекуре', 'Не торопите', 'Ещё затяжечку', 'Сейчас-сейчас', 'Пять минут, мужики'];
+export const RAMIL_ULT_WORDS = ['РАЗ', 'ДВА', 'ТРИ', 'ЧЕТЫРЕ', 'ПЯТЬ', 'ШЕСТЬ', 'СЕМЬ', 'ВСЁ.'];
+export const RAMIL_MOVE_NAMES = { b1: 'Телепорт', b2: 'С разворота', b3: 'Назад' };
+
 // Персонаж -> его стартовый набор спрайтов (у Анастасии две формы, у остальных одна)
-export const HERO_FORM: Record<string, Form> = { [HERO_ID]: 'prime', [NADYA_ID]: 'nadya', [KRIS_ID]: 'kris' };
+export const HERO_FORM: Record<string, Form> = { [HERO_ID]: 'prime', [NADYA_ID]: 'nadya', [KRIS_ID]: 'kris', [RAMIL_ID]: 'ramil' };
 export const isSpriteHero = (char: string) => char in HERO_FORM;
 export const RANGE_MULT = 1.3; // дальность всех ударов героини +30% (mr.R 24.10)
 export const ULT_MS = 16000; // сколько длится Ultimate
 export const COMBO_MS = 700; // окно, в которое следующий удар продолжает серию
-export const COMBO_MS_BY: Partial<Record<Form, number>> = { nadya: 1000, kris: 1000 }; // гостям-негеймерам окно шире
+export const COMBO_MS_BY: Partial<Record<Form, number>> = { nadya: 1000, kris: 1000, ramil: 1000 }; // гостям-негеймерам окно шире
 export const HURT_INVULN_MS = 800;
 export const IMMUNE_INVULN_MS = 300; // в Ultimate удары по героине не прерывают её, но подряд не копятся
-export const KNOCK_MULT: Record<Form, number> = { prime: 2, ultimate: 4, nadya: 2, kris: 2 }; // отбрасывание врагов по просьбе mr.R: зрелищность
+export const KNOCK_MULT: Record<Form, number> = { prime: 2, ultimate: 4, nadya: 2, kris: 2, ramil: 2 }; // отбрасывание врагов по просьбе mr.R: зрелищность
 export const HITSTOP_MS = 50; // заморозка героини при попадании (один тик)
 export const HITSTOP_HEAVY_MS = 100; // при сбивании с ног
 export const RUN_MULT = 1.7; // бег: стик на максимум (или Shift)
@@ -64,12 +81,14 @@ export const AIR_MS = 900; // сколько враг летит после по
 // Анастасия: независимые серии A и B по три удара.
 // Надя: B своя серия из трёх. Kris: два взмаха и отскок, B всегда вспышка
 export const CHAIN: Record<Form, string[]> = {
+  ramil: ['a1', 'a2', 'a3'],
   prime: ['superman', 'highkick', 'teep'],
   ultimate: ['flying-knee', 'elbow', 'roundhouse'],
   nadya: ['a1', 'a2', 'a3'],
   kris: ['a1-back', 'a2', 'hop'],
 };
 export const HEAVY: Record<Form, string[]> = {
+  ramil: ['b1', 'b2', 'b3'],
   prime: ['uppercut', 'cross', 'slam'],
   ultimate: ['spin-elbow', 'knee', 'hurricane'],
   nadya: ['b1', 'b2', 'b3-draw'],
@@ -77,6 +96,15 @@ export const HEAVY: Record<Form, string[]> = {
 };
 
 export const STRIKES: Record<Form, Record<string, Strike>> = {
+  ramil: {
+    a1: { range: RAMIL.VINE_RANGE, dmg: RAMIL.VINE_DMG, kb: 0, stun: RAMIL.VINE_STUN, word: 'ИДИ СЮДА!' },
+    a2: { range: 62, dmg: 8, kb: 0, stun: 400, launch: true, impact: 1, word: 'ОП!' },
+    a3: { range: RAMIL.FIRE_LEN, dmg: RAMIL.FIRE_DMG, kb: 0, stun: 0, word: 'ПЫХ!' },
+    b1: { range: 0, dmg: RAMIL.TELE_DMG, kb: 0, stun: 0, word: 'ВЖУХ' },
+    b2: { range: 66, dmg: 20, kb: RAMIL.KICK_FLY, stun: 400, down: true, single: true, impact: 2, word: 'ПОКА!' },
+    b3: { range: 0, dmg: RAMIL.RETURN_DMG, kb: 0, stun: 0, word: 'Я ТУТ' },
+    slap: { range: 0, dmg: RAMIL.ULT_DMG, kb: 0, stun: 0 },
+  },
   prime: {
     jab: { range: 52, dmg: 5, kb: 2, stun: 250 },
     cross: { range: 54, dmg: 7, kb: 3, stun: 250 },
@@ -151,11 +179,12 @@ export const HOLD_MS: Partial<Record<Form, Record<string, number>>> = {
   kris: { 'ult-hold': AIM_MS + BEAM_MS },
 };
 
-// Подписи для кнопки B
+// Подписи для кнопки B; у Нади и Рамиля одинаковые имена анимаций.
+export const NADYA_MOVE_NAMES: Record<string, string> = { b1: 'Пощёчина', b2: 'По яйцам', 'b3-draw': 'Самурай' };
 export const MOVE_NAMES: Record<string, string> = {
   slam: 'Добивание', cross: 'Кросс', knee: 'Колено', superman: 'Суперман', highkick: 'Хай-кик', uppercut: 'Апперкот',
   'spin-elbow': 'Локоть с разворота', 'flying-knee': 'Колено в прыжке', hurricane: 'Ураган',
-  b1: 'Пощёчина', b2: 'По яйцам', 'b3-draw': 'Самурай', b: 'Вспышка',
+  ...RAMIL_MOVE_NAMES, 'b3-draw': 'Самурай', b: 'Вспышка',
 };
 
 // Снежная буря (утилити-ультимейт): та же шкала заряда, что у превращения
@@ -165,7 +194,7 @@ export const STORM_DMG = 1; // за тик каждому врагу в зоне
 export const FREEZE_MS = 700; // заморозка обновляется каждый тик, после бури враги оттаивают через это время
 export const STORM_RADIUS = Math.round(STRIKES.ultimate.hurricane.range * RANGE_MULT * 4); // в 4 раза шире урагана
 
-export const SPEED_MULT: Record<Form, number> = { prime: 1, ultimate: 2.5, nadya: 1, kris: 1 };
+export const SPEED_MULT: Record<Form, number> = { prime: 1, ultimate: 2.5, nadya: 1, kris: 1, ramil: 1 };
 
 export const dirOf = (facing: number): 'east' | 'west' => (facing >= 0 ? 'east' : 'west');
 export const moveAnim = (form: Form, move: string) => form === 'prime' && move === 'slam' ? SLAM_ANIM : move;
@@ -174,7 +203,7 @@ export const isLoop = (form: Form, move: string) => !!animDef(form, move)?.loop;
 
 // Удары проигрываются быстрее исходных fps: меньше задержка от нажатия до попадания (mr.R 24.10)
 export const ATTACK_SPEED = 1.4;
-export const moveSpeed = (form: Form, move: string): number => form === 'kris' && move === 'hop' ? 9000 / (16 * HOP_MS) : (STRIKES[form][move] ? ATTACK_SPEED : 1);
+export const moveSpeed = (form: Form, move: string): number => form === 'ramil' ? 1 : form === 'kris' && move === 'hop' ? 9000 / (16 * HOP_MS) : (STRIKES[form][move] ? ATTACK_SPEED : 1);
 
 export function moveDurMs(form: Form, move: string, facing: number): number {
   const a = animDef(form, move);

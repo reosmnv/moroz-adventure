@@ -1,0 +1,95 @@
+{
+ "app": "PixelLab VFX Creator",
+ "name": "Ramil smoke poof",
+ "fps": 12,
+ "frame_ms": 83,
+ "frames": 10,
+ "loop": false,
+ "canvas": {
+  "w": 113,
+  "h": 88
+ },
+ "anchor": {
+  "kind": "origin",
+  "x": 60,
+  "y": 53
+ },
+ "clips": [
+  {
+   "name": "whole",
+   "title": "the whole effect, no sprite",
+   "depth": "both",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 9,
+   "frame": {
+    "w": 107,
+    "h": 82
+   },
+   "sheets": [
+    {
+     "file": "whole.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -57,
+    "y": -50
+   }
+  },
+  {
+   "name": "front",
+   "title": "everything in front of the sprite",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 9,
+   "frame": {
+    "w": 107,
+    "h": 82
+   },
+   "sheets": [
+    {
+     "file": "front.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -57,
+    "y": -50
+   }
+  },
+  {
+   "name": "part-smoke_poof",
+   "title": "the smoke poof part",
+   "part": "smoke_poof",
+   "depth": "front",
+   "loop": false,
+   "start_frame": 0,
+   "frames": 9,
+   "frame": {
+    "w": 107,
+    "h": 82
+   },
+   "sheets": [
+    {
+     "file": "part-smoke_poof.png",
+     "first_frame": 0,
+     "frames": 9,
+     "columns": 3,
+     "rows": 3
+    }
+   ],
+   "offset": {
+    "x": -57,
+    "y": -50
+   }
+  }
+ ]
+}

@@ -6,7 +6,7 @@ import { BOSS, BOSS_ATTACK, type BossId } from './boss-data.ts';
 import { ENCOUNTERS, type Spawn } from './encounters.ts';
 import type { Form } from './anims-data.ts';
 import {
-  HOP_MS, HOP_DIST, ATTACK_BAND, MAGNET_GAP, MAGNET_DIST, RUSH_DIST, LAUNCH_H, JUGGLE_REFRESH_MS, JUGGLE_MULT, JUGGLE_STEP, JUGGLE_MULT_MAX, JUGGLE_MAX_MS, SLAM_MULT, BOUNCE_MS, BOUNCE_H, HIT_CHAIN_MS, PIN_MS, PIN_KB_MIN, PIN_SIZE, PIN_DMG, PIN_KB, KILL_EXTEND_MS, AIR_CHARGE_MULT,
+  RAMIL_ID, RAMIL, RAMIL_SMOKE_LINES, RAMIL_ULT_WORDS, HOP_MS, HOP_DIST, ATTACK_BAND, MAGNET_GAP, MAGNET_DIST, RUSH_DIST, LAUNCH_H, JUGGLE_REFRESH_MS, JUGGLE_MULT, JUGGLE_STEP, JUGGLE_MULT_MAX, JUGGLE_MAX_MS, SLAM_MULT, BOUNCE_MS, BOUNCE_H, HIT_CHAIN_MS, PIN_MS, PIN_KB_MIN, PIN_SIZE, PIN_DMG, PIN_KB, KILL_EXTEND_MS, AIR_CHARGE_MULT,
   AIR_MS, AIM_MS, BALL_FLIGHT_MS, BALL_LINES, BALL_PER_HIT, BALL_NEAR_NASTYA, BALL_RADIUS, BALL_THROW, BEAM_DMG, BEAM_LEN, CHAIN, CHARM_LINE, CHARM_MS, COMBO_MS, COMBO_MS_BY,
   CONTROL_ULT, DASH_DELAY_MS, DASH_DIST, FLASH_CD_MS, FLASH_SPEED, HEAVY, HERO_FORM, HERO_ID, HURT_INVULN_MS, FREEZE_MS, HITSTOP_HEAVY_MS, HITSTOP_MS,
   IMMUNE_INVULN_MS, KISS_BAND, KISS_HALF_W, KISS_SPEED, KNOCK_MULT, KRIS_ID, KRIS_LENS, NADYA_ID, NEXT_MOVE, RANGE_MULT, RUN_MULT, STORM_DMG, STORM_MS, STORM_RADIUS, STORM_TICK_MS, SPEED_MULT, STRIKES, ULT_MS,
@@ -50,10 +50,17 @@ export const CHARACTERS: Character[] = [
   { id: HERO_ID, name: 'Анастасия', color: 0x9d74d4, taunts: ['В эфире тишина. Сейчас будет громко', 'Дубль второй не понадобится'] },
   { id: NADYA_ID, name: 'Надежда', color: 0xc2185b, taunts: ['Ты точно ко мне?', 'Не строй планов', 'Шансов не было', 'Очередь занимай', 'А котик у тебя есть?'] },
   { id: KRIS_ID, name: 'Kris', color: 0x9be33b, taunts: ['Свет плохой, давай ещё дубль', 'Стоп, снято', 'Улыбочку'] },
-  { id: 'd', name: 'Гоша', color: 0xf2a541, taunts: ['Не позорься', 'Я даже не вспотел'] },
+  { id: RAMIL_ID, name: 'Рамиль', color: 0xe8743b, taunts: ['Ща-ща, докурю', 'Не суетись', 'Я даже не встал толком', 'Перекур, мужики', 'Без нервов'] },
 ];
 
 export interface Player {
+  idleInput?: boolean;
+  viewX?: number; viewW?: number;
+  hiddenMs?: number; heavySmokeMs?: number; fireMs?: number;
+  ramil?: { mark?: string; markMs: number; originX: number; originY: number; smokeMs: number; smokeLine: number;
+    fireHit: string[]; tele?: { ms: number; x: number; y: number; target?: string; back: boolean };
+    ult?: { ms: number; count: number; ids: string[]; x: number; y: number }; restMs: number };
+
   id: string;
   char: string;
   x: number;
@@ -94,6 +101,9 @@ export interface Player {
 }
 
 export interface Enemy {
+  burnMs?: number; burnTickMs?: number; burnBy?: string; markedBy?: string;
+  pull?: { ms: number; fromX: number; fromY: number; x: number; y: number; by: string; landed: boolean };
+
   entered?: boolean; entering?: boolean; enterMs?: number; bornTick?: number;
   boss?: BossId; bossPhase?: 1 | 2; atk?: string;
   atkIndex?: number; cooldowns?: Record<string, number>; invulnMs?: number;
@@ -168,6 +178,7 @@ export interface World {
 export interface Pending { ms: number; kind: 'hits' | 'aoe' | 'beam' | 'kiss'; owner: string; strike: Strike; ids?: string[]; x?: number; y?: number; r?: number; dir?: 1 | -1; flash?: boolean }
 
 export interface Input {
+  viewX?: number; viewW?: number;
   skip?: boolean;
   mx: number; // -1..1
   my: number; // -1..1
@@ -182,6 +193,8 @@ export interface Input {
 export const emptyInput = (): Input => ({ mx: 0, my: 0, attack: false, heavy: false, taunt: false, ult: false, ult2: false, run: false });
 
 export type SimEvent =
+  | { t: 'vine'; id: string; targets: string[]; x: number; y: number }
+  | { t: 'tele'; id: string; fromX: number; fromY: number; toX: number; toY: number; shape?: never; ms?: never }
   | { t: 'cine'; id: string; kind: string }
   | { t: 'boss' | 'phase' | 'bossDown'; id: string }
   | { t: 'bossFx'; id: string; attack: string; x: number; y: number; h?: number; ms: number; tint?: number }
@@ -193,7 +206,7 @@ export type SimEvent =
   | { t: 'block'; id: string }
   | { t: 'exit'; to: number }
   | { t: 'stage'; stage: number }
-  | { t: 'hit'; target: string; dmg: number; x: number; y: number; word?: string; by?: string; impact?: 1 | 2; kill?: true }
+  | { t: 'hit'; target: string; dmg: number; x: number; y: number; word?: string; by?: string; impact?: 1 | 2; kill?: true; tick?: true }
   | { t: 'shot'; id: string; x: number; y: number; tx: number; ty: number } // вспышка Kris летит
   | { t: 'ball'; id: string; x: number; y: number; tx: number; ty: number } // шар Kris летит
   | { t: 'boom'; id: string; x: number; y: number; kind: 'ball' }
@@ -293,7 +306,7 @@ function spawnWave(w: World, ev: SimEvent[]) {
 }
 
 type HitOpts = {
-  kb?: number; stun?: number; down?: boolean; launch?: boolean; slam?: boolean; pin?: boolean; fixedDmg?: boolean; everyone?: boolean; silent?: boolean;
+  tick?: true; kb?: number; stun?: number; down?: boolean; launch?: boolean; slam?: boolean; pin?: boolean; fixedDmg?: boolean; everyone?: boolean; silent?: boolean;
   slowMs?: number; slow?: number; stunMs?: number; single?: boolean; impact?: 1 | 2; word?: string; noCharge?: boolean; flash?: boolean;
 };
 
@@ -336,12 +349,12 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
   if (opts.slowMs) { e.slowMs = opts.slowMs; e.slow = opts.slow ?? 0.5; }
   if (opts.stunMs && !e.boss) { e.stunMs = opts.stunMs; e.anim = 'hurt'; e.animMs = Math.max(e.animMs, opts.stunMs); }
   if (opts.silent) return;
-  if (!opts.noCharge && p.form !== 'ultimate') { // в Ultimate шкала не копится
+  if (p.char !== RAMIL_ID && !opts.noCharge && p.form !== 'ultimate') { // в Ultimate шкала не копится
     const control = p.form === 'nadya' && (opts.slowMs || opts.stunMs) ? CONTROL_ULT : 0;
     p.ult = Math.min(100, p.ult + dmg * (p.char === HERO_ID && airborne ? AIR_CHARGE_MULT : 1) + control);
   }
   if (opts.flash) p.charge2 = Math.min(100, p.charge2 + BALL_PER_HIT);
-  ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, word: opts.word, by: p.id, impact: e.hp <= 0 ? 2 : opts.impact, ...(e.hp <= 0 ? { kill: true as const } : {}) });
+  ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, word: opts.word, by: p.id, ...(opts.tick ? { tick: true as const } : {}), impact: e.hp <= 0 ? 2 : opts.impact, ...(e.hp <= 0 ? { kill: true as const } : {}) });
 }
 
 const combatReady = (w: World, e: Enemy) => !w.enc.lock || !e.enterMs && (e.entered || e.x >= w.enc.lock[0] && e.x <= w.enc.lock[1] + ENTER_MARGIN);
@@ -413,6 +426,7 @@ function heroDown(p: Player) {
 }
 
 function heroReset(p: Player) {
+  p.ramil = undefined; p.hiddenMs = p.heavySmokeMs = p.fireMs = 0;
   p.form = HERO_FORM[p.char] ?? 'prime'; p.formMs = 0; p.combo = 0; p.comboMs = 0; p.bCombo = 0; p.bComboMs = 0; p.queued = null; p.invulnMs = 0; p.stormMs = 0; p.wantBall = false; p.hitCount = 0; p.hitCountMs = 0;
   startMove(p, 'idle');
 }
@@ -510,6 +524,7 @@ function stepKiss(w: World, d: Pending, dtMs: number, ev: SimEvent[]): boolean {
 
 // Отложенные удары: считаются каждый тик, срабатывают, когда время вышло
 function stepPending(w: World, dtMs: number, ev: SimEvent[]) {
+  stepRamilEffects(w, dtMs, ev);
   const keep: Pending[] = [];
   for (const d of w.pending) {
     if (d.kind === 'kiss') { if (stepKiss(w, d, dtMs, ev)) keep.push(d); continue; }
@@ -544,6 +559,170 @@ function stepPending(w: World, dtMs: number, ev: SimEvent[]) {
   w.pending = keep;
 }
 
+// Видимая область: та же оценка камеры, что у отскока Kris.
+function ramilTargets(w: World, p: Player) {
+  const width = p.viewW ?? VIEW_W;
+  const left = p.viewX ?? clamp(p.x - width * 0.33, 0, Math.max(0, levelW(w) - width));
+  return Object.values(w.enemies).filter(e => e.hp > 0 && combatReady(w, e) && e.x >= left && e.x <= left + width);
+}
+function ramilTele(w: World, p: Player, x: number, y: number, ev: SimEvent[]) {
+  const to = clampToLane(w, clamp(x, ...walkBounds(w)), y);
+  ev.push({ t: 'tele', id: p.id, fromX: p.x, fromY: p.y, toX: to.x, toY: to.y });
+  p.x = to.x; p.y = to.y; p.heavySmokeMs = RAMIL.HEAVY_SMOKE_MS;
+}
+function ramilStrike(w: World, p: Player, ev: SimEvent[]) {
+  const r = p.ramil!, s = STRIKES.ramil[p.move];
+  const front = Object.values(w.enemies).filter(e => combatReady(w, e) && e.hp > 0 && (e.x - p.x) * p.facing >= 0 && Math.abs(e.y - p.y) <= ATTACK_BAND)
+    .sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x));
+  if (p.move === 'a1') {
+    const targets = front.filter(e => Math.abs(e.x - p.x) <= RAMIL.VINE_RANGE).slice(0, RAMIL.VINE_MAX);
+    for (const e of targets) {
+      const to = clampToLane(w, p.x + p.facing * RAMIL.VINE_GAP, p.y);
+      const k = e.boss ? RAMIL.BOSS_PULL : 1;
+      e.pull = { ms: RAMIL.VINE_FLIGHT + RAMIL.VINE_PULL, fromX: e.x, fromY: e.y, x: clampEnemyX(w, e.x + (to.x - e.x) * k, e), y: e.y + (to.y - e.y) * k, by: p.id, landed: false };
+    }
+    ev.push({ t: 'vine', id: p.id, targets: targets.map(e => e.id), x: p.x + p.facing * RAMIL.HAND_X, y: p.y + RAMIL.HAND_Y });
+  } else if (p.move === 'a3') { p.fireMs = RAMIL.FIRE_MS; r.fireHit = []; }
+  else if (p.move === 'b1' || p.move === 'b3') {
+    const back = p.move === 'b3';
+    const visible = ramilTargets(w, p);
+    const forward = visible.filter(e => (e.x - p.x) * p.facing >= 0);
+    const target = back ? w.enemies[r.mark ?? ''] : (forward.length ? forward : visible).sort((a, b) => Math.abs(b.x - p.x) - Math.abs(a.x - p.x))[0];
+    if (!back && !target) return;
+    if (!back) { r.originX = p.x; r.originY = p.y; }
+    let x = r.originX, y = r.originY;
+    if (target && target.hp > 0) {
+      const allies = Object.values(w.players).filter(a => a.id !== p.id && a.connected && a.hp > 0);
+      const side = back ? Math.sign((allies.length ? allies.reduce((sum, a) => sum + a.x, 0) / allies.length : r.originX) - target.x) || -p.facing : -target.facing;
+      x = target.x + side * (back ? RAMIL.RETURN_GAP : RAMIL.TELE_GAP); y = target.y;
+    }
+    const to = clampToLane(w, clamp(x, ...walkBounds(w)), y);
+    ev.push({ t: 'tele', id: p.id, fromX: p.x, fromY: p.y, toX: to.x, toY: to.y });
+    r.tele = { ms: RAMIL.TELE_MS, ...to, target: target?.hp > 0 ? target.id : undefined, back };
+    p.hiddenMs = RAMIL.TELE_MS; p.invulnMs = RAMIL.TELE_MS + TICK_MS;
+  } else {
+    const list = front.filter(e => Math.abs(e.x - p.x) <= s.range);
+    for (const e of s.single ? list.slice(0, 1) : list) applyHit(w, p, e, s.dmg, p.facing, ev, { ...s, kb: s.kb, pin: !!s.down });
+  }
+}
+function stepRamilEffects(w: World, dt: number, ev: SimEvent[]) {
+  for (const e of Object.values(w.enemies)) {
+    if (e.pull) {
+      const v = e.pull, p = w.players[v.by]; v.ms -= dt;
+      if (v.ms <= RAMIL.VINE_PULL && p) {
+        if (!v.landed) { v.landed = true; applyHit(w, p, e, RAMIL.VINE_DMG, p.facing, ev, { kb: 0, stunMs: RAMIL.VINE_STUN, word: 'ИДИ СЮДА!' }); }
+        const k = clamp(1 - v.ms / RAMIL.VINE_PULL, 0, 1);
+        e.x = v.fromX + (v.x - v.fromX) * k; e.y = v.fromY + (v.y - v.fromY) * k;
+      }
+      if (v.ms <= 0) e.pull = undefined;
+    }
+    if ((e.burnMs ?? 0) > 0) {
+      e.burnMs = Math.max(0, e.burnMs! - dt); e.burnTickMs = (e.burnTickMs ?? RAMIL.BURN_TICK) - dt;
+      if (e.burnTickMs <= 0) {
+        e.burnTickMs += RAMIL.BURN_TICK;
+        const p = w.players[e.burnBy ?? ''];
+        if (p) applyHit(w, p, e, RAMIL.BURN_DMG, p.facing, ev, { tick: true, noCharge: true, kb: 0, stun: 0 });
+      }
+    }
+  }
+}
+function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) {
+  if (inp.viewX !== undefined && inp.viewW !== undefined) { p.viewX = inp.viewX; p.viewW = inp.viewW; }
+  p.idleInput = !!(inp.mx || inp.my || inp.attack || inp.heavy || inp.ult || inp.ult2 || inp.taunt);
+  const r = p.ramil ??= { markMs: 0, originX: p.x, originY: p.y, smokeMs: 0, smokeLine: 0, fireHit: [], restMs: 0 };
+  p.invulnMs = Math.max(0, p.invulnMs - dt); p.hiddenMs = Math.max(0, (p.hiddenMs ?? 0) - dt);
+  p.heavySmokeMs = Math.max(0, (p.heavySmokeMs ?? 0) - dt);
+  r.markMs -= dt;
+  if (r.mark && (r.markMs <= 0 || !w.enemies[r.mark] || w.enemies[r.mark].hp <= 0)) { if (w.enemies[r.mark]) w.enemies[r.mark].markedBy = undefined; r.mark = undefined; }
+  if (r.tele) {
+    r.tele.ms -= dt;
+    if (r.tele.ms > 0) return;
+    const t = r.tele; r.tele = undefined; p.x = t.x; p.y = t.y; p.heavySmokeMs = RAMIL.HEAVY_SMOKE_MS;
+    const e = w.enemies[t.target ?? ''];
+    if (e && e.hp > 0) {
+      p.facing = e.x >= p.x ? 1 : -1;
+      if (!t.back) { if (r.mark && w.enemies[r.mark]) w.enemies[r.mark].markedBy = undefined; r.mark = e.id; r.markMs = RAMIL.MARK_MS; e.markedBy = p.id; }
+      applyHit(w, p, e, t.back ? RAMIL.RETURN_DMG : RAMIL.TELE_DMG, p.facing, ev, { kb: 0, stunMs: TICK_MS, word: t.back ? 'Я ТУТ' : 'ВЖУХ' });
+    }
+    if (t.back) { if (r.mark && w.enemies[r.mark]) w.enemies[r.mark].markedBy = undefined; r.mark = undefined; }
+  }
+  if (r.ult) {
+    const u = r.ult; u.ms += dt; p.invulnMs = RAMIL.ULT_STEP + dt;
+    const hitAt = hitTimesMs('ramil', 'slap', p.facing)[0];
+    while (u.count < RAMIL.ULT_HITS && u.ms >= u.count * RAMIL.ULT_STEP) {
+      const e = w.enemies[u.ids[u.count % u.ids.length]];
+      if (e && e.hp > 0) ramilTele(w, p, e.x + (u.count % 2 ? 1 : -1) * RAMIL.TELE_GAP, e.y, ev);
+      p.facing = e && e.x < p.x ? -1 : 1;
+      startMove(p, 'slap');
+      // Каждый slap ускорен до 160 мс; попадание остаётся на его hit-кадре.
+      u.count++;
+    }
+    const k = Math.min(RAMIL.ULT_HITS - 1, Math.floor(u.ms / RAMIL.ULT_STEP));
+    p.moveT = (u.ms % RAMIL.ULT_STEP) * moveDurMs('ramil', 'slap', p.facing) / RAMIL.ULT_STEP;
+    const oldT = ((u.ms - dt) - k * RAMIL.ULT_STEP) * moveDurMs('ramil', 'slap', p.facing) / RAMIL.ULT_STEP;
+    if (oldT < hitAt && p.moveT >= hitAt) {
+      const e = w.enemies[u.ids[k % u.ids.length]];
+      if (e) { applyHit(w, p, e, RAMIL.ULT_DMG, p.facing, ev, { kb: 0, stunMs: RAMIL.ULT_HITS * RAMIL.ULT_STEP - u.ms, impact: k === RAMIL.ULT_HITS - 1 ? 2 : 1, word: RAMIL_ULT_WORDS[k] }); if (e.boss) e.stunMs = RAMIL.ULT_HITS * RAMIL.ULT_STEP - u.ms; }
+    }
+    if (u.ms >= RAMIL.ULT_HITS * RAMIL.ULT_STEP) { ramilTele(w, p, u.x, u.y, ev); r.ult = undefined; r.restMs = RAMIL.ULT_REST; startMove(p, 'idle'); }
+    return;
+  }
+  if (r.restMs > 0) { r.restMs -= dt; return; }
+  const prev = p.moveT; p.moveT += dt;
+  const s = STRIKES.ramil[p.move];
+  if (s && hitTimesMs('ramil', p.move, p.facing).some(t => prev < t && p.moveT >= t)) ramilStrike(w, p, ev);
+  if ((p.fireMs ?? 0) > 0) {
+    p.fireMs = Math.max(0, p.fireMs! - dt);
+    for (const e of Object.values(w.enemies)) {
+      const dx = (e.x - p.x) * p.facing;
+      if (!combatReady(w, e) || dx < 0 || dx > RAMIL.FIRE_LEN || Math.abs(e.y - p.y) > RAMIL.FIRE_BAND * dx / RAMIL.FIRE_LEN || r.fireHit.includes(e.id)) continue;
+      const first = r.fireHit.length === 0; r.fireHit.push(e.id);
+      applyHit(w, p, e, RAMIL.FIRE_DMG, p.facing, ev, { kb: 0, stunMs: TICK_MS, word: first ? 'ПЫХ!' : undefined });
+      e.burnMs = RAMIL.BURN_MS; e.burnTickMs = RAMIL.BURN_TICK; e.burnBy = p.id;
+    }
+  }
+  if (r.tele) return;
+  const busy = moveBusy(p);
+  if (busy) { if (s) { if (inp.heavy) p.queued = 'heavy'; else if (inp.attack) p.queued = 'attack'; } return; }
+  p.comboMs -= dt; if (p.comboMs <= 0) p.combo = 0;
+  p.bComboMs -= dt; if (p.bComboMs <= 0) p.bCombo = 0;
+  const targets = ramilTargets(w, p);
+  if (inp.ult && p.ult >= 100 && targets.length) {
+    p.ult = 0; p.queued = null;
+    r.ult = { ms: -dt, count: 0, ids: targets.sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x)).map(e => e.id), x: p.x, y: p.y };
+    p.invulnMs = RAMIL.ULT_HITS * RAMIL.ULT_STEP + dt; ev.push({ t: 'ult', id: p.id }); return;
+  }
+  const want = p.queued ?? (inp.heavy ? 'heavy' : inp.attack ? 'attack' : null);
+  if (want) {
+    p.queued = null; if (inp.mx) p.facing = inp.mx > 0 ? 1 : -1;
+    if (want === 'heavy') {
+      if (p.bCombo === 0 && !targets.length) return;
+      startMove(p, HEAVY.ramil[p.bCombo]); p.bCombo = (p.bCombo + 1) % HEAVY.ramil.length; p.bComboMs = RAMIL.B_COMBO_MS;
+    } else { startMove(p, CHAIN.ramil[p.combo]); p.combo = (p.combo + 1) % CHAIN.ramil.length; p.comboMs = COMBO_MS_BY.ramil!; }
+    r.smokeMs = 0; p.anim = want === 'heavy' ? 'heavy' : 'attack'; return;
+  }
+  if (inp.ult2) {
+    if (p.move !== 'smoke') startMove(p, 'smoke');
+    const before = p.ult; p.ult = Math.min(100, p.ult + RAMIL.SMOKE_RATE * dt / 1000);
+    r.smokeMs += dt;
+    if (before < 100 && p.ult >= 100) ev.push({ t: 'taunt', id: p.id, line: 'Всё, погнали' });
+    else if (r.smokeMs >= RAMIL.SMOKE_LINE_MS) { r.smokeMs -= RAMIL.SMOKE_LINE_MS; ev.push({ t: 'taunt', id: p.id, line: RAMIL_SMOKE_LINES[r.smokeLine++ % RAMIL_SMOKE_LINES.length] }); }
+    p.anim = 'idle'; return;
+  }
+  r.smokeMs = 0;
+  if (inp.taunt && p.tauntCdMs <= 0) {
+    startMove(p, 'taunt'); p.tauntCdMs = TAUNT_CD_MS;
+    const lines = CHARACTERS.find(c => c.id === RAMIL_ID)!.taunts;
+    ev.push({ t: 'taunt', id: p.id, line: lines[Math.floor(rand(w) * lines.length)] }); return;
+  }
+  p.x = clamp(p.x + inp.mx * PLAYER_SPEED * dt / 1000 * (inp.run ? RUN_MULT : 1), ...walkBounds(w));
+  p.y = clamp(p.y + inp.my * PLAYER_SPEED * 0.7 * dt / 1000, laneTop(w, p.x), laneBottom(w));
+  if (inp.mx) p.facing = inp.mx > 0 ? 1 : -1;
+  const move = inp.mx || inp.my ? inp.run ? 'dash' : 'walk' : 'idle';
+  if (p.move !== move) startMove(p, move);
+  p.anim = move === 'idle' ? 'idle' : 'walk';
+}
+
 // Враг ударил игрока. false, если удар пропал (неуязвимость)
 function damagePlayer(p: Player, dmg: number): boolean {
   if (p.invulnMs > 0) return false;
@@ -559,6 +738,7 @@ function damagePlayer(p: Player, dmg: number): boolean {
 }
 
 function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[]) {
+  if (p.char === RAMIL_ID) { stepRamil(w, p, inp, dtMs, ev); return; }
   const dt = dtMs / 1000;
   p.invulnMs = Math.max(0, p.invulnMs - dtMs);
   // Снежная буря: запуск не ждёт окончания удара и хитстопа, только не из падения, подъёма и превращения
@@ -968,7 +1148,7 @@ function stepBossHazards(w: World, dtMs: number, ev: SimEvent[]) {
 // Геометрия фиксируется при замахе; клиент получает те же фигуры.
 function planBossAttack(w: World, e: Enemy, targets: Player[], ev: SimEvent[]) {
   const a = BOSS_ATTACK[e.atk!], bounds = w.enc.lock ?? [0, levelW(w)];
-  const tele = (shape: Extract<SimEvent, { t: 'tele' }>['shape'], x: number, y: number, r?: number, h?: number, delayMs = 0) =>
+  const tele = (shape: Extract<SimEvent, { t: 'tele'; shape: string }>['shape'], x: number, y: number, r?: number, h?: number, delayMs = 0) =>
     ev.push({ t: 'tele', id: e.id, attack: a.id, shape, x, y, r, h, ms: a.windupMs, delayMs });
   if (a.kind === 'ring') tele('ring', e.x, e.y, a.radius);
   if (a.kind === 'line' || a.kind === 'grid') {
