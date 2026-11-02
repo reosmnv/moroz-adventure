@@ -109,9 +109,10 @@ export class UIScene extends Phaser.Scene {
     cg.generateTexture('ramil-cigarette', 64, 64); cg.destroy();
     this.shownHits = 0;
     this.hitText = this.add.text(0, HITS_Y, '', { ...textStyle(), fontSize: HITS_FONT }).setOrigin(1, 0).setScrollFactor(0);
-    this.testLabel = this.add.text(0, 58, 'ТЕСТ', textStyle(10, '#f2a541')).setOrigin(0.5, 0).setScrollFactor(0);
+    this.testLabel = this.add.text(0, PANEL_Y + 33, 'ТЕСТ', textStyle(8, '#f2a541')).setScrollFactor(0);
     this.waveText = this.add.text(0, 44, '', textStyle()).setOrigin(0.5, 0);
     for (let i = 0; i < 4; i++) this.panels.push(this.makePanel(PANEL_X + i * (PANEL_W + PANEL_GAP), PANEL_Y));
+    this.testLabel.setX(PANEL_X + this.panels[0].name.x);
 
     this.joyBase = this.add.image(JOY_REST.x, JOY_REST.y, 'ui-stick').setScale(JOY_SCALE).setAlpha(JOY_IDLE_ALPHA);
     this.joyKnob = this.add.image(JOY_REST.x, JOY_REST.y, 'ui-btn').setScale(0.5 * JOY_SCALE).setTint(LAV).setAlpha(JOY_IDLE_ALPHA);
@@ -169,7 +170,6 @@ export class UIScene extends Phaser.Scene {
   private layout() {
     const w = this.scale.width;
     this.waveText.setX(w / 2).setScrollFactor(0);
-    this.testLabel.setX(w / 2);
     for (const b of this.activeLayout) {
       const { x, y } = btnPos(b, w);
       const v = this.btns.get(b.id)!;

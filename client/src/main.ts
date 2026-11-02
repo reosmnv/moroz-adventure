@@ -156,7 +156,8 @@ function renderPicker() {
     const b = document.createElement('button'); const img = document.createElement('img');
     img.src = portrait(c.id); img.alt = ''; b.append(img, document.createTextNode(c.name));
     const note = document.createElement('span'); note.textContent = c.id === current ? 'сейчас' : taken.includes(c.id) ? 'занят' : '';
-    b.append(note); b.disabled = taken.includes(c.id);
+    b.append(note); b.disabled = c.id === current || taken.includes(c.id);
+    b.classList.toggle('current', c.id === current);
     b.onclick = () => { if (pendingHero) return; unlockAudio(); pendingHero = c.id; $('pickNote').textContent = ''; if (changingHero) session!.switchHero(c.id); else session!.pick(c.id); };
     $('chars').append(b);
   }
@@ -180,6 +181,7 @@ function renderSettings() {
     const wrap = document.createElement('div'); wrap.className = 'setting';
     const label = document.createElement('span'); label.textContent = row.label;
     const b = document.createElement('button'); b.className = 'secondary'; b.textContent = row.value; b.setAttribute('aria-label', `${row.label}: ${row.value}`);
+    b.classList.toggle('selected', row.value !== 'выкл');
     b.onclick = () => { row.toggle(); renderSettings(); };
     wrap.append(label, b); $('settingsRows').append(wrap);
   }

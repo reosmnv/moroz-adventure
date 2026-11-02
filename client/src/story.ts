@@ -45,6 +45,7 @@ async function type(parent: HTMLElement, value: string, tap: HTMLElement) {
 export async function showIntro(done: () => void) {
   if (introShowing) return; introShowing = true;
   const { root, card } = overlay();
+  root.style.background = '#100d18';
   card.classList.add('notification');
   text(card, 'h2', STORY.intro.title); text(card, 'p', STORY.intro.body);
   await button(card, STORY.intro.button);
