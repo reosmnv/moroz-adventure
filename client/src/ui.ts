@@ -139,16 +139,23 @@ export class UIScene extends Phaser.Scene {
     this.input.on('pointerupoutside', (p: Phaser.Input.Pointer) => this.onUp(p));
 
     const kb = this.input.keyboard!;
-    this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT') as any;
+    // Движение только стрелками: W занята под Ц (решение mr.R 02.11)
+    this.keys = kb.addKeys('UP,DOWN,LEFT,RIGHT') as any;
     this.runKey = kb.addKey('SHIFT');
-    // Автоповтор зажатой клавиши не считается новым нажатием
-    const key = (b: Button) => (e: KeyboardEvent) => { if (!e.repeat) this.tap(b); };
-    kb.on('keydown-J', key('attack'));
-    kb.on('keydown-K', key('heavy'));
-    kb.on('keydown-L', key('taunt'));
-    kb.on('keydown-U', key('ult'));
-    kb.on('keydown-I', (e: KeyboardEvent) => { this.smokeKey = true; if (this.session.snapshots.at(-1)?.players.get(this.session.me)?.char !== RAMIL_ID) key('ult2')(e); else this.syncSmoke(); });
-    kb.on('keyup-I', () => { this.smokeKey = false; this.syncSmoke(); });
+    // Кнопки по физической клавише (e.code), работает и в русской, и в английской раскладке:
+    // Й удар · Ц сильный · У ульта · К вторая ульта / перекур Рамиля (держать) · Е насмешка. Старые J K U I L тоже работают.
+    const CODES: Record<string, Button | 'smoke'> = {
+      KeyQ: 'attack', KeyW: 'heavy', KeyE: 'ult', KeyR: 'smoke', KeyT: 'taunt',
+      KeyJ: 'attack', KeyK: 'heavy', KeyU: 'ult', KeyI: 'smoke', KeyL: 'taunt',
+    };
+    const isRamil = () => this.session.snapshots.at(-1)?.players.get(this.session.me)?.char === RAMIL_ID;
+    kb.on('keydown', (e: KeyboardEvent) => {
+      const b = CODES[e.code]; if (!b) return;
+      if (b !== 'smoke') { if (!e.repeat) this.tap(b); return; }
+      this.smokeKey = true;
+      if (isRamil()) this.syncSmoke(); else if (!e.repeat) this.tap('ult2');
+    });
+    kb.on('keyup', (e: KeyboardEvent) => { if (CODES[e.code] === 'smoke') { this.smokeKey = false; this.syncSmoke(); } });
     // Палец ушёл в системный жест или окно потеряло фокус: отпускаем стик и кнопки
     this.game.events.on('blur', () => this.releaseAll());
   }
@@ -296,10 +303,10 @@ export class UIScene extends Phaser.Scene {
       else this.stickRun = len >= RUN_STICK; // стик до упора: бег
     }
     const k = this.keys;
-    if (k.A.isDown || k.LEFT.isDown) mx = -1;
-    if (k.D.isDown || k.RIGHT.isDown) mx = 1;
-    if (k.W.isDown || k.UP.isDown) my = -1;
-    if (k.S.isDown || k.DOWN.isDown) my = 1;
+    if (k.LEFT.isDown) mx = -1;
+    if (k.RIGHT.isDown) mx = 1;
+    if (k.UP.isDown) my = -1;
+    if (k.DOWN.isDown) my = 1;
     return [Math.round(mx * 10) / 10, Math.round(my * 10) / 10, this.stickRun || this.runKey.isDown];
   }
 
