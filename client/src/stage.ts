@@ -59,7 +59,7 @@ export class StageView {
       own(scene.add.image(0, 0, key(layer.file)).setOrigin(0).setScale(BG_SCALE).setDepth(depth));
     });
     for (const p of stage.props) own(scene.add.image(p.x, p.y, key(p.file)).setOrigin(0.5, 1).setScale(p.scale ?? BG_SCALE).setFlipX(!!p.flip).setDepth(p.depth ?? p.y));
-    for (const s of stage.signs) own(scene.add.text(s.x, s.y, s.text, { fontFamily: FONT, fontSize: `${s.size}px`, color: s.color, backgroundColor: s.bg, padding: s.bg ? { x: 2, y: 2 } : undefined }).setOrigin(0.5).setDepth(-900));
+    for (const s of stage.signs) own(scene.add.text(s.x, s.y, s.text, { fontFamily: FONT, fontSize: `${s.size}px`, color: s.color, backgroundColor: s.bg, padding: s.bg ? { x: 2, y: 2 } : undefined, lineSpacing: 6 }).setOrigin(0.5).setDepth(-900));
     this.objects.push(...debugLane(scene, stage));
     this.update(0, -1, deferCard);
   }

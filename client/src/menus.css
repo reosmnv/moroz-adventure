@@ -49,3 +49,28 @@ button[aria-pressed="true"], button.selected { outline: 2px solid var(--gold); c
 #lostBox { z-index: 15; }
 @media (max-width: 700px) { .home { grid-template-columns: 1fr 280px; gap: 10px; } .brand h1 { font-size: 14px; } }
 @media (max-height: 400px) { .overlay { gap: 6px; } .actions { gap: 2px; } .story-card { line-height: 1.8; } .story-card p, .story-card h1, .story-card h3 { margin: 4px 0; } }
+.hero-role { display:block; font: 7px/1.6 'Press Start 2P', monospace; min-height:34px; color:var(--cream); }
+.story-card { max-height:calc(100dvh - 28px); overflow:auto; touch-action:pan-y; }
+.story-card.notification small { display:block; font:12px/1.4 sans-serif; color:#888; }
+.story-card:has(.final-scroll) { display:flex; flex-direction:column; overflow:hidden; }
+.final-scroll { overflow-y:auto; min-height:0; touch-action:pan-y; }
+.story-card > button { flex-shrink:0; }
+.dialogue-row { text-align:left; padding:6px; }
+.dialogue-row img { float:left; width:36px; height:36px; margin-right:10px; image-rendering:pixelated; }
+.dialogue-row small { color:var(--gold); }
+.dialogue-row p { margin-left:46px; }
+.final-scroll figure { margin:8px; border:2px solid var(--cream); }
+.final-scroll figure img { max-width:100%; max-height:120px; object-fit:contain; }
+.story-stamp { display:inline-block; border:3px solid #e43a48; color:#e43a48; padding:6px; transform:rotate(-8deg); animation:stamp .35s ease-out; }
+@keyframes stamp { from { transform:rotate(-8deg) scale(1.6); opacity:0; } to { transform:rotate(-8deg) scale(1); opacity:1; } }
+#restartBanner { white-space:normal; width:min(90vw,650px); font-size:10px; text-align:center; }
+#shareCode { font-size:16px; max-width:650px; }
+.hero-role { font: 9px/1.25 sans-serif; min-height: 24px; }
+@media (max-height: 400px) { #chars img { width: 72px; height: 72px; margin-bottom: 4px; } #chars button { padding: 4px 2px; } }
+.story-card.final-page { overflow: visible; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 10px; line-height: 1.35; }
+.story-card.final-page p { margin: 2px 0; }
+.story-card.final-page h1 { font-size: 18px; line-height: 1.4; margin: 4px 0; }
+.story-card.final-page .story-stamp { margin: 12px 0; font-size: 10px; }
+.registry-push { position: fixed; z-index: 6; top: max(65px, calc(env(safe-area-inset-top) + 65px)); left: 50%; transform: translateX(-50%); width: min(60vw, 400px); background: white; border-top: 4px solid #2867b2; color: #343b48; padding: 5px 8px; font: 12px/1.25 sans-serif; text-align: left; touch-action: manipulation; }
+.registry-push small { display: block; font: 10px/1.2 sans-serif; }
+.registry-push[hidden] { display: none; }

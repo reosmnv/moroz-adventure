@@ -1,3 +1,4 @@
+import { LINES, CALL_NAMES } from '@bc/shared';
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
 import { CHARACTERS, HERO_FORM, PLAYER_HP, switchHero, testHeal, testGod, testKillAll, chargeUlt, nextStage, RAMIL, HERO_ANIMS, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
@@ -1413,6 +1414,83 @@ for (const char of ['ramil', HERO_ID]) {
   check('TZ18 killAll оставляет боссу 1 HP и убивает захваченного манекена', e.hp === 1 && held.hp === 0 && !held.held && !held.dummy);
   const ev = step(w, {});
   check('TZ18 killAll даёт событие смерти и удаление', !w.enemies.held && ev.some(v => v.t === 'hit' && v.target === held.id && v.kill === true));
+}
+
+// TZ19: сюжетные события проходят тем же путём в локальной и серверной sim.
+for (const [i, ch] of CHARACTERS.entries()) {
+  const { w, p } = setup(false, ch.id); dummy(w, 'e1', 800);
+  p.ult = 100;
+  const ev = step(w, {});
+  check(`TZ19 ${ch.name}: ульта готова`, ev.some(e => e.t === 'taunt' && e.id === p.id && e.line === LINES.ready[i]));
+  check(`TZ19 ${ch.name}: готовность один раз`, !step(w, {}).some(e => e.t === 'taunt' && e.line === LINES.ready[i]));
+}
+{
+  const { w, p } = setup(false, KRIS_ID); dummy(w, 'e1', 800); p.charge2 = 100;
+  check('TZ19 шар Kris не считается ультой', !step(w, {}).some(e => e.t === 'taunt'));
+}
+for (const boss of ['shaman', 'pizdulina'] as const) {
+  const { w, p } = setup(); dummy(w, 'e1', 100);
+  w.enemies.e1.boss = boss; w.introduced.push(boss);
+  w.cine = { id: 'e1', kind: boss, ms: 1 };
+  check(`TZ19 ${boss}: ответ после вставки`, step(w, {}).some(e => e.t === 'taunt' && e.id === p.id && e.line === LINES.reply[boss]));
+  w.enemies.e1.hp = 0;
+  const down = step(w, {});
+  check(`TZ19 ${boss}: bossDown раньше последних слов`, down.some(e => e.t === 'bossDown') && !down.some(e => e.t === 'taunt' && e.line === LINES.last[boss]));
+  const result = run(w, 1800);
+  check(`TZ19 ${boss}: последние слова`, result.events.includes('taunt:' + LINES.last[boss]));
+}
+for (const [i, ch] of CHARACTERS.entries()) {
+  if (ch.id === HERO_ID) continue;
+  let found = false;
+  for (let seed = 1; seed < 30 && !found; seed++) {
+    const { w } = setup(); w.seed = seed; dummy(w, 'e1', 800);
+    const fallen = addPlayer(w, 'friend', ch.id); fallen.hp = 1; fallen.invulnMs = 0;
+    w.shots.push({ x: fallen.x, y: fallen.y, dir: 1, speed: 0, dmg: 10 });
+    const ev = step(w, {});
+    found = ev.some(e => e.t === 'taunt' && e.id === 'h' && e.line === `${CALL_NAMES[i]}, вставай!`);
+  }
+  check(`TZ19 друг упал: ${ch.name}`, found);
+}
+{
+  const make = () => {
+    const { w } = setup(); dummy(w, 'e1', 800);
+    const b = addPlayer(w, 'friend', NADYA_ID); b.hp = 1; b.invulnMs = 0;
+    w.shots.push({ x: b.x, y: b.y, dir: 1, speed: 0, dmg: 10 });
+    return w;
+  };
+  const a = make(), b = make();
+  let same = true;
+  for (let i = 0; i < 200; i++) if (JSON.stringify(step(a, {})) !== JSON.stringify(step(b, {}))) same = false;
+  check('TZ19 одинаковый seed: одинаковые события и мир', same && JSON.stringify(a) === JSON.stringify(b));
+}
+
+{
+  const { w, p } = setup(); dummy(w, 'e1', 800); p.hp = 1; p.invulnMs = 0;
+  w.shots.push({ x: p.x, y: p.y, dir: 1, speed: 0, dmg: 10 });
+  check('TZ19 ты упал: говорит упавший до рестарта', step(w, {}).some(e => e.t === 'taunt' && e.id === p.id && e.line === LINES.down[0]));
+}
+{
+  const w = createWorld(7, false); const p = addPlayer(w, 'h', HERO_ID);
+  w.enc.cleared = w.enc.index = ENCOUNTERS.street.length;
+  step(w, {}); const first = w.storyPushes![0];
+  step(w, {});
+  check('TZ19 push.1 один раз', first > 0 && w.storyPushes![0] === first);
+  w.trans = { to: 1, ms: 1 }; step(w, {});
+  w.trans = { to: 2, ms: 1 }; step(w, {});
+  check('TZ19 push.2 при выходе со двора', w.storyPushes![1] > 0);
+  w.trans = { to: 3, ms: 1 }; step(w, {});
+  w.enc.cleared = w.enc.index = ENCOUNTERS.wagon.length; step(w, {});
+  check('TZ19 push.3 после первого боя вагона', w.storyPushes![2] > 0);
+  w.trans = { to: 5, ms: 1 }; step(w, {});
+  w.enc.cleared = w.enc.index = 1; step(w, {});
+  check('TZ19 push.5 после первого боя Сити', w.storyPushes![4] > 0);
+  const marks = JSON.stringify(w.storyPushes); p.hp = 0; step(w, {});
+  check('TZ19 рестарт сохраняет пуши', JSON.stringify(w.storyPushes) === marks);
+}
+{
+  const { w } = setup(false, KRIS_ID); dummy(w, 'e1', 100);
+  w.introduced.push('shaman'); w.cine = { id: 'e1', kind: 'shaman', ms: 1 };
+  check('TZ19 ответ боссу без Насти', step(w, {}).some(e => e.t === 'taunt' && e.id === 'h' && e.line === LINES.reply.shaman));
 }
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');

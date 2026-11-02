@@ -7,3 +7,4 @@ export * from './encounters.ts';
 export * from './enemy-anims-data.ts';
 export * from './boss-data.ts';
 export * from './intros.ts';
+export * from './lines.ts';

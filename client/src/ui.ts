@@ -1,5 +1,6 @@
+import { STORY } from './story.ts';
 import * as Phaser from 'phaser';
-import { NADYA_MOVE_NAMES, RAMIL_ID, RAMIL_MOVE_NAMES, CHAIN, CHARACTERS, HEAVY, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, ULT_MS, VIEW_H } from '@bc/shared';
+import { NADYA_MOVE_NAMES, RAMIL_ID, RAMIL_MOVE_NAMES, CHAIN, CHARACTERS, HEAVY, HALT_MS, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, ULT_MS, VIEW_H } from '@bc/shared';
 import type { Button, EntitySnap, GameSession } from './session.ts';
 
 // Интерфейс поверх боя: стик, кнопки, панели игроков. Отдельная сцена, поэтому встряска
@@ -66,6 +67,17 @@ const HITS_PULSE_MS = 120;
 
 export class UIScene extends Phaser.Scene {
   session!: GameSession;
+  private storyPush?: HTMLDivElement;
+  private pushSeen = new Set<number>();
+  private tips = new Map<string, Phaser.GameObjects.Text>();
+  private movedMs = 0;
+  private hitPresses = 0;
+  private usedUlt = false;
+  private smoked = false;
+  private ultTipAt = 0;
+  private tipTick = -1;
+  private tipTime = 0;
+  private lastCard = false;
   private joyId = -1;
   private joyOrigin = new Phaser.Math.Vector2();
   private joyBase!: Phaser.GameObjects.Image;
@@ -191,6 +203,8 @@ export class UIScene extends Phaser.Scene {
 
   private tap(b: Button) {
     if (!this.session.hasMe()) return;
+    if (b === 'attack') this.hitPresses++;
+    if (b === 'ult' && (this.session.snapshots.at(-1)?.players.get(this.session.me)?.ult ?? 0) >= 100) this.usedUlt = true;
     if (b !== 'ult2' || this.session.snapshots.at(-1)?.players.get(this.session.me)?.char !== RAMIL_ID) this.session.press(b);
     this.syncSmoke();
     if (b === 'taunt') this.portraitUntil = this.time.now + PRESS_MS;
@@ -283,6 +297,7 @@ export class UIScene extends Phaser.Scene {
 
   private syncSmoke() {
     const on = this.session.snapshots.at(-1)?.players.get(this.session.me)?.char === RAMIL_ID && (this.smokeKey || [...this.heldBy.values()].includes('ult2'));
+    if (on) this.smoked = true;
     if (on !== this.smokeSent) { this.smokeSent = on; this.session.holdSmoke(on); }
   }
 
@@ -345,13 +360,57 @@ export class UIScene extends Phaser.Scene {
     p.root.setAlpha(sb.connected === false || sb.away ? 0.4 : 1);
   }
 
+  private updateStory(last: import('./session.ts').Snapshot) {
+    // Окно уведомления определяется временем снимка, включая поздний вход.
+    const active = last.storyPushes.findIndex((at, i) => at > 0 && last.storyTime >= at && last.storyTime < at + 3000 && !this.pushSeen.has(i));
+    if (active >= 0) {
+      if (!this.storyPush) {
+        this.storyPush = document.createElement('div'); this.storyPush.className = 'registry-push';
+        document.body.append(this.storyPush);
+        this.events.once('shutdown', () => { this.storyPush?.remove(); this.storyPush = undefined; });
+      }
+      const push = this.storyPush;
+      push.replaceChildren();
+      const title = document.createElement('small'); title.textContent = 'Реестр';
+      const body = document.createElement('div'); body.textContent = STORY.pushes[active];
+      push.append(title, body); push.hidden = false;
+      push.onclick = () => { this.pushSeen.add(active); push.hidden = true; };
+    } else if (this.storyPush) this.storyPush.hidden = true;
+    const p = last.players.get(this.session.me);
+    if (!p) return;
+    if (!this.lastCard && last.stage === 6 && last.encDone === last.encTotal - 1 && last.lockX0 >= 0) {
+      this.lastCard = true;
+      const t = this.add.text(this.scale.width / 2, 100, STORY.mfcLast.join('\n'), { ...textStyle(12, '#ffe45c'), align: 'center', backgroundColor: '#120c19' }).setOrigin(0.5).setScrollFactor(0).setDepth(5000);
+      this.time.delayedCall(1700, () => t.destroy());
+    }
+    if (this.session.testMode || this.session.introOpen || this.session.needsIntro()) return;
+    if (this.tipTick !== last.tick) {
+      const dt = this.tipTick < 0 ? 0 : Math.max(0, last.storyTime - this.tipTime);
+      if (this.readMove().slice(0, 2).some(v => v !== 0)) this.movedMs += dt;
+      this.tipTime = last.storyTime; this.tipTick = last.tick;
+    }
+    if ((p.ult ?? 0) >= 100 && !this.ultTipAt) this.ultTipAt = this.time.now;
+    const show = (key: string, label: string, on: boolean, x: number, y: number) => {
+      let t = this.tips.get(key);
+      if (!t) { t = this.add.text(0, 0, label, textStyle(8, '#f2a541')).setOrigin(0.5).setScrollFactor(0).setDepth(2200); this.tips.set(key, t); }
+      t.setPosition(x, y).setVisible(on).setAlpha(0.5 + 0.5 * Math.sin(this.time.now / 200) ** 2);
+    };
+    const touch = navigator.maxTouchPoints > 0;
+    show('move', (touch ? STORY.tips.move : STORY.tips.keys) + ' ↓', last.stage === 0 && this.movedMs < 1000, 75, 118);
+    const nearby = [...last.enemies.values()].some(e => e.hp > 0 && Math.hypot(e.x - p.x, e.y - p.y) < 200);
+    show('hit', STORY.tips.hit + ' ↓', nearby && this.hitPresses < 3, this.scale.width - 95, VIEW_H - 94);
+    show('ult', STORY.tips.ult + ' ↓', !!this.ultTipAt && !this.usedUlt && this.time.now - this.ultTipAt < 8000, this.scale.width - 70, VIEW_H - 180);
+    show('smoke', STORY.tips.smoke + ' ↓', p.char === RAMIL_ID && (last.stage > 0 || last.encDone > 0) && !this.smoked, this.scale.width - 150, VIEW_H - 204);
+  }
+
   update() {
     const s = this.session;
     if (s.hasMe()) s.move(...this.readMove());
     const last = s.snapshots[s.snapshots.length - 1];
     if (!last) return;
-    this.waveText.setText(last.level === 'route' ? (last.encDone >= last.encTotal ? 'ВПЕРЁД' : `БОЙ ${last.encDone}/${last.encTotal}`) : s.testMode ? 'ТЕСТ: МАНЕКЕН' : `ВОЛНА ${last.wave}`);
+    this.waveText.setText(last.level === 'route' ? (last.stage === 3 && last.halt >= 0 && last.halt < HALT_MS ? '' : last.lockX0 < 0 ? STORY.service.forward : STORY.service.fight.replace('{n}', String(last.encDone + 1)).replace('{total}', String(last.encTotal))) : s.testMode ? 'ТЕСТ: МАНЕКЕН' : `ВОЛНА ${last.wave}`);
 
+    this.updateStory(last);
     this.testLabel.setVisible(s.testMode);
 
     // Своя панель первая, напарник рядом

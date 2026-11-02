@@ -1,6 +1,6 @@
 import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, LEVELS, TEST_TOOLS } from '@bc/shared';
 import { LocalSession, OnlineSession, clearReconnect, returnToMenu, savedReconnect, type GameSession } from './session.ts';
-import { GAME_TITLE, showIntro } from './story.ts';
+import { GAME_TITLE, STORY, showIntro } from './story.ts';
 import { startGame } from './scene.ts';
 import { audioState, unlockAudio } from './audio.ts';
 import { settings, updateSettings } from './settings.ts';
@@ -34,6 +34,11 @@ document.addEventListener('dblclick', e => e.preventDefault(), { passive: false 
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.title = GAME_TITLE;
 $('gameTitle').textContent = GAME_TITLE;
+document.querySelector('.brand p')!.textContent = STORY.menu.sub;
+$('newOnline').textContent = STORY.menu.online; $('newLocal').textContent = STORY.menu.solo;
+$('share').textContent = STORY.service.invite;
+$('exitYes').textContent = STORY.service.exit; $('exitNo').textContent = STORY.service.stay;
+let createdOpen = false;
 for (const c of CHARACTERS) {
   const img = document.createElement('img'); img.src = portrait(c.id); img.alt = c.name; $('portraits').append(img);
 }
@@ -105,11 +110,16 @@ async function begin(online: boolean, code?: string, stage = 0, testMode = false
     if (session.roomId) history.replaceState(null, '', location.pathname + '#' + session.roomId);
     else history.replaceState(null, '', location.pathname);
     visible('share', online);
-    await Promise.race([document.fonts.load('12px "Press Start 2P"').catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
+    await Promise.race([document.fonts.load('12px "Press Start 2P"', 'АБВабвЁё09:').catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
     game = startGame('game', session);
     visible('menu', false); visible('topbar', true);
+    if (online && !code && !resume) { createdOpen = true; openShare(true); }
   } catch (e: unknown) {
-    $('menuNote').textContent = 'Не удалось: ' + (e instanceof Error ? e.message : String(e));
+    const error = e as { code?: number; message?: string };
+    const msg = error.message ?? String(e);
+    $('menuNote').textContent = /full|maxclients|locked/i.test(msg) ? STORY.service.joinFull
+      : error.code === 522 || /not found|disposed|does not exist/i.test(msg) ? STORY.service.joinMissing
+      : /network|fetch|websocket|timeout|failed to connect/i.test(msg) ? STORY.service.joinNetwork : STORY.service.joinOther;
     refreshContinue();
   } finally { busy = false; }
 }
@@ -126,7 +136,7 @@ $('killBtn').onclick = () => session?.killAll();
 $('godBtn').onclick = () => session?.god(!session.snapshots.at(-1)?.players.get(session.me)?.god);
 $('pauseBtn').onclick = () => { closeTest(); session?.setPaused(true); };
 $('resumeBtn').onclick = () => { unlockAudio(); session?.setPaused(false); };
-$('exitBtn').onclick = () => { pausePanel = 'exit'; visible('exitBox', true); };
+$('exitBtn').onclick = () => { document.querySelector('#exitBox p')!.textContent = session?.kind === 'online' ? STORY.service.exitOnline : STORY.service.exitLocal; pausePanel = 'exit'; visible('exitBox', true); };
 $('exitNo').onclick = () => { pausePanel = ''; visible('exitBox', false); };
 $('exitYes').onclick = $('lostMenu').onclick = () => { if (session) returnToMenu(session); };
 $('reconnectBtn').onclick = async () => {
@@ -156,6 +166,7 @@ function renderPicker() {
     const b = document.createElement('button'); const img = document.createElement('img');
     img.src = portrait(c.id); img.alt = ''; b.append(img, document.createTextNode(c.name));
     const note = document.createElement('span'); note.textContent = c.id === current ? 'сейчас' : taken.includes(c.id) ? 'занят' : '';
+    const role = document.createElement('small'); role.className = 'hero-role'; role.textContent = STORY.roles[c.id as keyof typeof STORY.roles]; b.append(role);
     b.append(note); b.disabled = c.id === current || taken.includes(c.id);
     b.classList.toggle('current', c.id === current);
     b.onclick = () => { if (pendingHero) return; unlockAudio(); pendingHero = c.id; $('pickNote').textContent = ''; if (changingHero) session!.switchHero(c.id); else session!.pick(c.id); };
@@ -189,21 +200,23 @@ function renderSettings() {
 $('menuSettings').onclick = () => openSettings(false);
 $('pauseSettings').onclick = () => openSettings(true);
 $('settingsBack').onclick = () => { visible('settingsBox', false); if (settingsFromPause) pausePanel = ''; };
-$('share').onclick = () => {
+function openShare(created = false) {
   pausePanel = 'share';
-  $('shareCode').textContent = session?.roomId ?? '';
+  $('shareCode').textContent = created ? STORY.service.room.replace('{КОД}', session?.roomId ?? '') : session?.roomId ?? '';
   ($('shareLink') as HTMLInputElement).value = location.href;
-  visible('nativeShareBtn', !!navigator.share); $('copyBtn').textContent = 'Скопировать'; visible('shareBox', true);
-};
+  visible('nativeShareBtn', !!navigator.share); $('copyBtn').textContent = STORY.service.copy;
+  $('closeShareBtn').textContent = created ? STORY.service.next : 'Назад'; visible('shareLabel', !created); visible('shareBox', true);
+}
+$('share').onclick = () => openShare();
 $('nativeShareBtn').onclick = async () => { try { await navigator.share({ title: GAME_TITLE, url: location.href }); } catch { /* отмена */ } };
 $('copyBtn').onclick = async () => {
   const input = $('shareLink') as HTMLInputElement;
   let ok = false;
   try { if (navigator.clipboard) { await navigator.clipboard.writeText(input.value); ok = true; } } catch { /* без HTTPS */ }
-  if (!ok) { input.focus(); input.setSelectionRange(0, input.value.length); ok = document.execCommand('copy'); input.blur(); }
-  $('copyBtn').textContent = ok ? 'Скопировано' : 'Выдели и скопируй вручную';
+  if (!ok) { input.focus(); input.setSelectionRange(0, input.value.length); try { ok = document.execCommand('copy'); } catch { /* ручное копирование */ } }
+  $('copyBtn').textContent = ok ? STORY.service.copied : STORY.service.copyFailed;
 };
-$('closeShareBtn').onclick = () => { visible('shareBox', false); pausePanel = ''; };
+$('closeShareBtn').onclick = () => { visible('shareBox', false); pausePanel = ''; createdOpen = false; };
 
 setInterval(() => {
   if (!session || !game) { if (!busy) refreshContinue(); return; }
@@ -212,9 +225,11 @@ setInterval(() => {
   if (!session.testMode) closeTest();
   $('godBtn').textContent = 'Бессмертие: ' + (session.snapshots.at(-1)?.players.get(session.me)?.god ? 'вкл' : 'выкл');
   visible('pauseBox', session.isPaused() && !pausePanel && !picking);
-  $('pauseNote').textContent = session.kind === 'online' && !session.pausedByMe() ? 'Паузу поставил друг' : '';
+  const snap = session.snapshots.at(-1);
+  const char = snap?.players.get(snap.pausedBy)?.char;
+  $('pauseNote').textContent = STORY.service.pause.replace('{герой}', CHARACTERS.find(c => c.id === char)?.name ?? '');
   visible('lostBox', session.connectionLost);
-  if (session.snapshots.length && !session.hasMe() && !picking) showPicker();
+  if (session.snapshots.length && !session.hasMe() && !picking && !createdOpen) showPicker();
   renderPicker(); maybeIntro();
   if (DEBUG) {
     const last = session.snapshots.at(-1);

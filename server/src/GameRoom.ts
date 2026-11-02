@@ -56,6 +56,7 @@ export type EnemyState = SchemaType<typeof EnemyState>;
 export const ShotState = schema({ x: t.number(), y: t.number(), dir: t.number() }, 'ShotState');
 export const ZoneState = schema({ x: t.number(), y: t.number(), r: t.number(), ms: t.number() }, 'ZoneState');
 export const GameState = schema({
+  storyTime: t.number(), storyPushes: t.string(),
   pauseMs: t.number(), slowmoMs: t.number(),
   halt: t.number(), cineId: t.string(), cineKind: t.string(), cineMs: t.number(),
   intro: t.boolean(), introHost: t.string(),
@@ -203,6 +204,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     const s = this.state, w = this.world;
     s.shots.clear(); for (const shot of w.shots) s.shots.push(new ShotState({ x: shot.x, y: shot.y, dir: shot.dir }));
     s.zones.clear(); for (const zone of w.zones) s.zones.push(new ZoneState({ x: zone.x, y: zone.y, r: zone.r, ms: zone.ms }));
+    s.storyTime = w.timeMs; s.storyPushes = JSON.stringify(w.storyPushes ?? []);
     s.pauseMs = w.pauseMs ?? 0; s.slowmoMs = w.slowmoMs ?? 0;
     s.halt = w.halt; s.cineId = w.cine?.id ?? ''; s.cineKind = w.cine?.kind ?? ''; s.cineMs = w.cine?.ms ?? 0;
     s.testMode = w.testTools;

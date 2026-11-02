@@ -1,3 +1,4 @@
+import { LINES, LINE_HEROES, CALL_NAMES } from './lines.ts';
 // Общая симуляция боя: одна и та же для сервера (онлайн) и браузера (офлайн).
 // Чистые данные и функции, без Phaser и Colyseus.
 import { LEVELS, stageOf, stageProp, laneTop, laneBottom, levelW, walkBounds, clampToLane } from './levels.ts';
@@ -47,9 +48,9 @@ export interface Character {
 
 // Реплики временные, до решения mr.R. Четвёртый слот пока заглушка-прямоугольник
 export const CHARACTERS: Character[] = [
-  { id: HERO_ID, name: 'Анастасия', color: 0x9d74d4, taunts: ['В эфире тишина. Сейчас будет громко', 'Дубль второй не понадобится'] },
+  { id: HERO_ID, name: 'Анастасия', color: 0x9d74d4, taunts: ['В эфире тишина. Сейчас будет громко', 'Дубль второй не понадобится', 'Сделаем погромче', 'Это был саундчек'] },
   { id: NADYA_ID, name: 'Надежда', color: 0xc2185b, taunts: ['Ты точно ко мне?', 'Не строй планов', 'Шансов не было', 'Очередь занимай', 'А котик у тебя есть?'] },
-  { id: KRIS_ID, name: 'Kris', color: 0x9be33b, taunts: ['Свет плохой, давай ещё дубль', 'Стоп, снято', 'Улыбочку'] },
+  { id: KRIS_ID, name: 'Kris', color: 0x9be33b, taunts: ['Свет плохой, давай ещё дубль', 'Стоп, снято', 'Улыбочку', 'Это в бэкстейдж', 'Не моргай, пишу'] },
   { id: RAMIL_ID, name: 'Рамиль', color: 0xe8743b, taunts: ['Ща-ща, докурю', 'Не суетись', 'Я даже не встал толком', 'Перекур, мужики', 'Без нервов'] },
 ];
 
@@ -159,6 +160,9 @@ export interface Enemy {
 export interface BossShot { x: number; y: number; dir: number; speed: number; dmg: number }
 export interface BossZone { x: number; y: number; r: number; ms: number; tickMs: number; dmg: number }
 export interface World {
+  storyPushes?: number[]; storyReady?: string[]; storyLineAt?: number; storyManualAt?: number;
+  storyLast?: { id: string; line: string; at: number }[]; storyKiss?: boolean;
+
   pauseMs?: number; slowmoMs?: number;
   halt: number; introduced: string[]; cine?: { id: string; kind: string; ms: number };
   shots: BossShot[]; zones: BossZone[];
@@ -605,6 +609,7 @@ function stepKiss(w: World, d: Pending, dtMs: number, ev: SimEvent[]): boolean {
     if (e.boss) {
       const line = BOSS[e.boss].kissLine;
       if (line) ev.push({ t: 'taunt', id: e.id, line });
+      if (!w.storyKiss) { w.storyKiss = true; ev.push({ t: 'taunt', id: d.owner, line: LINES.kiss }); }
       continue;
     }
     e.charmMs = CHARM_MS; e.charmBy = d.owner;
@@ -969,10 +974,9 @@ function stepRamil(w: World, p: Player, inp: Input, dt: number, ev: SimEvent[]) 
   }
   if (inp.ult2) {
     if (p.move !== 'smoke') startMove(p, 'smoke');
-    const before = p.ult; p.ult = Math.min(100, p.ult + RAMIL.SMOKE_RATE * dt / 1000);
+    p.ult = Math.min(100, p.ult + RAMIL.SMOKE_RATE * dt / 1000);
     r.smokeMs += dt;
-    if (before < 100 && p.ult >= 100) ev.push({ t: 'taunt', id: p.id, line: 'Всё, погнали' });
-    else if (r.smokeMs >= RAMIL.SMOKE_LINE_MS) { r.smokeMs -= RAMIL.SMOKE_LINE_MS; ev.push({ t: 'taunt', id: p.id, line: RAMIL_SMOKE_LINES[r.smokeLine++ % RAMIL_SMOKE_LINES.length] }); }
+    if (r.smokeMs >= RAMIL.SMOKE_LINE_MS) { r.smokeMs -= RAMIL.SMOKE_LINE_MS; ev.push({ t: 'taunt', id: p.id, line: RAMIL_SMOKE_LINES[r.smokeLine++ % RAMIL_SMOKE_LINES.length] }); }
     p.anim = 'idle'; return;
   }
   r.smokeMs = 0;
@@ -1288,6 +1292,7 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
     }
     if (alive() > 0) return;
     enc.lock = null; enc.cleared++; enc.index++; ev.push({ t: 'clear' });
+    storyEvent(w, ev, 'won');
     if (w.stage === LEVELS[w.level].stages.length - 1 && enc.cleared === data.length) {
       w.won = true; ev.push({ t: 'victory' });
     }
@@ -1555,12 +1560,14 @@ function finishTransition(w: World, ev: SimEvent[]) {
   });
   if (w.testTools) ensureDummy(w);
   ev.push({ t: 'stage', stage: w.stage });
+  storyEvent(w, ev, 'stage');
 }
 
-export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimEvent[] {
+function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimEvent[] {
   const ev: SimEvent[] = w.events?.splice(0) ?? [];
   let dt = dtMs / 1000;
   const players = Object.values(w.players);
+  const storyFallen = new Set(players.filter(p => p.hp <= 0).map(p => p.id));
   const active = players.filter(p => p.connected && !p.away);
 
   // Никого нет за экраном: мир стоит, пока хост шлёт ссылку в мессенджер
@@ -1752,6 +1759,11 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
     else stepEnemyAttack(w, e, targets, speed, dtMs, ev);
   }
 
+  for (const p of active) if (p.hp <= 0 && !storyFallen.has(p.id)) {
+    const friends = livePlayers(w).filter(o => o.id !== p.id);
+    if (friends.length && rand(w) < 0.5) storyEvent(w, ev, 'friend', friends, p.char);
+    else storyEvent(w, ev, 'down', [p]);
+  }
   // Все на связи лежат: перезапуск уровня
   if (active.every(p => p.hp <= 0)) {
     w.enemies = {};
@@ -1787,5 +1799,44 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   }
 
   introduce(w, ev);
+  return ev;
+}
+
+// Сюжетные события используют то же время и seed, что бой.
+function storyEvent(w: World, ev: SimEvent[], kind: 'won' | 'friend' | 'down' | 'stage', candidates = livePlayers(w), fallen = '') {
+  if (w.timeMs < (w.storyLineAt ?? -10000) + 10000 || w.timeMs < (w.storyManualAt ?? -2000) + 2000) return;
+  const suitable = candidates.filter(p => p.connected && !p.away && LINE_HEROES.includes(p.char));
+  if (!suitable.length) return;
+  const p = suitable[Math.floor(rand(w) * suitable.length)];
+  const line = LINES[kind][LINE_HEROES.indexOf(p.char)].replace('{имя}', CALL_NAMES[LINE_HEROES.indexOf(fallen)] ?? fallen);
+  ev.push({ t: 'taunt', id: p.id, line }); w.storyLineAt = w.timeMs;
+}
+export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimEvent[] {
+  const cine = w.cine?.kind, stage = w.stage;
+  for (const i of Object.values(inputs)) if (i.taunt) w.storyManualAt = w.timeMs;
+  const ev = stepCore(w, inputs, dtMs);
+  const alive = livePlayers(w);
+  if (cine && !w.cine && LINES.reply[cine] && alive.length) {
+    const p = alive.find(p => p.char === HERO_ID) ?? alive[Math.floor(rand(w) * alive.length)];
+    ev.push({ t: 'taunt', id: p.id, line: LINES.reply[cine] });
+  }
+  w.storyReady ??= [];
+  for (const p of alive) if (p.ult >= 100 && !w.storyReady.includes(p.char)) {
+    w.storyReady.push(p.char); ev.push({ t: 'taunt', id: p.id, line: LINES.ready[LINE_HEROES.indexOf(p.char)] });
+  }
+  w.storyLast ??= [];
+  for (const e of ev) if (e.t === 'bossDown') {
+    const boss = w.enemies[e.id]?.boss;
+    if (boss) w.storyLast.push({ id: e.id, line: LINES.last[boss], at: w.timeMs + 600 });
+    if (boss === 'pizdulina') { w.storyPushes ??= [0,0,0,0,0]; if (!w.storyPushes[3]) w.storyPushes[3] = w.timeMs + 2000; }
+  }
+  for (const line of w.storyLast) if (w.timeMs >= line.at) ev.push({ t: 'taunt', id: line.id, line: line.line });
+  w.storyLast = w.storyLast.filter(line => w.timeMs < line.at);
+  w.storyPushes ??= [0,0,0,0,0];
+  const mark = (i: number) => { if (!w.storyPushes![i]) w.storyPushes![i] = Math.max(1, w.timeMs); };
+  if (w.stage === 0 && w.enc.cleared >= encountersOf(w).length) mark(0);
+  if (stage === 1 && w.stage === 2) mark(1);
+  if (w.stage === 3 && w.enc.cleared >= 1) mark(2);
+  if (w.stage === 5 && w.enc.cleared >= 1) mark(4);
   return ev;
 }

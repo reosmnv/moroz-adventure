@@ -12,7 +12,7 @@ export const ROUTE: Stage[] = [
   {
     // 6 экранов: подъезд 3 → подъезд 4 → его зеркало (подъезд 5) → столпы → зеркало столпов → проход под домом (выход)
     id: 'street',
-    cards: [['08:47. НАСТЮ ТОЛЬКО ЧТО СТЁРЛИ', 'ПОДЪЕЗД 3']],
+    cards: [['08:47. НАСТЮ УДАЛИЛИ', 'ПОДЪЕЗД 3']],
     width: 2880,
     lane: flat(2880),
     laneBottom: 255,
@@ -32,6 +32,8 @@ export const ROUTE: Stage[] = [
       { file: 'route/props/manhole.png', x: 2450, y: 232, scale: 1, depth: DECAL },
     ],
     signs: [
+      { text: 'ЖИЛЬЦЫ!\nСОБЛЮДАЙТЕ\nТИШИНУ', x: 300, y: 95, size: 8, color: '#ffffff', bg: '#1f3a6b' },
+      { text: 'ЖАЛОБЫ: КВ. 41', x: 720, y: 90, size: 8, color: '#ffffff', bg: '#1f3a6b' },
       { text: 'ПОДЪЕЗД 3', x: 196, y: 62, size: 8, color: '#ffffff', bg: '#1f4e8c' },
       { text: 'ПОДЪЕЗД 4', x: 630, y: 34, size: 8, color: '#ffffff', bg: '#1f4e8c' },
       { text: 'ПОДЪЕЗД 5', x: 1302, y: 34, size: 8, color: '#ffffff', bg: '#1f4e8c' },
@@ -55,6 +57,7 @@ export const ROUTE: Stage[] = [
       { file: 'route/props/manhole.png', x: 785, y: 230, scale: 1, depth: DECAL },
     ],
     signs: [
+      { text: 'НАСТЯ ЕСТЬ', x: 420, y: 106, size: 16, color: '#ff4fa0' },
       { text: 'БЕГОВАЯ', x: 1005, y: 60, size: 8, color: '#ffffff', bg: '#c8102e' },
       { text: 'ВЫХОД 3', x: 930, y: 82, size: 8, color: '#ffffff', bg: '#1f2a44' },
     ],
@@ -72,6 +75,7 @@ export const ROUTE: Stage[] = [
     layers: [{ file: 'route/vestibule.png' }],
     props: [],
     signs: [
+      { text: 'ЛИЦО НЕ\nРАСПОЗНАНО', x: 760, y: 110, size: 8, color: '#ffffff', bg: '#1f3a6b' },
       { text: 'ВЫХОД В ГОРОД', x: 480, y: 42, size: 8, color: '#ffffff', bg: '#1f2a44' },
       { text: 'БЕГОВАЯ', x: 1046, y: 72, size: 8, color: '#ffffff' },
       { text: 'К ПОЕЗДАМ', x: 1320, y: 24, size: 8, color: '#ffffff', bg: '#1f2a44' },
@@ -80,7 +84,7 @@ export const ROUTE: Stage[] = [
   {
     // Вагон 81-765 (wagon_w1, 5 повторов): в окнах бежит тоннель. Выход в последнюю дверь
     id: 'wagon',
-    cards: [['СЛЕДУЮЩАЯ СТАНЦИЯ: ПРОБЛЕМЫ', 'ВАГОН']],
+    cards: [['СЛЕДУЮЩАЯ СТАНЦИЯ: ПРОБЛЕМЫ', 'ВАГОН'], ['НЕСУЩЕСТВУЮЩИХ ПРОСЯТ ВЫЙТИ', 'ОСТОРОЖНО']],
     width: 2400,
     lane: flat(2400),
     laneBottom: 255,
@@ -89,13 +93,14 @@ export const ROUTE: Stage[] = [
     layers: [{ file: 'route/wagon.png', fx: 'tunnel' }],
     tunnel: { y0: 50, y1: 108, speed: 900 },
     props: [],
-    signs: [],
+    signs: [
+      { text: 'КУРС «КАК\nСУЩЕСТВОВАТЬ»\n· 99 900 ₽', x: 1080, y: 105, size: 8, color: '#ffffff', bg: '#1f3a6b' },],
   },
   {
     // Маяковская (mayak_w1, экран + зеркальные куски по центрам арок): за арками приходит и уходит поезд.
     // Выход у правого края (позже откроется только после победы над боссами)
     id: 'mayak',
-    cards: [['СЕГОДНЯ КОНЦЕРТ. БИЛЕТОВ НЕТ', '«МАЯКОВСКАЯ»']],
+    cards: [['СЕГОДНЯ КОНЦЕРТ. БИЛЕТОВ НЕТ', '«МАЯКОВСКАЯ»'], ['ПЕРЕХОД ЗАКРЫТ: ПОЁТ ШАМАН', 'ПЕРЕХОД']],
     width: 1510,
     lane: flat(1510),
     laneBottom: 255,
@@ -111,6 +116,7 @@ export const ROUTE: Stage[] = [
       { file: 'route/props/metro_bench.png', x: 800, y: 148 },
     ],
     signs: [
+      { text: 'ШАМАН. ТУР\n«ВСТАЮ». ВСЕ\nВСТАЮТ', x: 650, y: 95, size: 8, color: '#ffffff', bg: '#1f3a6b' },
       { text: 'МАЯКОВСКАЯ', x: 300, y: 66, size: 8, color: '#f6e7c8', bg: '#3b2a20' },
       { text: 'МАЯКОВСКАЯ', x: 900, y: 66, size: 8, color: '#f6e7c8', bg: '#3b2a20' },
     ],
@@ -118,7 +124,7 @@ export const ROUTE: Stage[] = [
   {
     // Улица у Москва-Сити (день): кафе, остановка с газоном, зеркала, вход в главный МФЦ (без привязки к реальному). Выход в двери
     id: 'city',
-    cards: [['ТУТ ПРОДАЮТ КУРС «КАК СУЩЕСТВОВАТЬ»', 'МОСКВА-СИТИ']],
+    cards: [['УЧАТ СУЩЕСТВОВАТЬ. ПЛАТНО', 'МОСКВА-СИТИ']],
     width: 2400,
     lane: flat(2400),
     laneBottom: 255,
@@ -133,6 +139,7 @@ export const ROUTE: Stage[] = [
       { file: 'route/props/manhole.png', x: 1500, y: 204, scale: 1, depth: DECAL },
     ],
     signs: [
+      { text: 'СУЩЕСТВУЕТЕ?\nДОКАЖИТЕ. МФЦ\n→', x: 750, y: 80, size: 8, color: '#ffffff', bg: '#1f3a6b' },
       { text: 'ГЛАВНЫЙ МФЦ', x: 2160, y: 70, size: 8, color: '#1f3a6b' },
     ],
   },
@@ -148,6 +155,7 @@ export const ROUTE: Stage[] = [
     layers: [{ file: 'route/mfc.png' }],
     props: [],
     signs: [
+      { text: 'ОКНО 1:\nОБЖАЛОВАНИЕ\nНЕСУЩЕСТВОВАНИЯ', x: 4080, y: 100, size: 8, color: '#ffffff', bg: '#1f3a6b' },
       { text: 'ВХОД', x: 33, y: 63, size: 8, color: '#ffffff', bg: '#1f3a6b' },
       { text: 'ТАЛОНЫ', x: 142, y: 99, size: 8, color: '#ffffff', bg: '#2e7d4f' },
       { text: 'ОХРАНА', x: 308, y: 102, size: 8, color: '#ffffff', bg: '#5a5f6b' },

@@ -1,3 +1,4 @@
+import { LINES } from '@bc/shared';
 import * as Phaser from 'phaser';
 import { shake, settings } from './settings.ts';
 import { returnToMenu } from './session.ts';
@@ -7,7 +8,7 @@ import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY
 import { RAMIL_TIPS, RAMIL_FISTS, RAMIL_GRIP } from './ramil-tips.ts';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
-import { showFinale } from './story.ts';
+import { STORY, saveKrisFrame, showFinale } from './story.ts';
 import { beep } from './audio.ts';
 import { FONT, UIScene, textStyle } from './ui.ts';
 import { StageView, preloadStages, debugLane } from './stage.ts';
@@ -276,6 +277,9 @@ export class GameScene extends Phaser.Scene {
         const ms = RAMIL.TELE_MS;
         this.time.delayedCall(ms, () => { this.fx('ramil-poof', e.toX, e.toY - 35); this.fx('ramil-dust', e.toX, e.toY, { depth: e.toY + 0.1 }); });
       }
+      if (e.t === 'bossDown' && this.session.snapshots.at(-1)?.enemies.get(e.id)?.boss === 'pizdulina') {
+        try { this.game.renderer.snapshot(saveKrisFrame); } catch { /* снимок необязателен */ }
+      }
       if (e.t === 'victory') void showFinale(() => this.replay());
       if (e.t === 'tele' && e.shape !== undefined) this.telegraphs.push({ ev: e, until: this.time.now + e.ms + (e.delayMs ?? 0) });
       if (e.t === 'phase') { this.phaseUntil = this.time.now + 1000; this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id); }
@@ -341,6 +345,7 @@ export class GameScene extends Phaser.Scene {
       } else if (e.t === 'taunt') {
         const showBubble = () => {
         const v = this.views.get('p:' + e.id) ?? this.views.get('e:' + e.id);
+        if (v && e.line === LINES.kiss) { this.word(v.body.x, v.body.y - HEAD - 24, e.line, '#ff8fc4'); return; }
         if (v) {
           v.bubble?.destroy();
           v.bubble = this.add.text(v.body.x, v.body.y - HEAD - 18, e.line, { fontFamily: FONT, fontSize: '8px', color: '#120c19', backgroundColor: '#d7d1c7', padding: { x: 4, y: 3 }, wordWrap: { width: 150 }, align: 'center' }).setOrigin(0.5).setDepth(1600);
@@ -404,7 +409,7 @@ export class GameScene extends Phaser.Scene {
       } else if (e.t === 'restart') {
         const snap = this.session.snapshots.at(-1);
         const banner = document.getElementById('restartBanner')!;
-        banner.textContent = `ЗАНОВО: БОЙ ${Math.min((snap?.encDone ?? 0) + 1, snap?.encTotal ?? 1)}/${snap?.encTotal ?? 1}`;
+        banner.textContent = STORY.service.restart.replace('{n}', String(Math.min((snap?.encDone ?? 0) + 1, snap?.encTotal ?? 1))).replace('{total}', String(snap?.encTotal ?? 1));
         banner.classList.remove('hidden');
         this.time.delayedCall(1500, () => banner.classList.add('hidden'));
       }
@@ -464,7 +469,7 @@ export class GameScene extends Phaser.Scene {
         const me = key === 'p:' + this.session.me;
         v.ring = this.add.ellipse(0, 0, 38 * SCALE, 9 * SCALE).setStrokeStyle(2, ch?.color ?? 0xffffff).setAlpha(me ? 0.8 : 0.35);
         // Имя и здоровье своей героини в панели HUD, над головой только метка игрока
-        v.label = this.add.text(0, 0, me ? '1P' : (ch?.name ?? '2P'), textStyle(8, '#' + (ch?.color ?? 0xffffff).toString(16).padStart(6, '0'))).setOrigin(0.5, 1);
+        v.label = this.add.text(0, 0, me && this.session.roomId ? STORY.service.me : '', textStyle(8, '#' + (ch?.color ?? 0xffffff).toString(16).padStart(6, '0'))).setOrigin(0.5, 1);
         if (me) v.hp.setVisible(false);
       }
       this.views.set(key, v);
@@ -751,9 +756,10 @@ export class GameScene extends Phaser.Scene {
       this.exitLabel.setPosition((e.x0 + e.x1) / 2, y - 22);
       this.guide.lineStyle(2, 0xffe45c, pulse).strokeRect(e.x0, y - 20, e.x1 - e.x0, 20);
     }
+    const braking = !!stage.tunnel && s.halt >= 0 && s.halt < HALT_MS;
     const goal = ready ? stage.exit?.x0 : s.lockX0 < 0 ? ENCOUNTERS[stage.id]?.[s.encDone]?.trigger : undefined;
     this.prompt ??= this.add.text(0, 120, '', { ...textStyle(10, '#ffe45c'), align: 'center' }).setOrigin(0.5).setScrollFactor(0).setDepth(2100);
-    this.prompt.setPosition(this.scale.width - 52, 120).setText(goal !== undefined && goal > cam.scrollX + this.scale.width ? `→\n${ready ? 'ВЫХОД' : 'ВПЕРЁД'}` : '').setAlpha(pulse).setVisible(!s.cineId);
+    this.prompt.setPosition(braking ? this.scale.width / 2 : this.scale.width - 52, 120).setText(braking ? STORY.service.halt : goal !== undefined && goal > cam.scrollX + this.scale.width ? `→\n${ready ? 'ВЫХОД' : 'ВПЕРЁД'}` : '').setAlpha(pulse).setVisible(!s.cineId);
     if (s.lockX0 >= 0 && !s.cineId) for (const e of s.enemies.values()) {
       if (e.hp <= 0 || e.x >= cam.scrollX && e.x <= cam.scrollX + this.scale.width) continue;
       const left = e.x < cam.scrollX, x = cam.scrollX + (left ? 5 : this.scale.width - 5), d = left ? 1 : -1;
@@ -761,7 +767,7 @@ export class GameScene extends Phaser.Scene {
     }
     if (stage.tunnel && s.halt >= HALT_MS && !this.stopped) {
       this.stopped = true; this.stoppedAt = this.time.now; shake(cam, 120, 0.003);
-      const t = this.add.text(this.scale.width / 2, VIEW_H / 2, 'СТАНЦИЯ!', textStyle(16, '#ffe45c')).setOrigin(0.5).setScrollFactor(0).setDepth(2500);
+      const t = this.add.text(this.scale.width / 2, VIEW_H / 2, STORY.service.station, textStyle(10, '#ffe45c')).setOrigin(0.5).setScrollFactor(0).setDepth(2500);
       this.time.delayedCall(1000, () => t.destroy());
     }
   }
