@@ -1,6 +1,6 @@
 import { CHARACTERS, HERO_ID, NADYA_ID, KRIS_ID } from '@bc/shared';
 import { STORY_CONTENT, storyScene, type StoryStep } from '@bc/shared';
-import type { GameSession } from './session.ts';
+import type { Snapshot, GameSession } from './session.ts';
 export const GAME_TITLE = 'Moroz Birthday Adventures';
 // Тексты завязки и поздравления редактируются отдельно от экранов.
 export const STORY = {
@@ -131,32 +131,50 @@ export async function showFinale(replay: () => void = () => location.replace(loc
 let activeStoryKey = '';
 let activeStoryRoot: HTMLElement | undefined;
 let revealStory: (() => void) | undefined;
+let comicPanel: { card: HTMLElement; at: string; wide: boolean } | undefined;
+let dialogue: { name: string; speaker: string; at: string; value: string; count: number; hint: string } | undefined;
 
 // Один DOM-интерфейс для телефона, реплик, карточек и композиций.
 export function syncStoryView(session: GameSession) {
   const snap = session.snapshots.at(-1);
-  const key = snap?.storyScene ? `${snap.storyScene}:${snap.storyIndex}` : '';
+  const key = snap?.storyScene && session.hasMe() ? `${snap.storyScene}:${snap.storyIndex}` : '';
   const viewKey = key ? `${key}:${snap?.storyHost}` : '';
   if (viewKey === activeStoryKey) return;
-  activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; activeStoryKey = viewKey;
+  activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; dialogue = undefined; comicPanel = undefined; activeStoryKey = viewKey;
   if (!key || !snap) return;
   const step = storyScene(snap.storyScene)?.steps[snap.storyIndex];
-  if (!step || step.kind === 'state') return;
+  if (!step || step.kind === 'state' || step.kind === 'act') return;
   session.resetControls();
   const { root, card } = overlay(); activeStoryRoot = root;
+  if (step.kind === 'line') {
+    root.classList.add('story-dialogue-input'); root.style.background = 'transparent'; card.remove();
+    const speaker = CHARACTERS.find(c => c.id === step.speaker);
+    const host = CHARACTERS.find(c => c.id === snap.players.get(snap.storyHost)?.char)?.name ?? '';
+    const model = dialogue = { name: speaker?.name ?? step.speaker, speaker: step.speaker,
+      at: step.at ?? step.speaker, value: STORY_CONTENT[step.id], count: 0,
+      hint: snap.storyHost === session.me ? '▶' : `ждём ${host}` };
+    const timer = window.setInterval(() => {
+      if (activeStoryKey !== viewKey) { clearInterval(timer); return; }
+      model.count = Math.min(model.value.length, model.count + 2);
+      if (model.count === model.value.length) clearInterval(timer);
+    }, TYPE_MS);
+    let revealed = false;
+    root.addEventListener('pointerdown', event => {
+      event.preventDefault(); event.stopPropagation();
+      if (!revealed) { revealed = true; model.count = model.value.length; clearInterval(timer); return; }
+      if (snap.storyHost === session.me) session.advanceStory(key);
+    });
+    return;
+  }
   root.style.background = 'rgba(9, 10, 22, .91)';
   const phoneId = step.kind === 'phone' ? step.ids[0] : '';
   const terminal = phoneId.startsWith('hck.');
   card.classList.toggle('notification', step.kind === 'phone' && !terminal);
   card.classList.toggle('story-terminal', terminal);
-  const speaker = step.kind === 'line' ? CHARACTERS.find(c => c.id === step.speaker) : undefined;
-  if (step.kind === 'line') {
-    const row = document.createElement('div'); row.className = 'dialogue-row'; card.append(row);
-    const picture = speaker ? portrait(speaker.id) : storyPortrait[step.speaker];
-    if (picture) { const img = document.createElement('img'); img.src = picture; img.alt = speaker?.name ?? step.speaker; row.append(img); }
-    text(row, 'strong', speaker?.name ?? step.speaker);
-  }
   if (step.kind === 'phone') {
+    root.style.background = 'transparent'; root.classList.add('story-comic-input');
+    card.classList.add('comic-phone');
+    comicPanel = { card, at: step.at ?? 'anastasia', wide: phoneId === 'intro.title' };
     const heading = phoneId.startsWith('cty.') ? 'ПРЯМОЙ ЭФИР · LIVE'
       : phoneId.startsWith('hck.') ? 'БАЗА · ТЕРМИНАЛ'
       : phoneId.startsWith('res.') ? 'БАЗА · АККАУНТ МИЛОНОВА'
@@ -166,11 +184,12 @@ export function syncStoryView(session: GameSession) {
     text(card, 'small', heading);
   }
   if (step.kind === 'composition') {
+    root.style.background = 'transparent'; card.classList.add('comic-polaroid');
     if (krisFrame) { const frame = document.createElement('img'); frame.src = krisFrame; frame.alt = 'Кадр Kris'; frame.className = 'story-frame'; card.append(frame); }
     else for (const file of step.images) { const img = document.createElement('img'); img.src = file; img.alt = ''; img.className = 'story-portrait'; card.append(img); }
   }
   const lines = step.kind === 'phone' ? step.ids.map(id => STORY_CONTENT[id]) : [STORY_CONTENT[step.id]];
-  const value = lines.join('\n\n');
+  const value = lines.join(step.kind === 'phone' ? '\n' : '\n\n');
   const body = text(card, step.kind === 'card' ? 'h2' : 'p', '');
   body.style.whiteSpace = 'pre-wrap';
   const hint = text(card, 'small', snap.storyHost === session.me ? 'Нажми, чтобы продолжить' : 'Продолжает ведущий');
@@ -185,4 +204,81 @@ export function syncStoryView(session: GameSession) {
     if (!touched) { touched = true; revealStory?.(); return; }
     if (snap.storyHost === session.me) { hint.textContent = 'Продолжаем…'; session.advanceStory(key); }
   });
+}
+
+interface ComicBubble {
+  box: Phaser.GameObjects.Container; frame: Phaser.GameObjects.Graphics;
+  name: Phaser.GameObjects.Text; body: Phaser.GameObjects.Text; hint: Phaser.GameObjects.Text;
+  picture: Phaser.GameObjects.Image;
+}
+const comicBubbles = new WeakMap<Phaser.Scene, ComicBubble>();
+const COMIC_FONT = '"Press Start 2P", monospace';
+const COMIC_WIDTH = 170;
+const COMIC_HEAD: Record<string, number> = { katya: 125, pizdulina: 107, shaman: 107 };
+
+// UI-сцена не зависит от камеры боя; координаты головы переводятся в экранные.
+export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snapshot) {
+  if (comicPanel) {
+    const { card, at, wide } = comicPanel;
+    const target = snap.actors.get(at) ?? [...snap.players.values()].find(p => p.char === at);
+    const rect = game.game.canvas.getBoundingClientRect();
+    const cam = game.cameras.main, ratio = rect.width / game.scale.width;
+    const anchor = target ? rect.left + (cam.width / 2 + (target.x - cam.midPoint.x) * cam.zoom) * ratio : rect.left + rect.width / 2;
+    const width = Math.min(wide ? 340 : 230, rect.width * 0.51), height = rect.height * 0.4;
+    const right = anchor + 24, left = anchor - width - 24;
+    const x = right + width < rect.right - 8 ? right : left >= rect.left + 8 ? left : rect.left + (rect.width - width) / 2;
+    card.style.width = `${width}px`; card.style.height = `${height}px`;
+    card.style.left = `${Math.max(8, Math.min(innerWidth - width - 8, x))}px`;
+    card.style.top = `${Math.max(8, rect.top + rect.height * 0.19)}px`;
+  }
+  let bubble = comicBubbles.get(ui);
+  if (!dialogue) { bubble?.box.setVisible(false); return; }
+  if (!bubble?.box.scene) {
+    const style = { fontFamily: COMIC_FONT, fontSize: '8px', color: '#121212', wordWrap: { width: COMIC_WIDTH - 16 }, lineSpacing: 3 };
+    const frame = ui.add.graphics();
+    const name = ui.add.text(8, 7, '', style);
+    const body = ui.add.text(8, 23, '', style);
+    const hint = ui.add.text(0, 0, '', { ...style, fontSize: '6px', color: '#ffffff', backgroundColor: '#121212', padding: { x: 3, y: 3 }, wordWrap: { width: COMIC_WIDTH - 6 } });
+    const picture = ui.add.image(0, 0, 'story-portrait/anastasia').setDisplaySize(30, 30).setOrigin(0, 1);
+    const box = ui.add.container(0, 0, [frame, name, body, hint, picture]).setDepth(5000).setScrollFactor(0);
+    bubble = { box, frame, name, body, hint, picture }; comicBubbles.set(ui, bubble);
+  }
+  const model = dialogue;
+  bubble.box.setVisible(true);
+  bubble.name.setText(model.name); bubble.body.setText(model.value);
+  const height = 43 + bubble.body.height;
+  bubble.body.setText(model.value.slice(0, model.count));
+  const player = [...snap.players.values()].find(p => p.char === model.at);
+  const actor = snap.actors.get(model.at);
+  const target = actor ?? player ?? snap.enemies.get(model.at);
+  const cam = game.cameras.main, width = ui.scale.width;
+  const targetX = target ? cam.width / 2 + (target.x - cam.midPoint.x) * cam.zoom : 0;
+  const targetY = target ? cam.height / 2 + (target.y - (COMIC_HEAD[actor?.look ?? ''] ?? 90) - cam.midPoint.y) * cam.zoom : 0;
+  const onScreen = !!target && targetX >= 0 && targetX <= width;
+  let x = Math.max(6, Math.min(width - COMIC_WIDTH - 6, onScreen ? targetX - COMIC_WIDTH / 2 : 8));
+  const y = Math.max(50, Math.min(220 - height, onScreen ? targetY - height - 12 : 50));
+  // Если над головой тесно, рамка уходит вбок, хвост остаётся у говорящего.
+  const side = onScreen && y + height + 8 > targetY;
+  if (side) x = Math.max(6, Math.min(width - COMIC_WIDTH - 6,
+    targetX + 24 + COMIC_WIDTH <= width - 6 ? targetX + 24 : targetX - COMIC_WIDTH - 24));
+  const color = CHARACTERS.some(c => c.id === model.speaker) ? 0x111111 : 0xb82030;
+  const frame = bubble.frame; frame.clear(); frame.fillStyle(0xffffff); frame.lineStyle(2, color);
+  frame.fillRoundedRect(0, 0, COMIC_WIDTH, height, 6); frame.strokeRoundedRect(0, 0, COMIC_WIDTH, height, 6);
+  if (side) {
+    const edge = targetX < x ? 0 : COMIC_WIDTH;
+    const baseY = Math.max(12, Math.min(height - 12, targetY - y));
+    frame.fillTriangle(edge, baseY - 7, edge, baseY + 7, targetX - x, targetY - y);
+    frame.lineBetween(edge, baseY - 7, targetX - x, targetY - y);
+    frame.lineBetween(targetX - x, targetY - y, edge, baseY + 7);
+  } else if (onScreen) {
+    const tip = Math.max(12, Math.min(COMIC_WIDTH - 12, targetX - x));
+    const headY = Math.max(height + 4, targetY - y);
+    frame.fillTriangle(tip - 7, height - 1, tip + 7, height - 1, targetX - x, headY);
+    frame.lineBetween(tip - 7, height, targetX - x, headY); frame.lineBetween(targetX - x, headY, tip + 7, height);
+  }
+  bubble.hint.setText(model.hint).setOrigin(1, 1).setPosition(COMIC_WIDTH - 6, height - 3)
+    .setAlpha(model.hint === '▶' ? 0.35 + 0.65 * Math.sin(ui.time.now / 280) ** 2 : 1);
+  bubble.picture.setVisible(!onScreen && CHARACTERS.some(c => c.id === model.speaker));
+  if (bubble.picture.visible) bubble.picture.setTexture('story-portrait/' + model.speaker).setDisplaySize(30, 30).setPosition(COMIC_WIDTH - 30, -3);
+  bubble.box.setPosition(x, y);
 }

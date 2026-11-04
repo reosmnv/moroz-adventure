@@ -1,9 +1,9 @@
 import { Room, type Client } from 'colyseus';
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
-  encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars, switchHero, testHeal, testGod, testKillAll,
+  encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars, switchHero, testHeal, testGod, testSummon, testKillAll,
   type Input, type World,
-  advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus,
+  tickStory, advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus,
 } from '@bc/shared';
 
 export const PlayerState = schema({
@@ -57,7 +57,9 @@ export type EnemyState = SchemaType<typeof EnemyState>;
 
 export const ShotState = schema({ x: t.number(), y: t.number(), dir: t.number() }, 'ShotState');
 export const ZoneState = schema({ x: t.number(), y: t.number(), r: t.number(), ms: t.number() }, 'ZoneState');
+export const ActorState = schema({ id: t.string(), look: t.string(), x: t.number(), y: t.number(), tx: t.number(), ty: t.number(), facing: t.number(), anim: t.string(), speed: t.number(), keep: t.boolean() }, 'ActorState');
 export const GameState = schema({
+  actors: t.map(ActorState), storyCamX: t.number(), hasStoryCam: t.boolean(),
   recording: t.boolean(), finaleReady: t.boolean(), wantedStars: t.number(), wantedReward: t.number(),
   storyScene: t.string(), storyIndex: t.number(), storyHost: t.string(),
   storyTime: t.number(), storyPushes: t.string(),
@@ -160,12 +162,16 @@ export class GameRoom extends Room<{ state: GameState }> {
     });
     this.onMessage('storyNext', (client: Client, key: string) => {
       if (client.sessionId !== this.storyHost || !this.world.players[client.sessionId]?.connected) return;
-      if (advanceStory(this.story, key)) { this.clearInputs(); this.sync(); }
+      if (advanceStory(this.story, key, this.world)) { this.clearInputs(); this.sync(); }
     });
 
     // Тестовые команды доступны только в режиме комнаты
     this.onMessage('spawn', (client: Client) => {
       if (this.world.testTools && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
+    });
+
+    this.onMessage('summon', (client: Client) => {
+      if (this.world.testTools && this.world.players[client.sessionId]) testSummon(this.world);
     });
 
     this.onMessage('charge', (client: Client) => {
@@ -221,7 +227,13 @@ export class GameRoom extends Room<{ state: GameState }> {
 
   tick() {
     if (Object.keys(this.world.players).length && startStoryForWorld(this.story, this.world)) this.clearInputs();
-    if (this.state.paused || this.state.intro || this.story.scene) { this.sync(); this.flushEvents(); return; }
+    if (this.story.scene) {
+      const key = `${this.story.scene}:${this.story.index}`;
+      tickStory(this.story, this.world, TICK_MS);
+      if (key !== `${this.story.scene}:${this.story.index}`) this.clearInputs();
+      this.sync(); this.flushEvents(); return;
+    }
+    if (this.state.paused || this.state.intro) { this.sync(); this.flushEvents(); return; }
     const events = step(this.world, this.playerInputs);
     if (Object.keys(this.world.players).length && startStoryForWorld(this.story, this.world)) this.clearInputs();
     for (const [id, inp] of Object.entries(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.skip = false; if (this.world.players[id]?.char !== 'ramil') inp.ult2 = false; }
@@ -232,6 +244,13 @@ export class GameRoom extends Room<{ state: GameState }> {
   // Копия мира в Schema: Colyseus сам отправит только изменившиеся поля
   sync() {
     const s = this.state, w = this.world;
+    s.hasStoryCam = w.storyCamX !== undefined; s.storyCamX = w.storyCamX ?? 0;
+    for (const id of [...s.actors.keys()]) if (!w.actors[id]) s.actors.delete(id);
+    for (const actor of Object.values(w.actors)) {
+      let state = s.actors.get(actor.id);
+      if (!state) { state = new ActorState(); s.actors.set(actor.id, state); }
+      Object.assign(state, actor, { keep: !!actor.keep });
+    }
     const wanted = wantedStatus(w, this.story); s.recording = this.story.flags.recording === 'on'; s.finaleReady = this.story.flags.finaleReady === 'on'; s.wantedStars = wanted.stars; s.wantedReward = wanted.reward;
     s.storyScene = this.story.scene; s.storyIndex = this.story.index; s.storyHost = this.storyHost;
     s.shots.clear(); for (const shot of w.shots) s.shots.push(new ShotState({ x: shot.x, y: shot.y, dir: shot.dir }));

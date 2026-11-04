@@ -132,6 +132,7 @@ $('testBtn').onclick = () => {
 };
 $('nextBtn').onclick = () => session?.next();
 $('spawnBtn').onclick = () => session?.spawn();
+$('summonBtn').onclick = () => session?.summon();
 $('chargeBtn').onclick = () => session?.charge();
 $('healBtn').onclick = () => session?.heal();
 $('killBtn').onclick = () => session?.killAll();
