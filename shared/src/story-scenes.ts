@@ -90,7 +90,8 @@ export const STORY_SCENES: StoryScene[] = [
     { kind: 'line', id: 'cty.5', speaker: 'ramil' },
   ] },
   { id: 'milonov', trigger: 'clear:6:2', steps: [
-    { kind: 'card', id: 'mfc.last' }, focus(2530), spawn('milonov', 'milonov', 2607, 180, true), face('milonov', -1),
+    { kind: 'card', id: 'mfc.last' }, focus(2530), spawn('milonov', 'milonov', 2607, 153, true),
+    walk('milonov', 2607, 185, 500), face('milonov', -1),
     { kind: 'line', id: 'mil.1', speaker: 'Милонов', at: 'milonov' }, { kind: 'line', id: 'mil.2', speaker: 'anastasia' },
     { kind: 'line', id: 'mil.3', speaker: 'Милонов', at: 'milonov' }, { kind: 'line', id: 'mil.p4', speaker: 'Милонов', at: 'milonov' },
     { kind: 'line', id: 'mil.p5', speaker: 'Милонов', at: 'milonov' },
@@ -111,7 +112,9 @@ export const STORY_SCENES: StoryScene[] = [
     { kind: 'line', id: 'hck.7', speaker: 'ramil' },
   ] },
   { id: 'katya', trigger: 'boss:katya', steps: [
-    focus(2770), spawn('katya', 'katya', 2860, 200),
+    focus(2770), spawn('katya', 'katya', 3150, 200), walk('katya', 2860, 200, 1800), face('katya', -1),
+    { kind: 'act', actor: 'katya', do: 'pose', pose: 'cast', ms: 850 },
+    { kind: 'act', actor: 'katya', do: 'pose', pose: 'idle' },
     { kind: 'card', id: 'ins.katya.name' },
     { kind: 'line', id: 'kat.1', speaker: 'Катя', at: 'katya' }, { kind: 'line', id: 'kat.2', speaker: 'anastasia' },
   ] },

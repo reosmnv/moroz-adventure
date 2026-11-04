@@ -63,7 +63,7 @@ export class GameScene extends Phaser.Scene {
   private telegraphs: { ev: Extract<SimEvent, { t: 'tele'; shape: string }>; until: number }[] = [];
   private damagePending = new Map<string, { dmg: number; x: number; y: number }>();
 
-  private actorViews = new Map<string, { sprite: Phaser.GameObjects.Image; clip: string; since: number }>();
+  private actorViews = new Map<string, { sprite: Phaser.GameObjects.Image; clip: string; since: number; impact: boolean }>();
   private views = new Map<string, View>();
   constructor() { super('game'); }
 
@@ -739,12 +739,15 @@ export class GameScene extends Phaser.Scene {
       if (!this.textures.exists(texture)) continue;
       let view = this.actorViews.get(actor.id);
       if (!view) {
-        view = { sprite: this.add.image(actor.x, actor.y, texture), clip: '', since: this.time.now };
+        view = { sprite: this.add.image(actor.x, actor.y, texture), clip: '', since: this.time.now, impact: false };
         this.actorViews.set(actor.id, view);
       }
-      if (view.clip !== clip) { view.clip = clip; view.since = this.time.now; }
+      if (view.clip !== clip) { view.clip = clip; view.since = this.time.now; view.impact = false; }
       const def = clips?.[clip];
       const raw = def ? Math.floor((this.time.now - view.since) * def.fps / 1000) : 0;
+      if (actor.look === 'katya' && clip === 'cast' && raw >= 4 && !view.impact) {
+        view.impact = true; shake(this.cameras.main, 220, 0.009);
+      }
       const frame = def ? def.loop ? raw % def.frames : Math.min(def.frames - 1, raw) : 0;
       view.sprite.setTexture(texture, frame).setPosition(actor.x, actor.y).setDepth(actor.y)
         .setFlipX(actor.facing < 0).setOrigin(0.5, actor.look === 'milonov' ? 1 : FEET_Y / CELL)
