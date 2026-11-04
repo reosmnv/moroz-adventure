@@ -42,6 +42,7 @@ export class StageView {
   private card?: Phaser.GameObjects.Container;
   private cardIndex = -1;
   private cardElapsed = 0;
+  private wantedPoster?: Phaser.GameObjects.Text;
 
   constructor(private scene: Phaser.Scene, private stage: Stage, deferCard = false) {
     const own = <T extends Phaser.GameObjects.GameObject>(o: T): T => { this.objects.push(o); return o; };
@@ -59,13 +60,17 @@ export class StageView {
       own(scene.add.image(0, 0, key(layer.file)).setOrigin(0).setScale(BG_SCALE).setDepth(depth));
     });
     for (const p of stage.props) own(scene.add.image(p.x, p.y, key(p.file)).setOrigin(0.5, 1).setScale(p.scale ?? BG_SCALE).setFlipX(!!p.flip).setDepth(p.depth ?? p.y));
-    for (const s of stage.signs) own(scene.add.text(s.x, s.y, s.text, { fontFamily: FONT, fontSize: `${s.size}px`, color: s.color, backgroundColor: s.bg, padding: s.bg ? { x: 2, y: 2 } : undefined, lineSpacing: 6 }).setOrigin(0.5).setDepth(-900));
+    for (const s of stage.signs) {
+      const sign = own(scene.add.text(s.x, s.y, s.text, { fontFamily: FONT, fontSize: `${s.size}px`, color: s.color, backgroundColor: s.bg, padding: s.bg ? { x: 2, y: 2 } : undefined, lineSpacing: 6 }).setOrigin(0.5).setDepth(-900));
+      if (stage.id === 'wagon' && s.text.includes('150 000')) this.wantedPoster = sign;
+    }
     this.objects.push(...debugLane(scene, stage));
     this.update(0, -1, deferCard);
   }
 
-  update(dt: number, halt = -1, deferCard = false) {
+  update(dt: number, halt = -1, deferCard = false, reward = 150000) {
     this.elapsed += dt;
+    if (this.wantedPoster) this.wantedPoster.setText(`РОЗЫСК:\nАНАСТАСИЯ М.\n${reward >= 500000 ? '500 000 ₽' : '150 000 ₽'}`);
     if (this.tunnel && this.stage.tunnel) {
       const fx = this.stage.tunnel;
       const speed = fx.speed * (halt < 0 ? 1 : Math.max(0, 1 - halt / HALT_MS) ** 2);

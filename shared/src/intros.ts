@@ -1,12 +1,14 @@
+import { STORY_CONTENT as T } from './story-content.ts';
 export interface Intro { name: string; tag: string; line: string }
 export const ENEMY_INTRO: Record<string, Intro> = {
-  vatnik: { name: 'ВАТНИК', tag: 'Искренний. Тупой. Пишет жалобы.', line: 'Это я на тебя писал! За шум. И вообще за всё.' },
-  omon: { name: 'ОМОН', tag: 'Бьёт, кого скажут. Сегодня сказали тебя.', line: 'Сказали бить. Кого, не сказали. Бьём всех.' },
-  omon_shield: { name: 'ОМОН СО ЩИТОМ', tag: 'Спереди не пробить. Заходи со спины.', line: 'Проход закрыт. Причина: не положено.' },
-  zek: { name: 'ЗЭК', tag: 'Освободился вчера. Работает за УДО.', line: 'Мне за тебя срок скостят. Ничего личного, сестрёнка.' },
-  clerk: { name: 'ЧИНОВНИК', tag: 'Представитель системы. На концерте по разнарядке.', line: 'Вас нет в реестре. Значит, вас нет. Следующий!' },
-  info_m: { name: 'ИНФОЦЫГАН', tag: 'Проплачен. Дважды.', line: 'Курс «Как существовать». Урок первый: заплати.' },
-  info_f: { name: 'ИНФОЦЫГАНКА', tag: 'Тоже проплачена. Сторис уже снят.', line: 'Девочки, это заказ! Лайк, если тоже против Насти!' },
-  shaman: { name: 'ШАМАН', tag: 'Встаёт. Всегда. Особенно когда не просят.', line: 'Я встаю, и все встают. А ты лежи. Тебя нет.' },
-  pizdulina: { name: 'ПИЗДУЛИНА ЕКАТЕРИНА', tag: 'Подписала твоё удаление. Лично.', line: 'Мороз? Удалена мной. За громкость. Заблокировать.' },
+  vatnik: { name: T['ins.vatnik.name'], tag: T['ins.vatnik.tag'], line: T['ins.vatnik.line'] },
+  omon: { name: T['ins.omon.name'], tag: T['ins.omon.tag'], line: T['ins.omon.line'] },
+  omon_shield: { name: T['ins.shield.name'], tag: T['ins.shield.tag'], line: T['ins.shield.line'] },
+  zek: { name: T['ins.zek.name'], tag: T['ins.zek.tag'], line: T['ins.zek.line'] },
+  clerk: { name: T['ins.clerk.name'], tag: T['ins.clerk.tag'], line: T['ins.clerk.line'] },
+  info_m: { name: T['ins.infm.name'], tag: T['ins.infm.tag'], line: T['ins.infm.line'] },
+  info_f: { name: T['ins.inff.name'], tag: T['ins.inff.tag'], line: T['ins.inff.line'] },
+  shaman: { name: T['ins.shaman.name'], tag: T['ins.shaman.tag'], line: T['ins.shaman.line'] },
+  pizdulina: { name: T['ins.pizd.name'], tag: T['ins.pizd.tag'], line: T['ins.pizd.line'] },
+  katya: { name: T['ins.katya.name'], tag: T['ins.katya.tag'], line: T['ins.katya.line'] },
 };

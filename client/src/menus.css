@@ -46,12 +46,17 @@ button[aria-pressed="true"], button.selected { outline: 2px solid var(--gold); c
 .story-card.notification, .story-card.notification * { text-shadow: none; }
 .story-card.notification h2 { color: #2867b2; font: inherit; font-weight: bold; }
 .story-card.notification button { font: inherit; }
+.story-card .story-portrait { width: min(18vw, 90px); height: min(18vw, 90px); object-fit: contain; image-rendering: pixelated; margin: 2px; }
+.story-card .story-frame { max-width: min(85vw, 600px); max-height: 42dvh; object-fit: contain; image-rendering: pixelated; }
 #lostBox { z-index: 15; }
 @media (max-width: 700px) { .home { grid-template-columns: 1fr 280px; gap: 10px; } .brand h1 { font-size: 14px; } }
 @media (max-height: 400px) { .overlay { gap: 6px; } .actions { gap: 2px; } .story-card { line-height: 1.8; } .story-card p, .story-card h1, .story-card h3 { margin: 4px 0; } }
 .hero-role { display:block; font: 7px/1.6 'Press Start 2P', monospace; min-height:34px; color:var(--cream); }
 .story-card { max-height:calc(100dvh - 28px); overflow:auto; touch-action:pan-y; }
 .story-card.notification small { display:block; font:12px/1.4 sans-serif; color:#888; }
+.story-card.story-terminal { background:#111b18; color:#a8f3bf; border:2px solid #3a8e5b; padding:16px; font:14px/1.55 monospace; text-align:left; }
+.story-card.story-terminal small { display:block; color:#62c486; margin-bottom:8px; }
+.story-card.story-terminal p { font:inherit; overflow-wrap:anywhere; }
 .story-card:has(.final-scroll) { display:flex; flex-direction:column; overflow:hidden; }
 .final-scroll { overflow-y:auto; min-height:0; touch-action:pan-y; }
 .story-card > button { flex-shrink:0; }

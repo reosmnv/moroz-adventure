@@ -2,7 +2,7 @@ import type * as Phaser from 'phaser';
 
 export interface Settings { sound: boolean; flashes: 'full' | 'soft' | 'off'; shake: boolean }
 const KEY = 'bc-settings';
-const DEFAULTS: Settings = { sound: true, flashes: 'full', shake: true };
+const DEFAULTS: Settings = { sound: true, flashes: 'soft', shake: true };
 function load(): Settings {
   try {
     const value = JSON.parse(localStorage.getItem(KEY) ?? 'null');

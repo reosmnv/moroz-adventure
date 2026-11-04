@@ -1,0 +1,12 @@
+{
+ "katya-v3": {
+  "status": "queued",
+  "job_id": "fd75c9eb-e9bb-481e-a546-060fab010f6f",
+  "out": "{\n  \"background_job_id\": \"fd75c9eb-e9bb-481e-a546-060fab010f6f\",\n  \"character_id\": \"9283a76c-e26b-4bcc-a7ff-88a5d289bf65\",\n  \"status\": \"processing\",\n  \"first_direction_generated\": true,\n  \"estimated_generations\": 6,\n  \"job_id\": \"fd75c9eb-e9bb-481e-a546-060fab010f6f\",\n  \"n_directions\": 8,\n  \"poll_tool\": \"get_character\",\n  \"status_path\": \"/v2/background-jobs/fd75c9eb-e9bb-481e-a546-060fab010f6f\",\n  \"download_path\": \"/mcp/characters/9283a76c-e26b-4bcc-a7ff-88a5d289bf65/download\"\n}\nid: 9283a76c-e26b-4bcc-a7ff-88a5d289bf65\nPoll get_character(character_id=\"9283a76c-e26b-4bcc-a7ff-88a5d289bf65\") or /"
+ },
+ "milonov-v3": {
+  "status": "queued",
+  "job_id": "dd4b13b7-4679-42f0-bb00-0f5c79cf05e5",
+  "out": "{\n  \"background_job_id\": \"dd4b13b7-4679-42f0-bb00-0f5c79cf05e5\",\n  \"character_id\": \"9ab5096f-a5fc-4cf6-9c70-ae423f2f02d6\",\n  \"status\": \"processing\",\n  \"first_direction_generated\": true,\n  \"estimated_generations\": 6,\n  \"job_id\": \"dd4b13b7-4679-42f0-bb00-0f5c79cf05e5\",\n  \"n_directions\": 8,\n  \"poll_tool\": \"get_character\",\n  \"status_path\": \"/v2/background-jobs/dd4b13b7-4679-42f0-bb00-0f5c79cf05e5\",\n  \"download_path\": \"/mcp/characters/9ab5096f-a5fc-4cf6-9c70-ae423f2f02d6/download\"\n}\nid: 9ab5096f-a5fc-4cf6-9c70-ae423f2f02d6\nPoll get_character(character_id=\"9ab5096f-a5fc-4cf6-9c70-ae423f2f02d6\") or /"
+ }
+}

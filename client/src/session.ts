@@ -4,6 +4,7 @@ import { Client, type Room } from '@colyseus/sdk';
 import {
   encountersOf, switchHero, testHeal, testGod, testKillAll, TEST_TOOLS, TICK_MS, nextStage, addPlayer, chargeUlt, createWorld, emptyInput, spawnEnemies, step, takenChars,
   type Anim, type Form, type Input, type SimEvent, type World,
+  advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus,
 } from '@bc/shared';
 
 export interface EntitySnap {
@@ -11,10 +12,11 @@ export interface EntitySnap {
   god?: boolean; x: number; y: number; hp: number; facing: number; anim: Anim; char?: string; ult?: number; connected?: boolean; away?: boolean; maxHp?: number; dummy?: boolean; air?: number; height?: number; frozen?: boolean; storm?: number;
   fDashMs?: number; idleInput?: boolean; hiddenMs?: number; heavySmokeMs?: number; fireMs?: number; burnMs?: number; markedBy?: string;
   form?: Form; move?: string; moveT?: number; formMs?: number; combo?: number; hitCount?: number; bCombo?: number; charge2?: number; invuln?: boolean;
+  bCooldownMs?: number; bChainActive?: boolean; fireFacing?: number; shooting?: boolean;
   enterMs?: number; kind?: string; phase?: string; boss?: string; bossPhase?: number; atk?: string;
   slow?: boolean; stun?: boolean; charm?: boolean;
 }
-export interface Snapshot { storyTime: number; storyPushes: number[]; pausedBy: string; pauseMs: number; slowmoMs: number; halt: number; cineId: string; cineKind: string; cineMs: number; shots: { x: number; y: number; dir: number }[]; zones: { x: number; y: number; r: number; ms: number }[]; lockX0: number; lockX1: number; encDone: number; encTotal: number; won: boolean; level: 'route' | 'old'; stage: number; trans: number; t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
+export interface Snapshot { recording: boolean; finaleReady: boolean; wantedStars: number; wantedReward: number; storyScene: string; storyIndex: number; storyHost: string; storyTime: number; storyPushes: number[]; pausedBy: string; pauseMs: number; slowmoMs: number; halt: number; cineId: string; cineKind: string; cineMs: number; shots: { x: number; y: number; dir: number }[]; zones: { x: number; y: number; r: number; ms: number }[]; lockX0: number; lockX1: number; encDone: number; encTotal: number; won: boolean; level: 'route' | 'old'; stage: number; trans: number; t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
 export type Button = 'skip' | 'attack' | 'heavy' | 'taunt' | 'ult' | 'ult2';
 
 export interface GameSession {
@@ -30,6 +32,7 @@ export interface GameSession {
   readonly kind: 'local' | 'online';
   needsIntro(): boolean;
   finishIntro(): void;
+  advanceStory(key: string): void;
   me: string;
   roomId: string;
   status: string;
@@ -38,6 +41,8 @@ export interface GameSession {
   move(mx: number, my: number, run: boolean): void;
   press(b: Button): void;
   holdSmoke(on: boolean): void;
+  holdFire(on: boolean): void;
+  resetControls(): void;
   view(x: number, width: number): void;
   spawn(): void;
   next(): void;
@@ -71,31 +76,34 @@ export class LocalSession implements GameSession {
   snapshots: Snapshot[] = [];
   onEvents: (evs: SimEvent[]) => void = () => {};
   private world: World;
+  private story = createStoryProgress();
   private input: Input = emptyInput();
   private timer = 0;
   private intro = false;
   needsIntro() { return this.intro; }
-  finishIntro() { this.intro = false; this.input = emptyInput(); }
+  finishIntro() { this.intro = false; this.resetControls(); }
   private paused = false;
 
   constructor(level: 'route' | 'old' = 'route', stage = 0, testMode = false) {
     testMode = TEST_TOOLS && testMode;
     stage = testMode ? stage : 0;
-    this.intro = !testMode && level === 'route' && stage === 0;
+    this.intro = false;
     this.world = createWorld(Date.now() & 0xffff, testMode, level, stage);
     this.timer = window.setInterval(() => this.tick(), TICK_MS);
   }
 
   private tick() {
     if (document.hidden) return; // офлайн-пауза в фоне и по кнопке
-    const evs = this.intro || this.paused ? [] : step(this.world, { [this.me]: this.input });
+    if (this.world.players[this.me] && startStoryForWorld(this.story, this.world)) this.resetControls();
+    const evs = this.intro || this.paused || !!this.story.scene ? [] : step(this.world, { [this.me]: this.input });
+    if (this.world.players[this.me] && startStoryForWorld(this.story, this.world)) this.resetControls();
     this.input.attack = this.input.heavy = this.input.taunt = this.input.ult = this.input.skip = false;
     if (this.world.players[this.me]?.char !== 'ramil') this.input.ult2 = false;
     const players = new Map<string, EntitySnap>();
     for (const p of Object.values(this.world.players)) players.set(p.id, { ...p, storm: p.stormMs, invuln: p.invulnMs > 0 });
     const enemies = new Map<string, EntitySnap>();
     for (const e of Object.values(this.world.enemies)) enemies.set(e.id, { ...e, meteorX: e.thrown?.x, meteorY: e.thrown?.y, meteorMs: e.thrown?.ms, carryBy: e.held?.by ?? e.thrown?.by ?? '', thrown: !!e.thrown, carried: !!(e.held || e.thrown), kind: e.boss ?? e.kind, frozen: (e.frozenMs ?? 0) > 0, slow: (e.slowMs ?? 0) > 0, stun: (e.stunMs ?? 0) > 0, charm: (e.charmMs ?? 0) > 0 });
-    pushSnap(this.snapshots, { storyTime: this.world.timeMs, storyPushes: [...(this.world.storyPushes ?? [])], pausedBy: this.paused ? this.me : '', pauseMs: this.world.pauseMs ?? 0, slowmoMs: this.world.slowmoMs ?? 0, halt: this.world.halt, cineId: this.world.cine?.id ?? '', cineKind: this.world.cine?.kind ?? '', cineMs: this.world.cine?.ms ?? 0, shots: this.world.shots.map(s => ({ ...s })), zones: this.world.zones.map(z => ({ ...z })), t: performance.now(), players, enemies, lockX0: this.world.enc.lock?.[0] ?? -1, lockX1: this.world.enc.lock?.[1] ?? -1, encDone: this.world.enc.cleared, encTotal: encountersOf(this.world).length, won: this.world.won, level: this.world.level, stage: this.world.stage, trans: this.world.trans?.ms ?? 0, wave: this.world.wave, tick: this.world.tick });
+    pushSnap(this.snapshots, { recording: this.story.flags.recording === 'on', finaleReady: this.story.flags.finaleReady === 'on', wantedStars: wantedStatus(this.world, this.story).stars, wantedReward: wantedStatus(this.world, this.story).reward, storyScene: this.story.scene, storyIndex: this.story.index, storyHost: this.me, storyTime: this.world.timeMs, storyPushes: [...(this.world.storyPushes ?? [])], pausedBy: this.paused ? this.me : '', pauseMs: this.world.pauseMs ?? 0, slowmoMs: this.world.slowmoMs ?? 0, halt: this.world.halt, cineId: this.world.cine?.id ?? '', cineKind: this.world.cine?.kind ?? '', cineMs: this.world.cine?.ms ?? 0, shots: this.world.shots.map(s => ({ ...s })), zones: this.world.zones.map(z => ({ ...z })), t: performance.now(), players, enemies, lockX0: this.world.enc.lock?.[0] ?? -1, lockX1: this.world.enc.lock?.[1] ?? -1, encDone: this.world.enc.cleared, encTotal: encountersOf(this.world).length, won: this.world.won, level: this.world.level, stage: this.world.stage, trans: this.world.trans?.ms ?? 0, wave: this.world.wave, tick: this.world.tick });
     if (evs.length) this.onEvents(evs);
   }
 
@@ -103,6 +111,8 @@ export class LocalSession implements GameSession {
   press(b: Button) { this.input[b] = true; }
   view(x: number, width: number) { this.input.viewX = x; this.input.viewW = width; }
   holdSmoke(on: boolean) { this.input.ult2 = on; }
+  holdFire(on: boolean) { this.input.fireHeld = on && this.world.players[this.me]?.char === 'kris'; }
+  resetControls() { this.input = emptyInput(); }
   next() { if (this.testMode) nextStage(this.world); }
   spawn() { if (this.testMode) spawnEnemies(this.world, 3); }
   charge() { if (this.testMode) chargeUlt(this.world, this.me); }
@@ -110,17 +120,18 @@ export class LocalSession implements GameSession {
   god(on: boolean) { if (this.testMode) testGod(this.world, this.me, on); }
   killAll() { if (this.testMode) testKillAll(this.world); }
   switchHero(char: string) {
-    if (!switchHero(this.world, this.me, char)) this.onPickError('Персонаж занят');
-    else this.input = emptyInput();
+    this.resetControls();
+    if (this.story.scene || !switchHero(this.world, this.me, char)) this.onPickError('Персонаж занят');
   }
-  pick(char: string) { addPlayer(this.world, this.me, char); }
-  setPaused(on: boolean) { this.paused = on; }
+  pick(char: string) { addPlayer(this.world, this.me, char); if (this.world.level === 'route' && this.world.stage === 0) { startStory(this.story, 'start'); this.resetControls(); } }
+  advanceStory(key: string) { if (advanceStory(this.story, key)) this.resetControls(); }
+  setPaused(on: boolean) { this.resetControls(); this.paused = on; }
   isPaused() { return this.paused; }
   pausedByMe() { return true; }
   taken() { return takenChars(this.world); }
   hasMe() { return !!this.world.players[this.me]; }
   ping() { return 0; }
-  leave() { clearInterval(this.timer); }
+  leave() { this.resetControls(); clearInterval(this.timer); }
 }
 
 const TOKEN_KEY = 'bc-reconnect';
@@ -147,7 +158,7 @@ export class OnlineSession implements GameSession {
   connectionLost = false;
   private left = false;
   private visibility = async () => {
-    if (document.hidden) { this.saveToken(); this.safeSend('away', true); return; }
+    if (document.hidden) { this.resetControls(); this.saveToken(); this.safeSend('away', true); return; }
     await this.reconnect();
     this.safeSend('away', false);
   };
@@ -166,7 +177,7 @@ export class OnlineSession implements GameSession {
   private pausedBy = '';
   private intro = false;
   needsIntro() { return !this.testMode && this.intro; }
-  finishIntro() { this.safeSend('introDone', true); }
+  finishIntro() { this.resetControls(); this.safeSend('introDone', true); }
 
   private safeSend(type: string, payload: unknown) {
     if (this.room?.connection?.isOpen) this.room.send(type, payload);
@@ -210,10 +221,10 @@ export class OnlineSession implements GameSession {
       this.testMode = state.testMode === true;
       this.intro = state.intro;
       const players = new Map<string, EntitySnap>();
-      state.players.forEach((p: any, id: string) => players.set(id, { god: p.god, ultLevel: p.ultLevel, ultWindow: p.ultWindow, x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, fDashMs: p.fDashMs, idleInput: p.idleInput, hiddenMs: p.hiddenMs, heavySmokeMs: p.heavySmokeMs, fireMs: p.fireMs, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
+      state.players.forEach((p: any, id: string) => players.set(id, { god: p.god, ultLevel: p.ultLevel, ultWindow: p.ultWindow, x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, fDashMs: p.fDashMs, idleInput: p.idleInput, hiddenMs: p.hiddenMs, heavySmokeMs: p.heavySmokeMs, fireMs: p.fireMs, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, bCooldownMs: p.bCooldownMs, bChainActive: p.bChainActive, fireFacing: p.fireFacing, shooting: p.shooting, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
       state.enemies.forEach((e: any, id: string) => enemies.set(id, { meteorX: e.meteorX, meteorY: e.meteorY, meteorMs: e.meteorMs, ultStopMs: e.ultStopMs, carryBy: e.carryBy, thrown: e.thrown, carried: e.carried, carryAngle: e.carryAngle, carryHeight: e.carryHeight, burnMs: e.burnMs, markedBy: e.markedBy, enterMs: e.enterMs, boss: e.boss, bossPhase: e.bossPhase, atk: e.atk, kind: e.kind, phase: e.phase, x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
-      pushSnap(this.snapshots, { storyTime: state.storyTime, storyPushes: JSON.parse(state.storyPushes || '[]'), pausedBy: state.pausedBy, pauseMs: state.pauseMs, slowmoMs: state.slowmoMs, halt: state.halt, cineId: state.cineId, cineKind: state.cineKind, cineMs: state.cineMs, shots: Array.from(state.shots, (s: any) => ({ x: s.x, y: s.y, dir: s.dir })), zones: Array.from(state.zones, (z: any) => ({ x: z.x, y: z.y, r: z.r, ms: z.ms })), t: performance.now(), players, enemies, lockX0: state.lockX0, lockX1: state.lockX1, encDone: state.encDone, encTotal: state.encTotal, won: state.won, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
+      pushSnap(this.snapshots, { recording: state.recording, finaleReady: state.finaleReady, wantedStars: state.wantedStars, wantedReward: state.wantedReward, storyScene: state.storyScene, storyIndex: state.storyIndex, storyHost: state.storyHost, storyTime: state.storyTime, storyPushes: JSON.parse(state.storyPushes || '[]'), pausedBy: state.pausedBy, pauseMs: state.pauseMs, slowmoMs: state.slowmoMs, halt: state.halt, cineId: state.cineId, cineKind: state.cineKind, cineMs: state.cineMs, shots: Array.from(state.shots, (s: any) => ({ x: s.x, y: s.y, dir: s.dir })), zones: Array.from(state.zones, (z: any) => ({ x: z.x, y: z.y, r: z.r, ms: z.ms })), t: performance.now(), players, enemies, lockX0: state.lockX0, lockX1: state.lockX1, encDone: state.encDone, encTotal: state.encTotal, won: state.won, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
       if (this.testMode && this.intro && players.has(this.me)) this.finishIntro();
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;
@@ -221,10 +232,10 @@ export class OnlineSession implements GameSession {
     });
     room.onMessage('ev', (evs: SimEvent[]) => this.onEvents(evs));
     room.onMessage('pickError', (m: string) => this.onPickError(m));
-    room.onDrop(() => { this.status = 'связь потеряна, переподключаюсь…'; });
+    room.onDrop(() => { this.resetControls(); this.status = 'связь потеряна, переподключаюсь…'; });
     room.onReconnect(() => {
       if (this.left || this.room !== room) return;
-      this.status = 'онлайн'; this.connectionLost = false; this.lastMove = this.lastView = '';
+      this.resetControls(); this.status = 'онлайн'; this.connectionLost = false;
       // SDK обновляет токен после вызова обработчика.
       queueMicrotask(() => this.saveToken());
     });
@@ -238,6 +249,7 @@ export class OnlineSession implements GameSession {
 
   // Ручное переподключение: iOS убивает сокет и страницу в фоне, авто-реконнект SDK это не покрывает
   async reconnect() {
+    this.resetControls();
     if (this.left || this.reconnecting || this.room?.reconnection.isReconnecting || this.room?.connection?.isOpen) return;
     const saved = savedReconnect();
     if (!saved) { this.connectionLost = true; return; }
@@ -261,25 +273,40 @@ export class OnlineSession implements GameSession {
   move(mx: number, my: number, run: boolean) {
     const key = mx.toFixed(1) + ',' + my.toFixed(1) + (run ? 'r' : '');
     if (key === this.lastMove) return;
+    if (!this.room?.connection?.isOpen) return;
     this.lastMove = key;
     this.safeSend('move', { mx, my, run });
   }
   press(b: Button) { this.safeSend('btn', b); }
+  advanceStory(key: string) { this.safeSend('storyNext', key); }
   private lastView = '';
   view(x: number, width: number) {
     const key = Math.round(x) + ':' + width;
-    if (key !== this.lastView) { this.lastView = key; this.safeSend('view', { x: Math.round(x), width }); }
+    if (key !== this.lastView && this.room?.connection?.isOpen) { this.lastView = key; this.safeSend('view', { x: Math.round(x), width }); }
   }
   holdSmoke(on: boolean) { this.safeSend('smoke', on); }
+  private fireHeld = false;
+  holdFire(on: boolean) {
+    const isKris = this.snapshots.at(-1)?.players.get(this.me)?.char === 'kris';
+    const next = on && isKris && !this.paused && !this.introOpen && !this.intro && !document.hidden;
+    if (next === this.fireHeld) return;
+    this.fireHeld = next;
+    this.safeSend('fire', next);
+  }
+  resetControls() {
+    this.fireHeld = false;
+    this.lastMove = this.lastView = '';
+    this.safeSend('clear', true);
+  }
   next() { if (this.testMode) this.safeSend('next', true); }
   spawn() { if (this.testMode) this.safeSend('spawn', true); }
   charge() { if (this.testMode) this.safeSend('charge', true); }
   heal() { if (this.testMode) this.safeSend('heal', true); }
   god(on: boolean) { if (this.testMode) this.safeSend('god', on); }
   killAll() { if (this.testMode) this.safeSend('killall', true); }
-  switchHero(char: string) { this.safeSend('switch', char); }
+  switchHero(char: string) { this.resetControls(); this.safeSend('switch', char); }
   pick(char: string) { this.safeSend('pick', char); }
-  setPaused(on: boolean) { this.safeSend('pause', on); }
+  setPaused(on: boolean) { this.resetControls(); this.safeSend('pause', on); }
   isPaused() { return this.paused; }
   pausedByMe() { return this.pausedBy === this.me; }
   taken() {
@@ -292,6 +319,7 @@ export class OnlineSession implements GameSession {
   }
   ping() { return this.lastPing; }
   leave() {
+    this.resetControls();
     this.left = true;
     document.removeEventListener('visibilitychange', this.visibility);
     clearInterval(this.pingTimer);

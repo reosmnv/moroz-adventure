@@ -1,0 +1,32 @@
+{
+ "katya-v3-idle": {
+  "status": "queued",
+  "job_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+  "out": "character: 9283a76c-e26b-4bcc-a7ff-88a5d289bf65\nanimation: fight-stance-idle-8-frames\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=66c04e8c-bb66-41af-90f7-89eada000090\ngroup: 1ec169d1-5666-4e30-af1d-2694665f3ed7\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"9283a76c-e26b-4bcc-a7ff-88a5d289bf65\", mode=\"skeleton-v3\", template_animation_id=\"fight-stance-idle-8-frames\", animation_group_id=\"1ec169d1-5666-4e30-af1d-2694665f3ed7\", directions=[...])\n\nhint: get_character(character_id=\"9283a76c-e26b-4bcc-a7ff-88a5d"
+ },
+ "katya-v3-walk": {
+  "status": "queued",
+  "job_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+  "out": "character: 9283a76c-e26b-4bcc-a7ff-88a5d289bf65\nanimation: walk\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=363a2be3-5fbf-4237-926a-f5cefb4d3d30\ngroup: 5b702d3a-0aa1-45f7-be05-31bcf4f82043\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"9283a76c-e26b-4bcc-a7ff-88a5d289bf65\", mode=\"skeleton-v3\", template_animation_id=\"walk\", animation_group_id=\"5b702d3a-0aa1-45f7-be05-31bcf4f82043\", directions=[...])\n\nhint: get_character(character_id=\"9283a76c-e26b-4bcc-a7ff-88a5d289bf65\")"
+ },
+ "katya-v3-hurt": {
+  "status": "queued",
+  "job_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+  "out": "character: 9283a76c-e26b-4bcc-a7ff-88a5d289bf65\nanimation: taking-punch\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=1c133fba-4f5a-4a85-8dee-4780bb8c2c10\ngroup: 5d5612b7-f8af-4343-9952-7ec2ed9ba7b5\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"9283a76c-e26b-4bcc-a7ff-88a5d289bf65\", mode=\"skeleton-v3\", template_animation_id=\"taking-punch\", animation_group_id=\"5d5612b7-f8af-4343-9952-7ec2ed9ba7b5\", directions=[...])\n\nhint: get_character(character_id=\"9283a76c-e26b-4bcc-a7ff-88a5d289bf65\")"
+ },
+ "katya-v3-fall": {
+  "status": "queued",
+  "job_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+  "out": "character: 9283a76c-e26b-4bcc-a7ff-88a5d289bf65\nanimation: falling-back-death\nmode: skeleton-v3\ndirections: east (1 jobs)\njob_ids: east=4412413a-e5fd-4587-8311-d2679d0d9f58\ngroup: 1b4f81cb-398d-47ff-9262-80ad4d60ee95\ncost: 3 generations (3/dir x 1)\neta: ~3-5 min/direction\nadd more directions to this group: animate_character(character_id=\"9283a76c-e26b-4bcc-a7ff-88a5d289bf65\", mode=\"skeleton-v3\", template_animation_id=\"falling-back-death\", animation_group_id=\"1b4f81cb-398d-47ff-9262-80ad4d60ee95\", directions=[...])\n\nhint: get_character(character_id=\"9283a76c-e26b-4bcc-a7ff-88a5d289bf65\")"
+ },
+ "katya-v3-attack": {
+  "status": "queued",
+  "job_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+  "out": "character: 9283a76c-e26b-4bcc-a7ff-88a5d289bf65\nanimation: pixminimax custom (pulls her right fist far back and holds, then throws a huge heavy straight punch forward with her whole body, then returns to her fighting pose; stays in strict side profile facing right the whole time, never turns to the camera)\ndirections: east (1 jobs)\njob_ids: east=563a393f-37a6-46be-8d99-fb62d9afc724\ngroup: 245f7cbb-04ea-4d92-b53f-f76a4256f0f7\nframes: 17 (1 reference + 16 animated)\ncanvas: east 84x84 (frames are stored at this size: the character plus room to move)\ncost: 1 generation (1/dir x 1)\neta: ~2 min/dire"
+ },
+ "katya-v3-cast": {
+  "status": "queued",
+  "job_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+  "out": "character: 9283a76c-e26b-4bcc-a7ff-88a5d289bf65\nanimation: pixminimax custom (raises both fists high above her head and holds, then smashes both fists down into the floor in front of her with a heavy crouch, then straightens back to her fighting pose; stays in strict side profile facing right the whole time, never turns to the camera)\ndirections: east (1 jobs)\njob_ids: east=f0048f03-1a28-47b3-ae20-23ff20b5a971\ngroup: 1922b60a-a7dd-42e2-b80f-638aab0450d7\nframes: 17 (1 reference + 16 animated)\ncanvas: east 84x84 (frames are stored at this size: the character plus room to move)\ncost: 1 generation"
+ }
+}

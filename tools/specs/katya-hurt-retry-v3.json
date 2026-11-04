@@ -1,0 +1,15 @@
+[
+ {
+  "name": "katya-v3-hurt-retry",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ }
+]

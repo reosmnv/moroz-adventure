@@ -1,0 +1,20 @@
+[
+ {
+  "name": "katya-v3",
+  "tool": "create_character_pro_flash",
+  "args": {
+   "view": "side", "width": 64, "height": 64, "name": "katya-v3",
+   "style_image": {"base64": "@assets/enemy-concept/ref/style-anastasia.png", "usage_description": "match pixel density, 1px dark outline, shading and muted palette of this hero sprite"},
+   "description": "caricature beat-em-up boss: a slim young woman dressed as Bane. Long straight chestnut-brown hair parted in the middle with face-framing strands falling past the shoulders, light skin, visible eyes. Bane-style dark metal breathing mask over her mouth and nose with short vertical tubes. Oversized beige khaki button shirt worn open like a jacket with rolled sleeves, over a dark olive tactical vest with chest straps, broad padded shoulders. Light-blue frayed denim mini skirt over loose light grey trousers, heavy black combat boots, dark fingerless gloves, fists raised. Menacing stance, side view beat-em-up boss, no text"
+  }
+ },
+ {
+  "name": "milonov-v3",
+  "tool": "create_character_pro_flash",
+  "args": {
+   "view": "side", "width": 64, "height": 64, "name": "milonov-v3",
+   "style_image": {"base64": "@assets/enemy-concept/ref/style-anastasia.png", "usage_description": "match pixel density, 1px dark outline, shading and muted palette of this hero sprite"},
+   "description": "caricature of a stout middle-aged male politician: ginger-red hair combed back with a receding hairline, thick full ginger-red beard, rectangular dark-framed glasses, pale flushed skin, dark navy suit, white shirt, dark polka-dot tie, small pin on the lapel, round belly, pompous frowning expression, standing upright holding a pen. Side view, no text"
+  }
+ }
+]

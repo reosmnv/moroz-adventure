@@ -1,5 +1,9 @@
 # AGENTS.md: правила для Codex в birthday-coop
 
+> **С 03.11.2026 Codex ведёт проект сам: сначала прочитай `CODEX-LEAD.md`.** Он заменяет роль Claude и снимает часть запретов ниже (коммит, пуш, рестарт сервиса, test:net, Playwright, PixelLab, ведение HANDOFF/PLAN/tasks). Если mr.R явно вернул схему «Claude пишет ТЗ», действуют правила ниже целиком.
+>
+> **Прогон в браузере и механика PixelLab (правило mr.R):** сначала Claude Haiku: `ops/haiku.sh playtester scratchpad/playtest-report.md '<полный сценарий>'` (или агент `anim-producer`). Сам Playwright не гоняй и `npx playwright test` не используй. Только если скрипт вернул код 3 (Claude недоступен), запускай `codex exec -m gpt-6.1-terra --sandbox danger-full-access -o scratchpad/playtest-report.md 'Используй $playtester. ...'`. Подробно: `CODEX-LEAD.md`, раздел «Помощники».
+
 Кооп-битэмап ко дню рождения, вручение 07.11.2026. Ты (Codex) пишешь код по ТЗ из `tasks/TZ-NN-*.md`. ТЗ и приёмку делает Claude, решения принимает mr.R. Полные правила проекта: `CLAUDE.md`, план: `PLAN.md`.
 
 ## Как работаем

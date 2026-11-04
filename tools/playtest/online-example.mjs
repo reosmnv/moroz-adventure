@@ -1,0 +1,21 @@
+import { chromium } from '/home/agent/node_modules/playwright/index.mjs';
+const S = process.argv[2];
+const b = await chromium.launch();
+const mk = async () => { const p = await b.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true }); p.on('pageerror', e => console.log('ERR', e.message)); return p; };
+const h = await mk();
+await h.goto('http://127.0.0.1:5199/'); await h.waitForTimeout(1200);
+await h.click('#start'); await h.click('#newOnline'); await h.waitForTimeout(2500);
+await h.screenshot({ path: S + '/h1-room.png' });
+const url = h.url(); console.log('URL', url);
+const g = await mk(); await g.goto(url); await g.waitForTimeout(1500);
+await g.screenshot({ path: S + '/g1-menu.png' });
+await g.click('#linkJoin'); await g.waitForTimeout(2000); await g.screenshot({ path: S + '/g2-after-join.png' });
+await h.click('#closeShareBtn'); await h.waitForTimeout(1000);
+await h.click('#chars button >> nth=0'); await h.waitForTimeout(1000); await h.screenshot({ path: S + '/h2-intro.png' });
+await g.click('#chars button >> nth=1'); await g.waitForTimeout(1000); await g.screenshot({ path: S + '/g3-after-pick.png' });
+for (const p of [h, g]) { for (let i = 0; i < 6; i++) { const btn = p.locator('.story-card button'); if (await btn.count()) await btn.first().click(); else await p.mouse.click(422, 370); await p.waitForTimeout(900); } }
+await h.waitForTimeout(2500);
+await h.screenshot({ path: S + '/h3-game.png' }); await g.screenshot({ path: S + '/g4-game.png' });
+await h.click('#pauseBtn', { force: true }); await h.waitForTimeout(700);
+await g.screenshot({ path: S + '/g5-paused.png' });
+await b.close();

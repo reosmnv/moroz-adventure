@@ -3,6 +3,7 @@ import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
   encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars, switchHero, testHeal, testGod, testKillAll,
   type Input, type World,
+  advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus,
 } from '@bc/shared';
 
 export const PlayerState = schema({
@@ -24,6 +25,7 @@ export const PlayerState = schema({
   bCombo: t.number(),
   hitCount: t.number(),
   charge2: t.number(),
+  bCooldownMs: t.number(), bChainActive: t.boolean(), fireFacing: t.number(), shooting: t.boolean(),
   invuln: t.boolean(),
   connected: t.boolean(),
   away: t.boolean(),
@@ -56,6 +58,8 @@ export type EnemyState = SchemaType<typeof EnemyState>;
 export const ShotState = schema({ x: t.number(), y: t.number(), dir: t.number() }, 'ShotState');
 export const ZoneState = schema({ x: t.number(), y: t.number(), r: t.number(), ms: t.number() }, 'ZoneState');
 export const GameState = schema({
+  recording: t.boolean(), finaleReady: t.boolean(), wantedStars: t.number(), wantedReward: t.number(),
+  storyScene: t.string(), storyIndex: t.number(), storyHost: t.string(),
   storyTime: t.number(), storyPushes: t.string(),
   pauseMs: t.number(), slowmoMs: t.number(),
   halt: t.number(), cineId: t.string(), cineKind: t.string(), cineMs: t.number(),
@@ -84,6 +88,8 @@ export class GameRoom extends Room<{ state: GameState }> {
   state = new GameState();
   world: World = createWorld(Date.now() & 0xffff, false);
   playerInputs: Record<string, Input> = {};
+  private story = createStoryProgress();
+  private storyHost = '';
   private introReaders = new Set<string>();
   private introReady = new Set<string>();
 
@@ -92,7 +98,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     const testMode = TEST_TOOLS && options.testMode === true;
     const stage = testMode && typeof options.stage === 'number' && Number.isInteger(options.stage) && options.stage >= 0 && options.stage < LEVELS[level].stages.length ? options.stage : 0;
     this.world = createWorld(Date.now() & 0xffff, testMode, level, stage);
-    this.state.intro = level === 'route' && stage === 0;
+    this.state.intro = false;
     this.sync();
     this.onMessage('next', (client: Client) => {
       if (this.world.testTools && this.world.players[client.sessionId]) nextStage(this.world);
@@ -107,12 +113,14 @@ export class GameRoom extends Room<{ state: GameState }> {
         return;
       }
       const p = addPlayer(this.world, client.sessionId, char);
+      if (!this.storyHost || !this.world.players[this.storyHost]) this.storyHost = client.sessionId;
+      if (level === 'route' && stage === 0 && startStory(this.story, 'start')) this.clearInputs();
       if (this.state.intro && !this.introReady.has(client.sessionId)) { this.introReaders.add(client.sessionId); p.away = true; }
       this.playerInputs[client.sessionId] = emptyInput();
     });
 
     this.onMessage('switch', (client: Client, char: string) => {
-      if (this.state.intro || !switchHero(this.world, client.sessionId, char)) {
+      if (this.state.intro || this.story.scene || !switchHero(this.world, client.sessionId, char)) {
         client.send('pickError', 'Персонаж занят');
         return;
       }
@@ -123,13 +131,17 @@ export class GameRoom extends Room<{ state: GameState }> {
 
     this.onMessage('move', (client: Client, m: { mx: number; my: number; run?: boolean }) => {
       const inp = this.playerInputs[client.sessionId];
-      if (inp && typeof m?.mx === 'number' && typeof m?.my === 'number') { inp.mx = m.mx; inp.my = m.my; inp.run = !!m.run; }
+      if (inp && !this.state.paused && !this.state.intro && !this.story.scene && !this.world.players[client.sessionId]?.away &&
+          Number.isFinite(m?.mx) && Number.isFinite(m?.my)) {
+        inp.mx = Math.max(-1, Math.min(1, m.mx)); inp.my = Math.max(-1, Math.min(1, m.my)); inp.run = m.run === true;
+      }
     });
 
     // Кнопки копятся до ближайшего тика, чтобы короткое нажатие не терялось
     this.onMessage('btn', (client: Client, b: string) => {
       const inp = this.playerInputs[client.sessionId];
-      if (inp && (b === 'skip' || b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult' || b === 'ult2')) inp[b] = true;
+      if (inp && !this.state.paused && !this.state.intro && !this.story.scene && !this.world.players[client.sessionId]?.away &&
+          (b === 'skip' || b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult' || b === 'ult2')) inp[b] = true;
     });
 
     this.onMessage('view', (client: Client, v: { x?: number; width?: number }) => {
@@ -137,7 +149,18 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (inp && Number.isFinite(v?.x) && Number.isFinite(v?.width)) { inp.viewX = Math.max(0, Math.min(10000, v.x!)); inp.viewW = Math.max(480, Math.min(810, v.width!)); }
     });
     this.onMessage('smoke', (client: Client, on: unknown) => {
-      if (this.world.players[client.sessionId]?.char === 'ramil' && this.playerInputs[client.sessionId]) this.playerInputs[client.sessionId].ult2 = on === true;
+      if (this.world.players[client.sessionId]?.char === 'ramil' && this.playerInputs[client.sessionId] && !this.state.paused && !this.state.intro && !this.story.scene) this.playerInputs[client.sessionId].ult2 = on === true;
+    });
+    this.onMessage('fire', (client: Client, on: unknown) => {
+      const p = this.world.players[client.sessionId], inp = this.playerInputs[client.sessionId];
+      if (p?.char === 'kris' && inp && typeof on === 'boolean') inp.fireHeld = on && !this.state.paused && !this.state.intro && !this.story.scene && !p.away && p.connected;
+    });
+    this.onMessage('clear', (client: Client) => {
+      if (this.playerInputs[client.sessionId]) this.playerInputs[client.sessionId] = emptyInput();
+    });
+    this.onMessage('storyNext', (client: Client, key: string) => {
+      if (client.sessionId !== this.storyHost || !this.world.players[client.sessionId]?.connected) return;
+      if (advanceStory(this.story, key)) { this.clearInputs(); this.sync(); }
     });
 
     // Тестовые команды доступны только в режиме комнаты
@@ -168,14 +191,17 @@ export class GameRoom extends Room<{ state: GameState }> {
 
     // Пауза общая на комнату: поставить и снять может любой из двоих
     this.onMessage('pause', (client: Client, on: boolean) => {
-      this.state.paused = !!on;
+      if (typeof on !== 'boolean' || !this.world.players[client.sessionId]) return;
+      for (const id of Object.keys(this.playerInputs)) this.playerInputs[id] = emptyInput();
+      this.state.paused = on;
       this.state.pausedBy = on ? client.sessionId : '';
     });
 
     // Свернул Safari: персонаж замирает, при всех свёрнутых мир стоит
     this.onMessage('away', (client: Client, on: boolean) => {
+      if (typeof on !== 'boolean') return;
       const p = this.world.players[client.sessionId];
-      if (p) { p.away = !!on || this.introReaders.has(client.sessionId); this.playerInputs[client.sessionId] = emptyInput(); }
+      if (p) { p.away = on || this.introReaders.has(client.sessionId); this.playerInputs[client.sessionId] = emptyInput(); }
     });
 
     this.setPatchRate(TICK_MS); // состояние уходит клиентам каждый тик, а не раз в 50 мс
@@ -191,9 +217,13 @@ export class GameRoom extends Room<{ state: GameState }> {
     if (this.state.pausedBy === id) { this.state.paused = false; this.state.pausedBy = ''; }
   }
 
+  private clearInputs() { for (const id of Object.keys(this.playerInputs)) this.playerInputs[id] = emptyInput(); }
+
   tick() {
-    if (this.state.paused || this.state.intro) { this.sync(); this.flushEvents(); return; }
+    if (Object.keys(this.world.players).length && startStoryForWorld(this.story, this.world)) this.clearInputs();
+    if (this.state.paused || this.state.intro || this.story.scene) { this.sync(); this.flushEvents(); return; }
     const events = step(this.world, this.playerInputs);
+    if (Object.keys(this.world.players).length && startStoryForWorld(this.story, this.world)) this.clearInputs();
     for (const [id, inp] of Object.entries(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.skip = false; if (this.world.players[id]?.char !== 'ramil') inp.ult2 = false; }
     this.sync();
     if (events.length) this.broadcast('ev', events);
@@ -202,6 +232,8 @@ export class GameRoom extends Room<{ state: GameState }> {
   // Копия мира в Schema: Colyseus сам отправит только изменившиеся поля
   sync() {
     const s = this.state, w = this.world;
+    const wanted = wantedStatus(w, this.story); s.recording = this.story.flags.recording === 'on'; s.finaleReady = this.story.flags.finaleReady === 'on'; s.wantedStars = wanted.stars; s.wantedReward = wanted.reward;
+    s.storyScene = this.story.scene; s.storyIndex = this.story.index; s.storyHost = this.storyHost;
     s.shots.clear(); for (const shot of w.shots) s.shots.push(new ShotState({ x: shot.x, y: shot.y, dir: shot.dir }));
     s.zones.clear(); for (const zone of w.zones) s.zones.push(new ZoneState({ x: zone.x, y: zone.y, r: zone.r, ms: zone.ms }));
     s.storyTime = w.timeMs; s.storyPushes = JSON.stringify(w.storyPushes ?? []);
@@ -221,7 +253,7 @@ export class GameRoom extends Room<{ state: GameState }> {
       ps.fDashMs = p.fDashMs ?? 0; ps.idleInput = !!p.idleInput; ps.hiddenMs = p.hiddenMs ?? 0; ps.heavySmokeMs = p.heavySmokeMs ?? 0; ps.fireMs = p.fireMs ?? 0;
       ps.char = p.char; ps.x = round(p.x); ps.y = round(p.y); ps.hp = p.hp; ps.facing = p.facing;
       ps.anim = p.anim; ps.ult = Math.floor(p.ult);
-      ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.bCombo = p.bCombo; ps.hitCount = p.hitCount; ps.charge2 = Math.floor(p.charge2); ps.storm = Math.round(p.stormMs); ps.invuln = p.invulnMs > 0;
+      ps.form = p.form; ps.move = p.move; ps.moveT = Math.round(p.moveT); ps.formMs = Math.round(p.formMs); ps.combo = p.combo; ps.bCombo = p.bCombo; ps.bCooldownMs = Math.max(0, Math.round(p.bCooldownMs ?? 0)); ps.bChainActive = !!p.bChainActive; ps.fireFacing = p.fireFacing ?? p.facing; ps.shooting = !!p.shooting; ps.hitCount = p.hitCount; ps.charge2 = Math.floor(p.charge2); ps.storm = Math.round(p.stormMs); ps.invuln = p.invulnMs > 0;
       ps.connected = p.connected; ps.away = p.away; ps.god = !!p.god;
     }
     for (const id of [...s.enemies.keys()]) if (!w.enemies[id]) s.enemies.delete(id);
@@ -240,6 +272,7 @@ export class GameRoom extends Room<{ state: GameState }> {
 
   onJoin(client: Client) {
     if (!this.state.introHost) this.state.introHost = client.sessionId;
+    if (!this.storyHost) this.storyHost = client.sessionId;
     console.log(`[${this.roomId}] join ${client.sessionId}`);
   }
 
@@ -248,13 +281,15 @@ export class GameRoom extends Room<{ state: GameState }> {
     this.unpause(client.sessionId);
     const p = this.world.players[client.sessionId];
     if (p) { p.connected = false; this.playerInputs[client.sessionId] = emptyInput(); }
+    if (this.storyHost === client.sessionId) this.storyHost = this.clients.find(c => c.sessionId !== client.sessionId && this.world.players[c.sessionId]?.connected)?.sessionId ?? '';
     console.log(`[${this.roomId}] drop ${client.sessionId}`);
     this.allowReconnection(client, RECONNECT_SECONDS);
   }
 
   onReconnect(client: Client) {
     const p = this.world.players[client.sessionId];
-    if (p) { p.connected = true; p.away = this.introReaders.has(client.sessionId); }
+    if (p) { p.connected = true; p.away = this.introReaders.has(client.sessionId); this.playerInputs[client.sessionId] = emptyInput(); }
+    if (!this.storyHost) this.storyHost = client.sessionId;
     console.log(`[${this.roomId}] reconnect ${client.sessionId}`);
   }
 
@@ -266,6 +301,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     }
     this.introReaders.delete(client.sessionId); this.introReady.delete(client.sessionId);
     removePlayer(this.world, client.sessionId);
+    if (this.storyHost === client.sessionId) this.storyHost = this.clients.find(c => c.sessionId !== client.sessionId && this.world.players[c.sessionId]?.connected)?.sessionId ?? '';
     delete this.playerInputs[client.sessionId];
     console.log(`[${this.roomId}] leave ${client.sessionId}`);
   }

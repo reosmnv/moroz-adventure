@@ -68,6 +68,8 @@ const HITS_PULSE_MS = 120;
 export class UIScene extends Phaser.Scene {
   session!: GameSession;
   private storyPush?: HTMLDivElement;
+  private wantedText!: Phaser.GameObjects.Text;
+  private recText!: Phaser.GameObjects.Text;
   private pushSeen = new Set<number>();
   private tips = new Map<string, Phaser.GameObjects.Text>();
   private movedMs = 0;
@@ -77,7 +79,6 @@ export class UIScene extends Phaser.Scene {
   private ultTipAt = 0;
   private tipTick = -1;
   private tipTime = 0;
-  private lastCard = false;
   private joyId = -1;
   private joyOrigin = new Phaser.Math.Vector2();
   private joyBase!: Phaser.GameObjects.Image;
@@ -123,6 +124,8 @@ export class UIScene extends Phaser.Scene {
     this.hitText = this.add.text(0, HITS_Y, '', { ...textStyle(), fontSize: HITS_FONT }).setOrigin(1, 0).setScrollFactor(0);
     this.testLabel = this.add.text(0, PANEL_Y + 33, 'ТЕСТ', textStyle(8, '#f2a541')).setScrollFactor(0);
     this.waveText = this.add.text(0, 44, '', textStyle()).setOrigin(0.5, 0);
+    this.wantedText = this.add.text(0, 6, '', textStyle(8, '#ffe45c')).setOrigin(1, 0);
+    this.recText = this.add.text(6, 55, '● REC', textStyle(8, '#ff4343'));
     for (let i = 0; i < 4; i++) this.panels.push(this.makePanel(PANEL_X + i * (PANEL_W + PANEL_GAP), PANEL_Y));
     this.testLabel.setX(PANEL_X + this.panels[0].name.x);
 
@@ -161,13 +164,19 @@ export class UIScene extends Phaser.Scene {
       KeyJ: 'attack', KeyK: 'heavy', KeyU: 'ult', KeyI: 'smoke', KeyL: 'taunt',
     };
     const isRamil = () => this.session.snapshots.at(-1)?.players.get(this.session.me)?.char === RAMIL_ID;
+    const isKris = () => this.session.snapshots.at(-1)?.players.get(this.session.me)?.char === KRIS_ID;
     kb.on('keydown', (e: KeyboardEvent) => {
       const b = CODES[e.code]; if (!b) return;
+      if (b === 'heavy' && isKris()) { this.fireKey = true; this.setHeld('heavy', true); this.syncFire(); return; }
       if (b !== 'smoke') { if (!e.repeat) this.tap(b); return; }
       this.smokeKey = true;
       if (isRamil()) this.syncSmoke(); else if (!e.repeat) this.tap('ult2');
     });
-    kb.on('keyup', (e: KeyboardEvent) => { if (CODES[e.code] === 'smoke') { this.smokeKey = false; this.syncSmoke(); } });
+    kb.on('keyup', (e: KeyboardEvent) => {
+      const b = CODES[e.code];
+      if (b === 'smoke') { this.smokeKey = false; this.syncSmoke(); }
+      if (b === 'heavy') { this.fireKey = false; this.setHeld('heavy', false); this.syncFire(); }
+    });
     // Палец ушёл в системный жест или окно потеряло фокус: отпускаем стик и кнопки
     this.game.events.on('blur', () => this.releaseAll());
   }
@@ -247,7 +256,11 @@ export class UIScene extends Phaser.Scene {
       const d = Phaser.Math.Distance.Between(p.x, p.y, x, y);
       if (d < bestD) { bestD = d; best = b.id; }
     }
-    if (best) { this.heldBy.set(p.id, best); this.tap(best); }
+    if (best) {
+      this.heldBy.set(p.id, best);
+      const krisFire = best === 'heavy' && this.session.snapshots.at(-1)?.players.get(this.session.me)?.char === KRIS_ID;
+      if (krisFire) { this.setHeld(best, true); this.syncFire(); } else this.tap(best);
+    }
   }
 
   private onMove(p: Phaser.Input.Pointer) {
@@ -259,7 +272,7 @@ export class UIScene extends Phaser.Scene {
 
   private onUp(p: Phaser.Input.Pointer) {
     const b = this.heldBy.get(p.id);
-    if (b) { this.heldBy.delete(p.id); this.setHeld(b, false); this.syncSmoke(); }
+    if (b) { this.heldBy.delete(p.id); this.setHeld(b, false); this.syncSmoke(); this.syncFire(); }
     if (p.id !== this.joyId) return;
     this.joyId = -1;
     this.joyBase.setPosition(JOY_REST.x, JOY_REST.y).setAlpha(JOY_IDLE_ALPHA);
@@ -270,6 +283,8 @@ export class UIScene extends Phaser.Scene {
   private smokeLabel?: Phaser.GameObjects.Text;
   private smokeKey = false;
   private smokeSent = false;
+  private fireKey = false;
+  private fireSent = false;
   private iconsFor = '';
   private setHeroIcons(char: string) {
     if (this.iconsFor === char) return;
@@ -301,8 +316,17 @@ export class UIScene extends Phaser.Scene {
     if (on !== this.smokeSent) { this.smokeSent = on; this.session.holdSmoke(on); }
   }
 
+  private syncFire() {
+    const on = this.session.snapshots.at(-1)?.players.get(this.session.me)?.char === KRIS_ID &&
+      (this.fireKey || [...this.heldBy.values()].includes('heavy'));
+    if (on !== this.fireSent) { this.fireSent = on; this.session.holdFire(on); }
+  }
+
   private releaseAll() {
-    this.smokeKey = false; this.smokeSent = false; this.session.holdSmoke(false);
+    this.smokeKey = false;
+    if (this.smokeSent) { this.smokeSent = false; this.session.holdSmoke(false); }
+    this.fireKey = false;
+    if (this.fireSent) { this.fireSent = false; this.session.holdFire(false); }
     for (const [id, b] of this.heldBy) { this.heldBy.delete(id); this.setHeld(b, false); }
     if (this.joyId !== -1) this.onUp({ id: this.joyId } as Phaser.Input.Pointer);
   }
@@ -371,18 +395,13 @@ export class UIScene extends Phaser.Scene {
       }
       const push = this.storyPush;
       push.replaceChildren();
-      const title = document.createElement('small'); title.textContent = 'Реестр';
+      const title = document.createElement('small'); title.textContent = 'Госуслуги';
       const body = document.createElement('div'); body.textContent = STORY.pushes[active];
       push.append(title, body); push.hidden = false;
       push.onclick = () => { this.pushSeen.add(active); push.hidden = true; };
     } else if (this.storyPush) this.storyPush.hidden = true;
     const p = last.players.get(this.session.me);
     if (!p) return;
-    if (!this.lastCard && last.stage === 6 && last.encDone === last.encTotal - 1 && last.lockX0 >= 0) {
-      this.lastCard = true;
-      const t = this.add.text(this.scale.width / 2, 100, STORY.mfcLast.join('\n'), { ...textStyle(12, '#ffe45c'), align: 'center', backgroundColor: '#120c19' }).setOrigin(0.5).setScrollFactor(0).setDepth(5000);
-      this.time.delayedCall(1700, () => t.destroy());
-    }
     if (this.session.testMode || this.session.introOpen || this.session.needsIntro()) return;
     if (this.tipTick !== last.tick) {
       const dt = this.tipTick < 0 ? 0 : Math.max(0, last.storyTime - this.tipTime);
@@ -408,6 +427,9 @@ export class UIScene extends Phaser.Scene {
     if (s.hasMe()) s.move(...this.readMove());
     const last = s.snapshots[s.snapshots.length - 1];
     if (!last) return;
+    if (s.isPaused() || s.connectionLost || s.introOpen || s.needsIntro() || last.storyScene) this.releaseAll();
+    this.wantedText.setX(this.scale.width - 8).setText(last.wantedStars ? `${'★'.repeat(last.wantedStars)}  ${last.wantedReward ? Math.round(last.wantedReward / 1000) + ' тыс. ₽' : ''}` : '');
+    this.recText.setVisible(last.recording && !last.finaleReady);
     this.waveText.setText(last.level === 'route' ? (last.stage === 3 && last.halt >= 0 && last.halt < HALT_MS ? '' : last.lockX0 < 0 ? STORY.service.forward : STORY.service.fight.replace('{n}', String(last.encDone + 1)).replace('{total}', String(last.encTotal))) : s.testMode ? 'ТЕСТ: МАНЕКЕН' : `ВОЛНА ${last.wave}`);
 
     this.updateStory(last);
@@ -498,7 +520,9 @@ export class UIScene extends Phaser.Scene {
           this.pips.fillStyle(color, i < bc ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
         }
         const move = HEAVY.ramil[bc];
-        this.bHint.setText(RAMIL_MOVE_NAMES[move as keyof typeof RAMIL_MOVE_NAMES]);
+        const cooldown = Math.ceil((me.bCooldownMs ?? 0) / 100) / 10;
+        this.bHint.setText(cooldown > 0 ? `B · ${cooldown.toFixed(1)}с` : RAMIL_MOVE_NAMES[move as keyof typeof RAMIL_MOVE_NAMES]);
+        hb.base.setAlpha(cooldown > 0 ? 0.35 : 1); hb.icon.setAlpha(cooldown > 0 ? 0.35 : 1);
         this.setHeavyIcon(heroIcon(me.char, RAMIL_HEAVY_ICON[move]));
       } else if (me.char === NADYA_ID) {
         // Серия B своя: под B тоже точки, иконка и подпись следующего удара
@@ -510,9 +534,12 @@ export class UIScene extends Phaser.Scene {
           this.pips.fillStyle(color, i < bc ? 1 : 0.4).fillRect(x, y, PIP_SIZE, PIP_SIZE);
         }
         const move = HEAVY.nadya[bc];
-        this.bHint.setText(NADYA_MOVE_NAMES[move] ?? '');
+        const cooldown = Math.ceil((me.bCooldownMs ?? 0) / 100) / 10;
+        this.bHint.setText(cooldown > 0 ? `B · ${cooldown.toFixed(1)}с` : NADYA_MOVE_NAMES[move] ?? '');
+        hb.base.setAlpha(cooldown > 0 ? 0.35 : 1); hb.icon.setAlpha(cooldown > 0 ? 0.35 : 1);
         this.setHeavyIcon(heroIcon(me.char, NADYA_HEAVY_ICON[move]));
       } else {
+        const hb = this.btns.get('heavy')!; hb.base.setAlpha(1); hb.icon.setAlpha(1);
         this.bHint.setText(MOVE_NAMES.b);
         this.setHeavyIcon(heroIcon(me.char!, 'icon-flash'));
       }
@@ -526,6 +553,7 @@ export class UIScene extends Phaser.Scene {
       }
       const bc = Math.min(me.bCombo ?? 0, 2);
       const hb = this.btns.get('heavy')!;
+      hb.base.setAlpha(1); hb.icon.setAlpha(1);
       for (let i = 0; i < 3; i++) {
         const x = hb.base.x - 10 + i * PIP_STEP, y = hb.base.y + PIP_Y;
         this.pips.fillStyle(INK).fillRect(x - 1, y - 1, 6, 6);
@@ -535,6 +563,7 @@ export class UIScene extends Phaser.Scene {
       this.bHint.setText(MOVE_NAMES[move] ?? '');
       this.setHeavyIcon('ui-heavy-' + NASTYA_HEAVY_ICON[move]);
     } else {
+      const hb = this.btns.get('heavy')!; hb.base.setAlpha(1); hb.icon.setAlpha(1);
       this.bHint.setText('');
       this.setHeavyIcon('ui-icon-heavy');
     }

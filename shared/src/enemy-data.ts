@@ -12,23 +12,24 @@ export interface RoleStats {
   dash?: { dist: number; speed: number }; // быстрый: удар = рывок по x
 }
 export const ROLE: Record<EnemyRole, RoleStats> = {
-  grunt: { hp: 60, speed: 45, dmg: 7,  windupMs: 450, activeMs: 100, recoverMs: 350, reach: 40, depth: 14, cdMs: 900 },
-  tank:  { hp: 140, speed: 32, dmg: 14, windupMs: 750, activeMs: 120, recoverMs: 550, reach: 46, depth: 16, cdMs: 1300, armor: true },
-  fast:  { hp: 42, speed: 75, dmg: 6,  windupMs: 550, activeMs: 340, recoverMs: 450, reach: 0,  depth: 14, cdMs: 1100, dash: { dist: 130, speed: 380 } },
+  grunt: { hp: 48, speed: 60, dmg: 6, windupMs: 400, activeMs: 100, recoverMs: 250, reach: 40, depth: 14, cdMs: 550 },
+  tank:  { hp: 100, speed: 42, dmg: 11, windupMs: 650, activeMs: 120, recoverMs: 400, reach: 46, depth: 16, cdMs: 900, armor: true },
+  fast:  { hp: 34, speed: 95, dmg: 5, windupMs: 450, activeMs: 340, recoverMs: 300, reach: 0, depth: 14, cdMs: 650, dash: { dist: 130, speed: 380 } },
 };
 export interface KindInfo { role: EnemyRole; hpMult?: number; guard?: boolean; name: string }
 export const KIND: Record<EnemyKind, KindInfo> = {
   omon:        { role: 'grunt', name: 'ОМОН' },
-  omon_shield: { role: 'tank', guard: true, name: 'ОМОН со щитом' },
+  omon_shield: { role: 'tank', hpMult: 1.2, guard: true, name: 'ОМОН со щитом' },
   vatnik:      { role: 'grunt', hpMult: 1.1, name: 'Ватник' },
   zek:         { role: 'fast', name: 'Зэк' },
   clerk:       { role: 'tank', name: 'Чиновник' },
   info_m:      { role: 'fast', hpMult: 0.9, name: 'Инфоцыган' },
   info_f:      { role: 'grunt', hpMult: 0.9, name: 'Инфоцыганка' },
 };
-export const MAX_ALIVE = 6;
+export const MAX_ALIVE = 10;
+export const MAX_PEAK_ALIVE = 12;
 export const TOKENS_PER_TARGET = 2;
-export const TOKENS_TOTAL = 4;
-export const TOKEN_GAP_MS = 250;        // после освобождения следующий по той же цели не раньше
+export const TOKENS_TOTAL = 6;
+export const TOKEN_GAP_MS = 180;        // после освобождения следующий по той же цели не раньше
 export const WAIT_RING: [number, number] = [70, 100]; // ожидающие держатся на таком расстоянии по x
 export const GUARD_FRONT_MULT = 0.3;    // щит спереди: доля урона от обычных ударов

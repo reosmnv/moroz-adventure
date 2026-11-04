@@ -1,6 +1,6 @@
 import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, LEVELS, TEST_TOOLS } from '@bc/shared';
 import { LocalSession, OnlineSession, clearReconnect, returnToMenu, savedReconnect, type GameSession } from './session.ts';
-import { GAME_TITLE, STORY, showIntro } from './story.ts';
+import { GAME_TITLE, STORY, showIntro, syncStoryView } from './story.ts';
 import { startGame } from './scene.ts';
 import { audioState, unlockAudio } from './audio.ts';
 import { settings, updateSettings } from './settings.ts';
@@ -149,6 +149,7 @@ $('reconnectBtn').onclick = async () => {
 };
 
 function showPicker(change = false) {
+  session?.resetControls();
   changingHero = change; picking = true; pickerSignature = ''; pendingHero = '';
   $('pickNote').textContent = ''; visible('picker', true);
   if (change) pausePanel = 'picker';
@@ -178,6 +179,7 @@ $('switchBtn').onclick = () => showPicker(true);
 $('pickBack').onclick = () => { if (changingHero) hidePicker(); else if (session) returnToMenu(session); };
 
 function openSettings(fromPause: boolean) {
+  session?.resetControls();
   settingsFromPause = fromPause;
   if (fromPause) pausePanel = 'settings';
   visible('settingsBox', true); renderSettings();
@@ -231,7 +233,7 @@ setInterval(() => {
   $('pauseNote').textContent = STORY.service.pause.replace('{герой}', CHARACTERS.find(c => c.id === char)?.name ?? '');
   visible('lostBox', session.connectionLost);
   if (session.snapshots.length && !session.hasMe() && !picking && !createdOpen) showPicker();
-  renderPicker(); maybeIntro();
+  renderPicker(); maybeIntro(); syncStoryView(session);
   if (DEBUG) {
     const last = session.snapshots.at(-1);
     $('debug').textContent = `${session.kind} #${session.roomId} · ${session.status}\nfps ${Math.round(game.loop.actualFps)} · ping ${session.ping()} мс\ntick ${last?.tick ?? '-'} · звук ${audioState()}`;

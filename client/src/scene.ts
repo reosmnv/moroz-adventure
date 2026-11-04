@@ -4,12 +4,12 @@ import { shake, settings } from './settings.ts';
 import { returnToMenu } from './session.ts';
 import { Impact } from './impact.ts';
 import { BossShow } from './boss-show.ts';
-import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, type BossId, ENEMY_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, moveDurMs, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, STORY_CONTENT, type BossId, ENEMY_ANIMS, KATYA_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, moveDurMs, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { RAMIL_TIPS, RAMIL_FISTS, RAMIL_GRIP } from './ramil-tips.ts';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
 import { STORY, saveKrisFrame, showFinale } from './story.ts';
-import { beep } from './audio.ts';
+import { beep, sfx } from './audio.ts';
 import { FONT, UIScene, textStyle } from './ui.ts';
 import { StageView, preloadStages, debugLane } from './stage.ts';
 import { buildLevel, preloadLevel, showCard } from './level.ts';
@@ -22,11 +22,11 @@ const INTERP_MS = 60; // буфер интерполяции чужих и вр�
 const CELL = 128; // кадр спрайта героини
 const FEET_Y = 112; // ступни в кадре
 const SCALE = 1.5; // героиня крупнее исходных 128 px по просьбе mr.R
-const ENEMY_SCALE: Record<string, number> = { omon_shield: 1.08, clerk: 1.08, shaman: 1.15, pizdulina: 1.15 };
+const ENEMY_SCALE: Record<string, number> = { omon_shield: 1.08, clerk: 1.08, shaman: 1.15, pizdulina: 1.15, katya: 1.35 };
 const HEAD = 62 * SCALE; // высота над ступнями для полоски жизни и имени
 const FLAKES = 90; // снежинок в буре
 const ENEMY_LOOK: Record<string, [number, number, number]> = {
-  shaman: [0xd8d8d8, 44, 96], pizdulina: [0x8b1e3f, 44, 96],
+  shaman: [0xd8d8d8, 44, 96], pizdulina: [0x8b1e3f, 44, 96], katya: [0x304039, 55, 92],
   omon: [0x3b4a66, 30, 78], omon_shield: [0x2c3850, 38, 84], vatnik: [0x6b6b3a, 32, 74],
   zek: [0x2b2b2b, 24, 72], clerk: [0x777777, 40, 76], info_m: [0x6a3fc4, 26, 76], info_f: [0xd9b98c, 26, 74],
 };
@@ -70,6 +70,7 @@ export class GameScene extends Phaser.Scene {
     for (const [kind, clips] of Object.entries(ENEMY_ANIMS)) for (const clip of Object.keys(clips!)) {
       this.load.spritesheet(`enemy/${kind}/${clip}`, `sprites/enemies/${kind}/${clip}-east.png`, { frameWidth: CELL, frameHeight: CELL });
     }
+    for (const clip of Object.keys(KATYA_ANIMS)) this.load.spritesheet(`enemy/katya/${clip}`, `sprites/enemies/katya-pl/${clip}-east.png`, { frameWidth: CELL, frameHeight: CELL });
     preloadLevel(this);
     preloadStages(this);
     for (const [k, v] of Object.entries(VFX)) this.load.spritesheet('fx-' + k, `vfx/${k}.png`, { frameWidth: v.w, frameHeight: v.h });
@@ -194,6 +195,7 @@ export class GameScene extends Phaser.Scene {
   private onEvents(evs: SimEvent[]) {
     for (const e of evs) {
       if (e.t === 'bossFx') {
+        sfx('danger');
         const floor = {depth: 0};
         if (e.attack === 'vstayu') {
           this.fx('boss-ring',e.x,e.y,{...floor,scale:3}); shake(this.cameras.main, 200,0.008); this.bossWord(e.x,e.y-100,'ВСТАЮ!');
@@ -201,8 +203,15 @@ export class GameScene extends Phaser.Scene {
         else if (e.attack === 'salute') this.fx('boss-firework',e.x,e.y-30,{depth:e.y,scale:1.5,frames:5}).setTint(e.tint ?? 0xffffff);
         else if (e.attack === 'banStrike') {
           this.fx('boss-ban',e.x,e.y-(110-64)*1.5,{depth:e.y,scale:1.5});
-          this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5}); this.bossWord(e.x,e.y-85,'ЗАБЛОКИРОВАНО',8,'#ff3030'); shake(this.cameras.main, 120,0.006);
+          this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5}); this.bossWord(e.x,e.y-85,'БЛОК!',8,'#ff3030'); shake(this.cameras.main, 120,0.006);
         } else if (e.attack === 'zones') this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5});
+        else if (e.attack.startsWith('katGround')) { this.fx('boss-slam',e.x,e.y,{...floor,scale:2}); this.bossWord(e.x,e.y-90,STORY_CONTENT['kat.w1']); shake(this.cameras.main, 180,0.008); }
+        else if (e.attack === 'crossStage' || e.attack === 'crossBan') {
+          this.fx('boss-ring',e.x,e.y,{...floor,scale:2});
+          this.fx(e.attack === 'crossBan' ? 'boss-ban' : 'boss-pyro',e.x,e.y-45,{depth:e.y,scale:1.2});
+          this.bossWord(e.x,e.y-90,e.attack === 'crossBan' ? 'ПЕРЕКРЁСТНАЯ ПРОВЕРКА!' : 'СВЕТ И ЗВУК!');
+          shake(this.cameras.main,180,0.007);
+        }
         else if (e.h) {
           this.attackBands.push({x:e.x,y:e.y,h:e.h,until:this.time.now+e.ms,grid:e.attack==='grid'});
           if(e.attack==='chorus') this.bossWord(e.x+160,e.y-80,'Я РУССКИЙ!');
@@ -210,7 +219,7 @@ export class GameScene extends Phaser.Scene {
       }
       if (e.t === 'phase' || e.t === 'bossDown') {
         const boss = this.session.snapshots.at(-1)?.enemies.get(e.id);
-        if (boss) this.bossWord(boss.x,boss.y-105,e.t==='phase' ? (boss.boss==='shaman'?'ВСТАЮ ЕЩЁ РАЗ!':'ДОСТУП ЗАПРЕЩЁН') : (boss.boss==='shaman'?'ОТМЕНЁН!':'РАЗБЛОКИРОВАНО!'));
+        if (boss) this.bossWord(boss.x,boss.y-105,e.t==='phase' ? (boss.boss==='shaman'?STORY_CONTENT['sh.w3']:boss.boss==='katya'?STORY_CONTENT['kat.w3']:STORY_CONTENT['pz.w2']) : (boss.boss==='shaman'?STORY_CONTENT['sh.down']:boss.boss==='katya'?STORY_CONTENT['kat.down']:STORY_CONTENT['pz.down']));
         if (boss) {
           const players = [...(this.session.snapshots.at(-1)?.players.entries() ?? [])];
           const nearest = players.sort((a, b) => Math.hypot(a[1].x-boss.x, a[1].y-boss.y)-Math.hypot(b[1].x-boss.x, b[1].y-boss.y))[0];
@@ -277,10 +286,10 @@ export class GameScene extends Phaser.Scene {
         const ms = RAMIL.TELE_MS;
         this.time.delayedCall(ms, () => { this.fx('ramil-poof', e.toX, e.toY - 35); this.fx('ramil-dust', e.toX, e.toY, { depth: e.toY + 0.1 }); });
       }
-      if (e.t === 'bossDown' && this.session.snapshots.at(-1)?.enemies.get(e.id)?.boss === 'pizdulina') {
+      if (e.t === 'bossDown' && this.session.snapshots.at(-1)?.enemies.get(e.id)?.boss === 'katya') {
         try { this.game.renderer.snapshot(saveKrisFrame); } catch { /* снимок необязателен */ }
       }
-      if (e.t === 'victory') void showFinale(() => this.replay());
+      if (e.t === 'victory' && this.session.snapshots.at(-1)?.level === 'old') void showFinale(() => this.replay());
       if (e.t === 'tele' && e.shape !== undefined) this.telegraphs.push({ ev: e, until: this.time.now + e.ms + (e.delayMs ?? 0) });
       if (e.t === 'phase') { this.phaseUntil = this.time.now + 1000; this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id); }
       if (e.t === 'bossDown') this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id);
@@ -335,7 +344,7 @@ export class GameScene extends Phaser.Scene {
         };
         if (delay) this.time.delayedCall(delay, showText); else showText();
         if (by !== RAMIL_ID && e.target.startsWith('e') && e.dmg >= 18) shake(this.cameras.main, 90, 0.004); // сильный удар встряхивает кадр
-        beep(e.target.startsWith('e') ? 520 : 180, 0.05);
+        sfx(e.target.startsWith('e') ? 'hit' : 'hurt');
       } else if (e.t === 'heal') {
         const v = this.views.get('p:' + e.id);
         if (v) {
@@ -352,7 +361,7 @@ export class GameScene extends Phaser.Scene {
           const b = v.bubble;
           this.time.delayedCall(2000, () => { b.destroy(); if (v.bubble === b) v.bubble = undefined; });
         }
-        beep(880, 0.08);
+        sfx('ult');
         };
         if (e.line === 'ЛОВИ!') this.time.delayedCall(INTERP_MS, showBubble); else showBubble();
       } else if (e.t === 'ult') {
@@ -361,7 +370,7 @@ export class GameScene extends Phaser.Scene {
           const c = this.add.circle(v.body.x, v.body.y - 45, 20, 0x9b59ff, 0.5).setDepth(1400);
           this.tweens.add({ targets: c, scale: 7, alpha: 0, duration: 450, onComplete: () => c.destroy() });
         }
-        beep(220, 0.3);
+        sfx('bossDown');
       } else if (e.t === 'storm') {
         const v = this.views.get('p:' + e.id);
         if (v) {
@@ -378,7 +387,7 @@ export class GameScene extends Phaser.Scene {
         const bolt = this.add.sprite(e.x, e.y, 'fx-kris-bolt').setScale(SCALE).setFlipX(dir < 0).setDepth(1450).play('fx-kris-bolt');
         const ms = (Math.abs(e.tx - e.x) / FLASH_SPEED) * 1000;
         this.tweens.add({ targets: bolt, x: e.tx, y: e.ty, duration: ms, onComplete: () => { bolt.destroy(); this.fx('kris-flash', e.tx, e.ty, { frames: 6 }); } });
-        beep(1200, 0.04);
+        sfx('shot');
       } else if (e.t === 'ball') {
         // Шар летит дугой и крутится; взрыв придёт событием boom
         const ball = this.add.image(e.x, e.y, 'fx-ball').setScale(SCALE).setDepth(1450);
@@ -452,7 +461,7 @@ export class GameScene extends Phaser.Scene {
         v.body.setSize(look[1], look[2]).setFillStyle(look[0]);
         v.warning = this.add.text(0, 0, '!', textStyle(16, '#ffe45c')).setOrigin(0.5, 1).setVisible(false);
         if (snap.kind === 'omon_shield') v.shield = this.add.rectangle(0, 0, 5, look[2] - 8, 0xbac9da).setOrigin(0.5, 1);
-        const clips = ENEMY_ANIMS[kind];
+        const clips = (kind === 'katya' ? KATYA_ANIMS : ENEMY_ANIMS[kind]);
         if (clips) {
           const clip = clips.idle ? 'idle' : Object.keys(clips)[0];
           v.body.setVisible(false);
@@ -507,6 +516,9 @@ export class GameScene extends Phaser.Scene {
           for(let x=s.lockX0;x<s.lockX1;x+=8) g.lineBetween(x,e.y-e.h!,x,e.y+e.h!);
           for(let y=e.y-e.h!;y<e.y+e.h!;y+=8) g.lineBetween(s.lockX0,y,s.lockX1,y);
         }
+      } else if (e.shape === 'column') {
+        g.fillRect(e.x-e.h!, 140, e.h!*2, VIEW_H-140);
+        for(let y=140;y<VIEW_H;y+=8) g.lineBetween(e.x-e.h!,y,e.x+e.h!,y);
       } else {
         const ratio=e.shape==='ring'?0.7:0.8;
         g.strokeEllipse(e.x,e.y,e.r!*2,e.r!*ratio);
@@ -798,12 +810,12 @@ export class GameScene extends Phaser.Scene {
       if (me) this.follow(me.x);
       if (!first) this.cameras.main.fadeIn(350);
     }
-    const pace = latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
+    const pace = latestStage.storyScene || latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
     if (b.level === 'route' && b.stage === 4) {
       this.bossShow ??= new BossShow(this, b);
       this.bossShow.update(latestStage, delta * pace);
     } else { this.bossShow?.destroy(); this.bossShow = undefined; }
-    this.stageView?.update(delta * pace, latestStage.halt, b.level === 'route' && b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
+    this.stageView?.update(delta * pace, latestStage.halt, b.level === 'route' && b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen), latestStage.wantedReward);
     const seen = new Set<string>();
     const draw = (key: string, isPlayer: boolean, sa: EntitySnap | undefined, sb: EntitySnap, live = false) => {
       seen.add(key);
@@ -828,7 +840,7 @@ export class GameScene extends Phaser.Scene {
       }
       if (v.sprite && !isPlayer) {
         const kind = sb.boss || sb.kind || 'omon';
-        const clips = ENEMY_ANIMS[kind]!;
+        const clips = (kind === 'katya' ? KATYA_ANIMS : ENEMY_ANIMS[kind])!;
         const casting = !!sb.boss && !!sb.atk && BOSS_ATTACK[sb.atk]?.kind !== 'melee' && (sb.phase === 'windup' || sb.phase === 'active' || sb.phase === 'recover');
         let clip = sb.carried ? 'idle' : sb.anim === 'enter' || sb.anim === 'run' ? 'walk' : sb.anim === 'down' ? 'fall' : sb.anim === 'hurt' ? 'hurt' : casting ? (sb.phase !== 'windup' && clips.release ? 'release' : 'cast') : sb.anim;
         if (casting && sb.phase === 'active' && !v.castActive) { v.enemySince = this.time.now; v.castActive = true; }
@@ -839,7 +851,7 @@ export class GameScene extends Phaser.Scene {
         if (def) {
           if (v.enemyClip !== clip) { v.enemyClip = clip; v.enemySince = this.time.now; }
           if (v.enemySince !== undefined) v.enemySince += delta * ((sb.ultStopMs ?? 0) > 0 ? 1 : 1 - pace * (sb.anim === 'run' ? ENTER_ANIM_RATE : 1));
-          const raw = Math.floor((this.time.now - (v.enemySince ?? this.time.now)) * def.fps / 1000);
+          const raw = Math.max(0, Math.floor((this.time.now - (v.enemySince ?? this.time.now)) * def.fps / 1000));
           const frame = sb.carried ? 0 : def.loop && clip !== 'windup' && clip !== 'cast' && clip !== 'release' ? raw % def.frames : Math.min(def.frames - 1, raw);
           v.sprite.setTexture(`enemy/${kind}/${clip}`, frame).setFlipX(sb.facing < 0).setPosition(x, y - lift).setDepth(y).setVisible(!(sb.boss === 'shaman' && (sb.enterMs ?? 0) > 200)).setAlpha(sb.anim === 'enter' ? Math.min(1, (this.time.now - (v.enemySince ?? this.time.now)) / 500) : sb.phase === 'recover' ? 0.7 : 1);
         }
@@ -922,7 +934,7 @@ export class GameScene extends Phaser.Scene {
       const hitting = !v.sprite && (sb.anim === 'attack' || sb.anim === 'heavy');
       v.fist.setVisible(hitting).setPosition(x + sb.facing * (sb.anim === 'heavy' ? 16 : 12), y - 18).setSize(sb.anim === 'heavy' ? 14 : 10, 5).setDepth(y + 0.5);
       const maxHp = sb.maxHp ?? (isPlayer ? PLAYER_HP : 100);
-      const head = v.sprite ? HEAD : isPlayer ? 86 : 80;
+      const head = v.sprite ? (isPlayer ? HEAD : HEAD * (ENEMY_SCALE[sb.boss || sb.kind || 'omon'] ?? 1)) : isPlayer ? 86 : 80;
       v.hp.setPosition(x - 20, y - head - lift).setDepth(y + 0.6).setSize(40 * Math.max(0, sb.hp) / maxHp, 3);
       v.label?.setPosition(x, y - head - 3 - lift).setDepth(y + 0.7);
       if (!isPlayer) { const hidden = sb.boss === 'shaman' && (sb.enterMs ?? 0) > 200; v.shadow?.setVisible(!hidden); v.hp.setVisible(!hidden); }
@@ -942,7 +954,7 @@ export class GameScene extends Phaser.Scene {
     for (const b of this.attackBands) b.until += delta * (1 - pace);
     this.drawBossFx(latest);
     if (LEVELS[latest.level].stages[latest.stage].tunnel && this.stopped && this.time.now - this.stoppedAt < 1000) { this.exitLabel?.setVisible(false); this.prompt?.setVisible(false); }
-    if (latest.won) void showFinale(() => this.replay());
+    if (latest.finaleReady || latest.level === 'old' && latest.won) void showFinale(() => this.replay());
     for (const [id, sb] of b.enemies) draw('e:' + id, false, a.enemies.get(id), sb);
     this.drawCine(latest);
     for (const [key, v] of this.views) {

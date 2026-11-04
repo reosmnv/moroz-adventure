@@ -1,0 +1,82 @@
+[
+ {
+  "name": "katya-v3-idle",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+   "mode": "skeleton-v3",
+   "template_animation_id": "fight-stance-idle-8-frames",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "idle"
+  }
+ },
+ {
+  "name": "katya-v3-walk",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+   "mode": "skeleton-v3",
+   "template_animation_id": "walk",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "walk"
+  }
+ },
+ {
+  "name": "katya-v3-hurt",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+   "mode": "skeleton-v3",
+   "template_animation_id": "taking-punch",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "hurt"
+  }
+ },
+ {
+  "name": "katya-v3-fall",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+   "mode": "skeleton-v3",
+   "template_animation_id": "falling-back-death",
+   "directions": [
+    "east"
+   ],
+   "animation_name": "fall"
+  }
+ },
+ {
+  "name": "katya-v3-attack",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "attack",
+   "action_description": "pulls her right fist far back and holds, then throws a huge heavy straight punch forward with her whole body, then returns to her fighting pose; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ },
+ {
+  "name": "katya-v3-cast",
+  "tool": "animate_character",
+  "args": {
+   "character_id": "9283a76c-e26b-4bcc-a7ff-88a5d289bf65",
+   "mode": "pixminimax",
+   "frame_count": 16,
+   "directions": [
+    "east"
+   ],
+   "animation_name": "cast",
+   "action_description": "raises both fists high above her head and holds, then smashes both fists down into the floor in front of her with a heavy crouch, then straightens back to her fighting pose; stays in strict side profile facing right the whole time, never turns to the camera"
+  }
+ }
+]

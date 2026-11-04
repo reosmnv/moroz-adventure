@@ -23,10 +23,12 @@ export const RAMIL = {
   BURN_MS: 3000, BURN_TICK: 500, BURN_DMG: 3,
   TELE_MS: 150, TELE_GAP: 34, RETURN_GAP: 40, TELE_DMG: 5, RETURN_DMG: 6,
   MARK_MS: 6000, KICK_FLY: 300, B_COMBO_MS: 1200,
+  B_COOLDOWN_MS: 3500,
   ULT_HITS: [2, 4, 8, 16, 32, 64], ULT_STEPS: [200, 140, 95, 65, 42, 28], // шесть ступеней
   ULT_DMG: [4, 3, 2, 1, 1, 1], ULT_FINISH: [10, 10, 12, 14, 18, 30],
   ULT_HITSTOP: [90, 60, 30, 0, 0, 0], ULT_LAST_STOP: 120, ULT_FINISH_STOP: 200,
   ULT_WINDOW: 800, ULT_REACH: 260, ULT_RANGE: 70, ULT_STUN: 300, ULT_NUDGE: 2,
+  ULT_DASH_MS: 160, ULT_EMPTY_MS: 400,
   ULT_MAIN_KB: 300, ULT_OTHER_KB: 160, ULT_SLOWMO: 250,
   SMOKE_RATE: 20, SMOKE_LINE_MS: 1600, HEAVY_SMOKE_MS: 300,
   HAND_X: 30, HAND_Y: -52, IDLE_MIN: 4000, IDLE_MAX: 7000,
@@ -137,12 +139,12 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
   },
   // Надя: контроль, урон ниже (числа предварительные, nadezhda.md)
   nadya: {
-    a1: { range: 80, dmg: 4, kb: 2, stun: 250, word: 'ХЛЯСЬ!' },
-    a2: { range: 58, dmg: 5, kb: 3, stun: 450, word: 'БАМ!' },
-    a3: { impact: 1, range: 70, dmg: 6, kb: 14, stun: 400, around: true },
-    b1: { impact: 1, range: 62, dmg: 5, kb: 4, stun: 300, slowMs: 1500, slow: 0.5, word: 'ШЛЁП!' },
-    b2: { range: 50, dmg: 6, kb: 2, stun: 0, single: true, stunMs: 1800, word: 'ОЙ!' },
-    'b3-end': { impact: 1, range: 0, dmg: 10, kb: 6, stun: 400, slowMs: 1250, slow: 0.2, kind: 'dash' },
+    a1: { range: 80, dmg: 6, kb: 2, stun: 250, word: 'ХЛЯСЬ!' },
+    a2: { range: 58, dmg: 7, kb: 3, stun: 450, word: 'БАМ!' },
+    a3: { impact: 1, range: 70, dmg: 9, kb: 14, stun: 400, around: true },
+    b1: { impact: 1, range: 62, dmg: 7, kb: 4, stun: 300, slowMs: 1500, slow: 0.5, word: 'ШЛЁП!' },
+    b2: { range: 50, dmg: 8, kb: 2, stun: 0, single: true, stunMs: 1800, word: 'ОЙ!' },
+    'b3-end': { impact: 1, range: 0, dmg: 18, kb: 6, stun: 400, slowMs: 1250, slow: 0.2, kind: 'dash' },
     ult: { range: 0, dmg: 0, kb: 0, stun: 0, kind: 'kiss' }, // воздушный поцелуй: без урона, только ревность
   },
   // Kris: штатив вблизи, вспышка и шар издалека (числа предварительные, kris.md)
@@ -150,7 +152,7 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
     'a1-back': { range: 78, dmg: 4, kb: 0, stun: 0, stunMs: 800, word: 'СТОП!' },
     a2: { impact: 1, range: 78, dmg: 5, kb: 30, stun: 0, stunMs: 800, word: 'ВЖУХ!' },
     b: { range: 320, dmg: 4, kb: 2, stun: 500, kind: 'flash' },
-    ball: { impact: 1, range: 0, dmg: 20, kb: 20, stun: 500, kind: 'ball' },
+    ball: { impact: 1, range: 0, dmg: 25, kb: 20, stun: 500, kind: 'ball' },
   },
 };
 
@@ -158,6 +160,8 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
 export const DASH_DIST = 160; // ~5 ширин фигуры
 export const DASH_DELAY_MS = 200; // урон приходит с задержкой после рывка
 export const DRAW_HOLD_MS = 300; // замирает с мечом перед рывком
+export const NADYA_B_COOLDOWN_MS = 2000;
+export const SAMURAI_TIME_MULT = 0.65;
 export const CHARM_MS = 6000;
 export const KISS_SPEED = 200; // воздушный поцелуй летит втрое медленнее вспышки Kris (FLASH_SPEED / 3)
 export const KISS_HALF_W = 16; // полуширина сердца: кого задело по x
@@ -176,7 +180,7 @@ export const BALL_THROW = 300; // дальше шар не бросает
 export const BALL_NEAR_NASTYA = 140; // враги в этом радиусе от Анастасии в приоритете
 export const AIM_MS = 1000;
 export const BEAM_MS = 700;
-export const BEAM_DMG = 40;
+export const BEAM_DMG = 70;
 export const BEAM_LEN = 720; // до края видимой области с запасом
 export const KRIS_LENS = { x: 37 * 1.5, y: -46 * 1.5 }; // объектив камеры в позе ult-hold от ступней, в единицах мира
 export const BALL_LINES = ['Прикрою!', 'Насть, я в кадре', 'Страховка на месте', 'Работаем вдвоём'];
@@ -188,7 +192,7 @@ export const NEXT_MOVE: Partial<Record<Form, Record<string, string>>> = {
   kris: { 'ult-setup': 'ult-hold', 'ult-hold': 'ult-out' },
 };
 export const HOLD_MS: Partial<Record<Form, Record<string, number>>> = {
-  nadya: { 'b3-draw': DRAW_HOLD_MS },
+  nadya: { 'b3-draw': DRAW_HOLD_MS * SAMURAI_TIME_MULT },
   kris: { 'ult-hold': AIM_MS + BEAM_MS },
 };
 
@@ -216,7 +220,7 @@ export const isLoop = (form: Form, move: string) => !!animDef(form, move)?.loop;
 
 // Удары проигрываются быстрее исходных fps: меньше задержка от нажатия до попадания (mr.R 24.10)
 export const ATTACK_SPEED = 1.4;
-export const moveSpeed = (form: Form, move: string): number => form === 'ramil' ? 1 : form === 'kris' && move === 'hop' ? 9000 / (16 * HOP_MS) : (STRIKES[form][move] ? ATTACK_SPEED : 1);
+export const moveSpeed = (form: Form, move: string): number => form === 'ramil' ? 1 : form === 'kris' && move === 'hop' ? 9000 / (16 * HOP_MS) : form === 'nadya' && move.startsWith('b3-') ? (STRIKES[form][move] ? ATTACK_SPEED : 1) / SAMURAI_TIME_MULT : (STRIKES[form][move] ? ATTACK_SPEED : 1);
 
 export function moveDurMs(form: Form, move: string, facing: number): number {
   const a = animDef(form, move);

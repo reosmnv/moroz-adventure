@@ -12,7 +12,8 @@
     "dev:client": "npm run dev -w client",
     "test:net": "npm run test:net -w server",
     "test:sim": "npm run test:sim -w server",
-    "test:lane": "npm run test:lane -w server"
+    "test:lane": "npm run test:lane -w server",
+    "test:story": "node --import tsx server/src/story-test.ts"
   },
   "devDependencies": {
     "tsx": "^4.23.15",

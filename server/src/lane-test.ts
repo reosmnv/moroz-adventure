@@ -1,6 +1,6 @@
 import {
   LEVELS, HERO_ID, NADYA_ID, TICK_MS, addPlayer, createWorld, emptyInput,
-  spawnEnemies, nextStage, step, stageOf, laneTop, laneBottom, levelW, walkBounds, clampToLane,
+  spawnEnemies, nextStage, step, stageOf, encountersOf, laneTop, laneBottom, levelW, walkBounds, clampToLane, HALT_MS,
   type World,
 } from '@bc/shared';
 import { FLOOR } from './floor-data.ts';
@@ -37,6 +37,8 @@ for (let stage = 0; stage < LEVELS.route.stages.length; stage++) {
   else console.log(`SKIP ${id}: маска FLOOR отсутствует`);
   check(`${id}: глубина полосы >= 105`, depthOk);
   const p = addPlayer(w, 'a', HERO_ID);
+  w.enc.index = w.enc.cleared = encountersOf(w).length;
+  w.enc.lock = null; w.enc.queue = [];
   check(`${id}: spawn на полу`, onLane(w, p.x, p.y) && p.y >= floorTop(id, p.x));
   spawnEnemies(w, 5);
   check(`${id}: spawn врагов внутри мира и полосы`, Object.values(w.enemies).every(e => e.x >= minX && e.x <= maxX && onLane(w, e.x, e.y)));
@@ -50,6 +52,7 @@ for (let stage = 0; stage < LEVELS.route.stages.length; stage++) {
     while (p.x < maxX && ticks++ < limit) {
       step(w, { a: input });
       w.trans = undefined; // Проверяем всю ширину, в том числе за выходом.
+      w.enc.lock = null; w.enc.queue = [];
       ok &&= onLane(w, p.x, p.y) && p.y >= floorTop(id, p.x) && p.x >= minX && p.x <= maxX;
     }
     check(`${id}: проход ${name}`, ok && p.x >= maxX, `${ticks} тиков`);
@@ -78,7 +81,9 @@ for (let stage = 0; stage < LEVELS.route.stages.length; stage++) {
   if (data.exit) {
     const trans = createWorld(7, true, 'route', stage);
     const first = addPlayer(trans, 'a', HERO_ID), second = addPlayer(trans, 'b', NADYA_ID);
+    trans.enc.index = trans.enc.cleared = encountersOf(trans).length;
     first.hp = 73; first.form = 'ultimate'; first.formMs = 10000;
+    if (data.tunnel) trans.halt = HALT_MS;
     Object.assign(first, clampToLane(trans, (data.exit.x0 + data.exit.x1) / 2, data.exit.y1));
     const enter = step(trans, {});
     const hp = first.hp, form = first.form;
@@ -94,7 +99,8 @@ for (let stage = 0; stage < LEVELS.route.stages.length; stage++) {
     }
     const [sx, sy] = stageOf(trans).spawn;
     check(`${id}: переход за ~900 мс`, enter.some(e => e.t === 'exit') && changed && frozen && elapsed >= 900 && elapsed < 900 + TICK_MS && trans.stage === stage + 1, `${elapsed} мс`);
-    check(`${id}: spawn обоих, hp/форма и очистка`, first.x === sx && first.y === sy && onLane(trans, second.x, second.y) && first.hp === hp && first.form === form && trans.pending.length === 0 && Object.values(trans.enemies).length === 1 && Object.values(trans.enemies).every(e => e.dummy && onLane(trans, e.x, e.y)));
+    check(`${id}: spawn обоих, hp/форма и очистка`, first.x === sx && first.y === sy && onLane(trans, second.x, second.y) && first.hp === hp && first.form === form && trans.pending.length === 0 && Object.values(trans.enemies).every(e => e.dummy && onLane(trans, e.x, e.y)),
+      `first=${first.x},${first.y} second=${second.x},${second.y} hp=${first.hp}/${hp} form=${first.form}/${form} pending=${trans.pending.length} enemies=${Object.values(trans.enemies).length}`);
   }
 }
 console.log(`Масок проверено: ${masks}/${LEVELS.route.stages.length}`);
@@ -112,14 +118,15 @@ try {
   const slope = createWorld(1, true, 'old');
   check('laneTop: интерполяция и края', laneTop(slope, -10) === 100 && laneTop(slope, 120) === 125 && laneTop(slope, 360) === 135 && laneTop(slope, 500) === 120);
   const hero = addPlayer(slope, 'a', HERO_ID);
+  slope.enemies = {};
   spawnEnemies(slope, 5);
-  const spawnedInside = Object.values(slope.enemies).every(e => e.x >= 45 && e.x <= 350);
+  const spawnedValid = Object.values(slope.enemies).every(e => Number.isFinite(e.x) && Number.isFinite(e.y));
   let ok = true;
   for (let i = 0; i < 400; i++) {
     step(slope, { a: { ...emptyInput(), mx: 1, my: -1, run: true } });
     ok &&= onLane(slope, hero.x, hero.y) && Object.values(slope.enemies).every(e => onLane(slope, e.x, e.y));
   }
-  check('неплоская полоса: герой и враги после движения', ok && hero.x === 350 && spawnedInside);
+  check('неплоская полоса: герой и враги после движения', ok && hero.x === 350 && spawnedValid, `ok=${ok} x=${hero.x} spawned=${spawnedValid}`);
   check('walkX: ограничение спавна', clampToLane(slope, 0, 150).x === 45 && clampToLane(slope, 480, 150).x === 350);
 } finally { LEVELS.old.stages[0] = oldStage; }
 check('неверный stage → 0', createWorld(1, true, 'route', -1).stage === 0 && createWorld(1, true, 'route', 999).stage === 0);

@@ -1,0 +1,17 @@
+[
+  {
+    "name": "katya-v3-bane-east-pilot-20261104",
+    "tool": "create_character_pro_flash",
+    "args": {
+      "view": "side",
+      "width": 64,
+      "height": 64,
+      "name": "Katya Bane boss pilot",
+      "style_image": {
+        "base64": "@assets/enemy-concept/ref/style-anastasia.png",
+        "usage_description": "Match the pixel density, dark one pixel outline, and muted shading of the game's hero sprites."
+      },
+      "description": "Female beat-em-up boss, a caricature of Bane: unmistakable dark breathing mask with vertical vents, broad shoulders, heavy dark green combat vest and gloves, dark trousers and boots. Strong clear silhouette, hands ready to fight. Full body side profile facing right (east), both feet visible, transparent background. No letters, no text, no props, no second character."
+    }
+  }
+]
