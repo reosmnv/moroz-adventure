@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { ENEMY_INTRO, LEVELS, STORY_CONTENT, STORY_SCENES, advanceStory, createStoryProgress, startStory, startStoryForWorld, storyStepKey, wantedStatus, createWorld, addPlayer, tickStory } from '@bc/shared';
+import { CHARACTERS, ENEMY_INTRO, LEVELS, STORY_CONTENT, STORY_SCENES, advanceStory, createStoryProgress, startStory, startStoryForWorld, storyStepKey, wantedStatus, createWorld, addPlayer, tickStory } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean) { console.log(`${ok ? 'OK' : 'FAIL'} ${name}`); if (!ok) failed++; }
@@ -23,6 +23,24 @@ for (const scene of STORY_SCENES) {
     longest = Math.max(longest, lines);
   }
 }
+// Ссылки проверяются в порядке шагов, с переносом keep между сценами.
+const known = new Set(CHARACTERS.map(c => c.id));
+const kept = new Set<string>();
+let refsValid = true;
+for (const scene of STORY_SCENES) {
+  const actors = new Set([...known, ...kept]);
+  for (const step of scene.steps) {
+    if (step.kind === 'act' && step.do === 'spawn') {
+      actors.add(step.actor); if (step.keep) kept.add(step.actor);
+    }
+    const ref = step.kind === 'act' && step.actor !== 'camera' ? step.actor
+      : step.kind === 'line' ? step.at ?? step.speaker : step.kind === 'phone' ? step.at : undefined;
+    if (ref && !actors.has(ref)) { console.log('missing actor', scene.id, ref); refsValid = false; }
+    if (step.kind === 'act' && step.do === 'exit') actors.delete(step.actor);
+  }
+  if (scene.id === 'sender') kept.clear();
+}
+check('все at и act ссылаются на героев или живых актёров', refsValid);
 check('ID, лимиты сцен и ссылки на ассеты', valid);
 check('не более шести реплик подряд', longest <= 6);
 check('портреты всех сюжетных героев', ['portrait-prime.png', 'nadya/portrait.png', 'kris/portrait.png', 'ramil/portrait.png'].every(file => existsSync(publicDir + 'ui/' + file)));
@@ -39,7 +57,15 @@ const key = storyStepKey(story);
 check('команда текущего шага проходит', advanceStory(story, key));
 const after = storyStepKey(story);
 check('повторный пакет не перескакивает реплику', after !== key && !advanceStory(story, key) && storyStepKey(story) === after);
-while (story.scene) advanceStory(story, storyStepKey(story));
+const finishWorld = createWorld(1, false, 'route');
+function finish(progress: ReturnType<typeof createStoryProgress>) {
+  for (let n = 0; progress.scene && n < 200; n++) {
+    tickStory(progress, finishWorld, 10000);
+    advanceStory(progress, storyStepKey(progress), finishWorld);
+  }
+  check('сцена завершается без зацикливания', !progress.scene);
+}
+finish(story);
 check('пройденная сцена не повторяется', !startStory(story, 'start'));
 check('запись доступна без выбранной Kris', story.flags.recording === 'on');
 const world = { level: 'route', stage: 0, won: false, enc: { cleared: 0 }, enemies: {} };
@@ -56,7 +82,7 @@ check('розыск снят после Милонова', wantedStatus({ ...wor
 // Местный МФЦ должен предшествовать Сити, а Милонов ждать конца второй арены.
 const route = createStoryProgress();
 const routeWorld = { level: 'route', stage: 4, won: false, enc: { cleared: 0 }, enemies: {} as Record<string, { boss?: string; hp: number }> };
-const finishScene = () => { while (route.scene) advanceStory(route, storyStepKey(route)); };
+const finishScene = () => finish(route);
 check('сцена Маяковской начинается при входе', startStoryForWorld(route, routeWorld) && route.scene === 'mayak');
 finishScene();
 check('местный МФЦ не запускается до выхода с Маяковской', !startStoryForWorld(route, routeWorld));

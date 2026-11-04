@@ -819,7 +819,8 @@ export class GameScene extends Phaser.Scene {
     let { a, b, f } = smp;
     const latestStage = this.session.snapshots[this.session.snapshots.length - 1];
     if (latestStage.stage !== b.stage || latestStage.level !== b.level) { a = b = latestStage; f = 1; }
-    const locationKey = b.level + ':' + b.stage;
+    const localMfc = latestStage.storyScene === 'local_mfc';
+    const locationKey = b.level + ':' + b.stage + (localMfc ? ':local-mfc' : '');
     if (locationKey !== this.locationKey) {
       const first = !this.locationKey;
       this.bossShow?.destroy(); this.bossShow = undefined;
@@ -830,17 +831,23 @@ export class GameScene extends Phaser.Scene {
       this.cinePanel?.destroy();
       this.cineKey = ''; this.cineShade = undefined; this.cinePanel = undefined; this.cineBubble = undefined; this.exitLabel = undefined; this.stopped = false;
       this.locationKey = locationKey;
-      const stage = LEVELS[b.level].stages[b.stage];
+      const baseStage = LEVELS[b.level].stages[b.stage];
+      const stage = localMfc ? { ...LEVELS.route.stages[6], width: baseStage.width, cards: [], signs: [], props: [] } : baseStage;
       this.worldWidth = stage.width;
       if (b.level === 'old') { buildLevel(this); showCard(this); debugLane(this, stage); }
       else this.stageView = new StageView(this, stage, b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
+      if (localMfc) {
+        // Стойка перекрывает ноги сотрудника, фон окон взят из готового МФЦ.
+        this.add.rectangle(650, 183, 126, 32, 0x744d3b).setStrokeStyle(2, 0x302530).setDepth(210);
+        this.add.rectangle(650, 165, 136, 6, 0xd4b99b).setDepth(210);
+      }
       this.camX = undefined; this.layout();
       const me = b.players.get(this.session.me);
       if (me) this.follow(me.x);
       if (!first) this.cameras.main.fadeIn(350);
     }
     const pace = latestStage.storyScene || latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
-    if (b.level === 'route' && b.stage === 4) {
+    if (b.level === 'route' && b.stage === 4 && !localMfc) {
       this.bossShow ??= new BossShow(this, b);
       this.bossShow.update(latestStage, delta * pace);
     } else { this.bossShow?.destroy(); this.bossShow = undefined; }
@@ -985,9 +992,12 @@ export class GameScene extends Phaser.Scene {
     this.drawBossFx(latest);
     if (LEVELS[latest.level].stages[latest.stage].tunnel && this.stopped && this.time.now - this.stoppedAt < 1000) { this.exitLabel?.setVisible(false); this.prompt?.setVisible(false); }
     if (latest.finaleReady || latest.level === 'old' && latest.won) void showFinale(() => this.replay());
-    for (const [id, sb] of b.enemies) draw('e:' + id, false, a.enemies.get(id), sb);
+    for (const [id, sb] of b.enemies) {
+      if (latest.storyScene && sb.boss && [...latest.actors.values()].some(actor => actor.look === sb.boss)) continue;
+      draw('e:' + id, false, a.enemies.get(id), sb);
+    }
     this.drawActors(latest);
-    this.drawCine(latest);
+    this.drawCine(latest.storyScene ? { ...latest, cineId: '' } : latest);
     drawStoryBubble(this, this.scene.get('ui'), latest);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;
