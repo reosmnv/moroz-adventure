@@ -43,6 +43,20 @@ for (const scene of STORY_SCENES) {
 check('все at и act ссылаются на героев или живых актёров', refsValid);
 check('ID, лимиты сцен и ссылки на ассеты', valid);
 check('не более шести реплик подряд', longest <= 6);
+const prologue = STORY_SCENES.find(s => s.id === 'prologue')!;
+const phoneIndex = prologue.steps.findIndex(s => s.kind === 'phone');
+const reaction = prologue.steps[phoneIndex + 1];
+check('реакция Насти отдельной репликой после телефона', reaction.kind === 'line' && reaction.id === 'intro.button' && reaction.speaker === 'anastasia'
+  && !prologue.steps.some(s => s.kind === 'phone' && s.ids.includes('intro.button')));
+for (const id of ['shaman', 'pizdulina', 'milonov', 'sender', 'withdrawal']) {
+  const w = createWorld(42, false, 'route', id === 'shaman' || id === 'pizdulina' ? 4 : 6);
+  for (const hero of CHARACTERS) addPlayer(w, hero.id, hero.id);
+  const progress = { scene: id, index: 0, completed: [], flags: {} };
+  tickStory(progress, w, 0);
+  const heroes = Object.values(w.players).sort((a, b) => a.x - b.x);
+  check(`строй ${id}: шаг 30, взгляд к собеседнику`, heroes.every((p, i) => p.facing === 1 && (!i || p.x - heroes[i - 1].x === 30)));
+  if (id === 'shaman' || id === 'pizdulina') check(`строй ${id} остаётся в арене`, heroes.every(p => p.x >= 700 && p.x <= 1180));
+}
 check('портреты всех сюжетных героев', ['portrait-prime.png', 'nadya/portrait.png', 'kris/portrait.png', 'ramil/portrait.png'].every(file => existsSync(publicDir + 'ui/' + file)));
 check('ассеты боя Кати', ['idle', 'walk', 'hurt', 'fall', 'strike', 'cast', 'release'].every(clip => existsSync(publicDir + `sprites/enemies/katya-pl/${clip}-east.png`)));
 check('лимиты вставок врагов', Object.values(ENEMY_INTRO).every(e => e.name.length <= 16 && e.tag.length <= 40 && e.line.length <= 60));
@@ -53,6 +67,7 @@ check('старый сюжет отсутствует в игровых текс
 
 const story = createStoryProgress();
 check('пролог запускается', startStory(story, 'start'));
+tickStory(story, createWorld(1, false, 'route'), 0);
 const key = storyStepKey(story);
 check('команда текущего шага проходит', advanceStory(story, key));
 const after = storyStepKey(story);

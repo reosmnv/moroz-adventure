@@ -79,6 +79,8 @@ export class UIScene extends Phaser.Scene {
   private ultTipAt = 0;
   private tipTick = -1;
   private tipTime = 0;
+  private combatControls!: Phaser.GameObjects.Container;
+  private controlsInStory = false;
   private joyId = -1;
   private joyOrigin = new Phaser.Math.Vector2();
   private joyBase!: Phaser.GameObjects.Image;
@@ -145,6 +147,8 @@ export class UIScene extends Phaser.Scene {
     this.bHint = this.add.text(0, 0, '', textStyle()).setOrigin(1, 0.5);
 
     this.children.list.forEach(o => { if ('setScrollFactor' in o) (o as Phaser.GameObjects.Image).setScrollFactor(0); });
+    this.combatControls = this.add.container(0, 0, [this.joyBase, this.joyKnob, this.ultRing,
+      this.pips, this.ultNext, this.bHint, this.hitText, ...[...this.btns.values()].flatMap(v => [v.base, v.icon])]);
     this.layout();
     this.scale.on('resize', () => this.layout());
 
@@ -295,6 +299,7 @@ export class UIScene extends Phaser.Scene {
     const u2 = this.btns.get('ult2')!;
     u2.icon.setTexture(char === RAMIL_ID ? 'ramil-cigarette' : char === KRIS_ID ? heroIcon(char, 'icon-ball') : 'ui-icon-snow');
     this.smokeLabel ??= this.add.text(0, 0, 'Перекур', textStyle(7)).setOrigin(0.5).setScrollFactor(0);
+    if (!this.smokeLabel.parentContainer) this.combatControls.add(this.smokeLabel);
     this.smokeLabel.setVisible(char === RAMIL_ID);
     const has2 = char !== NADYA_ID;
     this.activeLayout = LAYOUT[has2 ? 4 : 3];
@@ -567,5 +572,12 @@ export class UIScene extends Phaser.Scene {
       this.bHint.setText('');
       this.setHeavyIcon('ui-icon-heavy');
     }
+    const inStory = !!last.storyScene;
+    if (this.controlsInStory !== inStory) {
+      this.controlsInStory = inStory;
+      this.tweens.killTweensOf(this.combatControls);
+      this.tweens.add({ targets: this.combatControls, alpha: inStory ? 0 : 1, duration: 150 });
+    }
+    if (inStory) for (const tip of this.tips.values()) tip.setVisible(false);
   }
 }

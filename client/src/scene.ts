@@ -68,7 +68,7 @@ export class GameScene extends Phaser.Scene {
   constructor() { super('game'); }
 
   preload() {
-    this.load.image('story-milonov', 'ui/story/milonov-pl.png');
+    this.load.image('story-milonov', 'ui/story/milonov-full.png');
     for (const hero of CHARACTERS) this.load.image('story-portrait/' + hero.id, portrait(hero.id));
     for (const [kind, clips] of Object.entries(ENEMY_ANIMS)) for (const clip of Object.keys(clips!)) {
       this.load.spritesheet(`enemy/${kind}/${clip}`, `sprites/enemies/${kind}/${clip}-east.png`, { frameWidth: CELL, frameHeight: CELL });
@@ -750,8 +750,8 @@ export class GameScene extends Phaser.Scene {
       }
       const frame = def ? def.loop ? raw % def.frames : Math.min(def.frames - 1, raw) : 0;
       view.sprite.setTexture(texture, frame).setPosition(actor.x, actor.y).setDepth(actor.y)
-        .setFlipX(actor.facing < 0).setOrigin(0.5, actor.look === 'milonov' ? 1 : FEET_Y / CELL)
-        .setScale(actor.look === 'milonov' ? 1.5 : SCALE * (ENEMY_SCALE[actor.look] ?? 1));
+        .setFlipX(actor.facing < 0).setOrigin(0.5, actor.look === 'milonov' ? 60 / 64 : FEET_Y / CELL)
+        .setScale(actor.look === 'milonov' ? SCALE * 1.08 : SCALE * (ENEMY_SCALE[actor.look] ?? 1));
     }
   }
 
@@ -791,6 +791,7 @@ export class GameScene extends Phaser.Scene {
     const stage = LEVELS[s.level].stages[s.stage], cam = this.cameras.main;
     this.guide ??= this.add.graphics().setDepth(2000);
     this.guide.clear();
+    if (s.storyScene) { this.exitLabel?.setVisible(false); this.prompt?.setVisible(false); return; }
     const ready = s.encDone >= s.encTotal && s.lockX0 < 0 && !s.won && (!stage.tunnel || s.halt >= HALT_MS);
     const pulse = 0.55 + 0.45 * Math.sin(this.time.now / 220) ** 2;
     this.exitLabel ??= this.add.text(0, 0, '↓\nВЫХОД', { ...textStyle(12, '#ffe45c'), align: 'center' }).setOrigin(0.5, 1).setDepth(2001);
@@ -977,6 +978,8 @@ export class GameScene extends Phaser.Scene {
       v.hp.setPosition(x - 20, y - head - lift).setDepth(y + 0.6).setSize(40 * Math.max(0, sb.hp) / maxHp, 3);
       v.label?.setPosition(x, y - head - 3 - lift).setDepth(y + 0.7);
       if (!isPlayer) { const hidden = sb.boss === 'shaman' && (sb.enterMs ?? 0) > 200; v.shadow?.setVisible(!hidden); v.hp.setVisible(!hidden); }
+      if (this.session.snapshots.at(-1)?.storyScene) v.hp.setVisible(false);
+      else if (isPlayer) v.hp.setVisible(key !== 'p:' + this.session.me);
       v.bubble?.setPosition(x, y - HEAD - 18);
     };
     // Свою героиню рисуем по самому свежему снимку: отставание 60 мс остаётся только у остальных

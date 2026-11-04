@@ -1,5 +1,6 @@
 // Сетевые сценарии без браузера: два бота на @colyseus/sdk против живого сервера.
 // Запуск: сервер уже работает, затем `npm run test:net` (SERVER_URL переопределяет адрес).
+import { STORY_SCENES } from '@bc/shared';
 import { Client, type Room } from '@colyseus/sdk';
 
 const URL = process.env.SERVER_URL ?? 'http://100.118.72.60:2567';
@@ -16,25 +17,26 @@ async function testStoryFlow() {
   a.reconnection.enabled = false; a.onMessage('ev', () => {});
   a.send('pick', 'anastasia'); await sleep(350);
   const first = a.state as any;
-  check('V3 пролог виден ведущему', first.storyScene === 'prologue' && first.storyIndex === 0 && first.storyHost === a.sessionId);
+  const indices = STORY_SCENES.find(s => s.id === 'prologue')!.steps.flatMap((step, i) => step.kind === 'card' || step.kind === 'phone' || step.kind === 'line' ? [i] : []);
+  check('V3 пролог виден ведущему', first.storyScene === 'prologue' && first.storyIndex === indices[0] && first.storyHost === a.sessionId);
   const b = await new Client(URL).joinById(a.roomId);
   b.reconnection.enabled = false; b.onMessage('ev', () => {});
   b.send('pick', 'nadezhda'); await sleep(300);
-  b.send('storyNext', 'prologue:0'); await sleep(150);
-  check('V3 гость не продолжает за ведущего', (a.state as any).storyIndex === 0);
-  a.send('storyNext', 'prologue:0'); a.send('storyNext', 'prologue:0'); await sleep(250);
-  check('V3 повторный пакет не перескакивает шаг', (b.state as any).storyIndex === 1);
+  b.send('storyNext', `prologue:${indices[0]}`); await sleep(150);
+  check('V3 гость не продолжает за ведущего', (a.state as any).storyIndex === indices[0]);
+  a.send('storyNext', `prologue:${indices[0]}`); a.send('storyNext', `prologue:${indices[0]}`); await sleep(250);
+  check('V3 повторный пакет не перескакивает шаг', (b.state as any).storyIndex === indices[1]);
   const token = a.reconnectionToken;
   a.connection.close(4999, 'story host drop'); await sleep(550);
-  check('V3 ведущий перешёл следующему игроку', (b.state as any).storyHost === b.sessionId && (b.state as any).storyIndex === 1);
-  b.send('storyNext', 'prologue:1'); await sleep(200);
+  check('V3 ведущий перешёл следующему игроку', (b.state as any).storyHost === b.sessionId && (b.state as any).storyIndex === indices[1]);
+  b.send('storyNext', `prologue:${indices[1]}`); await sleep(200);
   const a2 = await new Client(URL).reconnect(token);
   a2.reconnection.enabled = false; a2.onMessage('ev', () => {}); await sleep(300);
-  check('V3 вернувшийся получает текущий шаг', (a2.state as any).storyScene === 'prologue' && (a2.state as any).storyIndex === 2);
+  check('V3 вернувшийся получает текущий шаг', (a2.state as any).storyScene === 'prologue' && (a2.state as any).storyIndex === indices[2]);
   await b.leave(true); await sleep(250);
   check('V3 право вернулось оставшемуся игроку', (a2.state as any).storyHost === a2.sessionId);
-  a2.send('storyNext', 'prologue:2'); await sleep(200);
-  check('V3 продолжение после смены ведущего', (a2.state as any).storyIndex === 3);
+  a2.send('storyNext', `prologue:${indices[2]}`); await sleep(200);
+  check('V3 продолжение после смены ведущего', (a2.state as any).storyIndex === indices[3]);
   await a2.leave(true);
 }
 

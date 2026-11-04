@@ -152,7 +152,7 @@ export function syncStoryView(session: GameSession) {
     const host = CHARACTERS.find(c => c.id === snap.players.get(snap.storyHost)?.char)?.name ?? '';
     const model = dialogue = { name: speaker?.name ?? step.speaker, speaker: step.speaker,
       at: step.at ?? step.speaker, value: STORY_CONTENT[step.id], count: 0,
-      hint: snap.storyHost === session.me ? 'Нажми, чтобы продолжить' : `Продолжает ${host}` };
+      hint: snap.storyHost === session.me ? '▶' : `ждём ${host}` };
     const timer = window.setInterval(() => {
       if (activeStoryKey !== viewKey) { clearInterval(timer); return; }
       model.count = Math.min(model.value.length, model.count + 2);
@@ -214,6 +214,7 @@ interface ComicBubble {
 const comicBubbles = new WeakMap<Phaser.Scene, ComicBubble>();
 const COMIC_FONT = '"Press Start 2P", monospace';
 const COMIC_WIDTH = 170;
+const COMIC_HEAD: Record<string, number> = { katya: 125, pizdulina: 107, shaman: 107 };
 
 // UI-сцена не зависит от камеры боя; координаты головы переводятся в экранные.
 export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snapshot) {
@@ -245,25 +246,38 @@ export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snap
   const model = dialogue;
   bubble.box.setVisible(true);
   bubble.name.setText(model.name); bubble.body.setText(model.value);
-  const height = 31 + bubble.body.height;
+  const height = 43 + bubble.body.height;
   bubble.body.setText(model.value.slice(0, model.count));
   const player = [...snap.players.values()].find(p => p.char === model.at);
-  const target = snap.actors.get(model.at) ?? player ?? snap.enemies.get(model.at);
+  const actor = snap.actors.get(model.at);
+  const target = actor ?? player ?? snap.enemies.get(model.at);
   const cam = game.cameras.main, width = ui.scale.width;
   const targetX = target ? cam.width / 2 + (target.x - cam.midPoint.x) * cam.zoom : 0;
-  const targetY = target ? cam.height / 2 + (target.y - 90 - cam.midPoint.y) * cam.zoom : 0;
+  const targetY = target ? cam.height / 2 + (target.y - (COMIC_HEAD[actor?.look ?? ''] ?? 90) - cam.midPoint.y) * cam.zoom : 0;
   const onScreen = !!target && targetX >= 0 && targetX <= width;
-  const x = Math.max(6, Math.min(width - COMIC_WIDTH - 6, onScreen ? targetX - COMIC_WIDTH / 2 : 8));
-  const y = Math.max(6, Math.min(220 - height, onScreen ? targetY - height - 12 : 44));
+  let x = Math.max(6, Math.min(width - COMIC_WIDTH - 6, onScreen ? targetX - COMIC_WIDTH / 2 : 8));
+  const y = Math.max(50, Math.min(220 - height, onScreen ? targetY - height - 12 : 50));
+  // Если над головой тесно, рамка уходит вбок, хвост остаётся у говорящего.
+  const side = onScreen && y + height + 8 > targetY;
+  if (side) x = Math.max(6, Math.min(width - COMIC_WIDTH - 6,
+    targetX + 24 + COMIC_WIDTH <= width - 6 ? targetX + 24 : targetX - COMIC_WIDTH - 24));
   const color = CHARACTERS.some(c => c.id === model.speaker) ? 0x111111 : 0xb82030;
   const frame = bubble.frame; frame.clear(); frame.fillStyle(0xffffff); frame.lineStyle(2, color);
   frame.fillRoundedRect(0, 0, COMIC_WIDTH, height, 6); frame.strokeRoundedRect(0, 0, COMIC_WIDTH, height, 6);
-  if (onScreen) {
+  if (side) {
+    const edge = targetX < x ? 0 : COMIC_WIDTH;
+    const baseY = Math.max(12, Math.min(height - 12, targetY - y));
+    frame.fillTriangle(edge, baseY - 7, edge, baseY + 7, targetX - x, targetY - y);
+    frame.lineBetween(edge, baseY - 7, targetX - x, targetY - y);
+    frame.lineBetween(targetX - x, targetY - y, edge, baseY + 7);
+  } else if (onScreen) {
     const tip = Math.max(12, Math.min(COMIC_WIDTH - 12, targetX - x));
-    frame.fillTriangle(tip - 7, height - 1, tip + 7, height - 1, tip, height + 11);
-    frame.lineBetween(tip - 7, height, tip, height + 11); frame.lineBetween(tip, height + 11, tip + 7, height);
+    const headY = Math.max(height + 4, targetY - y);
+    frame.fillTriangle(tip - 7, height - 1, tip + 7, height - 1, targetX - x, headY);
+    frame.lineBetween(tip - 7, height, targetX - x, headY); frame.lineBetween(targetX - x, headY, tip + 7, height);
   }
-  bubble.hint.setText(model.hint).setPosition(0, height + 16);
+  bubble.hint.setText(model.hint).setOrigin(1, 1).setPosition(COMIC_WIDTH - 6, height - 3)
+    .setAlpha(model.hint === '▶' ? 0.35 + 0.65 * Math.sin(ui.time.now / 280) ** 2 : 1);
   bubble.picture.setVisible(!onScreen && CHARACTERS.some(c => c.id === model.speaker));
   if (bubble.picture.visible) bubble.picture.setTexture('story-portrait/' + model.speaker).setDisplaySize(30, 30).setPosition(COMIC_WIDTH - 30, -3);
   bubble.box.setPosition(x, y);

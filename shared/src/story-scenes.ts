@@ -21,7 +21,8 @@ const face = (actor: ActorRef, facing: 1 | -1): StoryStep => ({ kind: 'act', act
 export const STORY_SCENES: StoryScene[] = [
   { id: 'prologue', trigger: 'start', steps: [
     { kind: 'card', id: 'title.1' }, { kind: 'card', id: 'title.2' },
-    { kind: 'phone', ids: ['intro.title', 'intro.body', 'intro.foot', 'intro.button'], at: 'anastasia' },
+    { kind: 'phone', ids: ['intro.title', 'intro.body', 'intro.foot'], at: 'anastasia' },
+    { kind: 'line', id: 'intro.button', speaker: 'anastasia' },
     focus(160), face('anastasia', 1), face('nadezhda', 1), face('ramil', 1), face('kris', 1),
     { kind: 'line', id: 'go.a1', speaker: 'nadezhda' },
     { kind: 'line', id: 'go.a3', speaker: 'ramil' },
@@ -33,7 +34,7 @@ export const STORY_SCENES: StoryScene[] = [
   ] },
   { id: 'street_vat', trigger: 'stage:0', steps: [
     focus(570), spawn('vat1', 'vatnik', 630, 153), walk('vat1', 590, 195),
-    walk('anastasia', 450, 210), walk('nadezhda', 420, 185), walk('kris', 395, 225), walk('ramil', 380, 205),
+    walk('anastasia', 450, 210), walk('nadezhda', 420, 195), walk('kris', 390, 210), walk('ramil', 360, 195),
     { kind: 'line', id: 'vat.2', speaker: 'Ватник', at: 'vat1' }, spawn('vat2', 'vatnik', 630, 153), walk('vat2', 650, 225),
     { kind: 'line', id: 'vat.4', speaker: 'Ватник', at: 'vat2' },
     { kind: 'line', id: 'vat.5', speaker: 'Ватник', at: 'vat1' }, { kind: 'line', id: 'rdy.1', speaker: 'anastasia' },
@@ -97,14 +98,14 @@ export const STORY_SCENES: StoryScene[] = [
     { kind: 'line', id: 'mil.p5', speaker: 'Милонов', at: 'milonov' },
   ] },
   { id: 'leverage', trigger: 'clear:6:2', steps: [
-    focus(2530), walk('kris', 2500, 210, 900), face('kris', 1),
+    focus(2530), walk('kris', 2530, 210, 900), face('kris', 1),
     { kind: 'line', id: 'lev.1', speaker: 'kris' }, { kind: 'line', id: 'lev.3', speaker: 'kris' },
     { kind: 'line', id: 'lev.4', speaker: 'Милонов', at: 'milonov' }, { kind: 'line', id: 'lev.5', speaker: 'anastasia' },
     { kind: 'line', id: 'lev.6', speaker: 'Милонов', at: 'milonov' },
     { kind: 'phone', ids: ['res.1', 'res.2'], at: 'milonov' }, { kind: 'state', id: 'wanted', value: 'off' },
   ] },
   { id: 'sender', trigger: 'clear:6:2', steps: [
-    focus(2530), walk('ramil', 2450, 210),
+    focus(2530), walk('ramil', 2400, 215),
     { kind: 'phone', ids: ['prf.1', 'prf.2'], at: 'milonov' },
     { kind: 'line', id: 'prf.3', speaker: 'nadezhda' }, { kind: 'line', id: 'prf.4', speaker: 'anastasia' },
     { kind: 'line', id: 'hck.1', speaker: 'ramil' },
@@ -120,7 +121,7 @@ export const STORY_SCENES: StoryScene[] = [
   ] },
   { id: 'withdrawal', trigger: 'victory', steps: [
     focus(4000), spawn('katya', 'katya', 4120, 205),
-    walk('anastasia', 3950, 195), walk('nadezhda', 3880, 220), walk('kris', 4020, 225), walk('ramil', 4050, 190),
+    walk('anastasia', 3990, 195), walk('nadezhda', 3960, 210), walk('kris', 3930, 195), walk('ramil', 3900, 210),
     { kind: 'phone', ids: ['kat.withdraw'], at: 'katya' }, { kind: 'phone', ids: ['push.7'], at: 'anastasia' },
     { kind: 'composition', id: 'fin.4', images: ['ui/portrait-prime.png', 'ui/nadya/portrait.png', 'ui/kris/portrait.png', 'ui/ramil/portrait.png', 'ui/story/katya-pl.png'] },
     { kind: 'line', id: 'fin.1', speaker: 'anastasia' }, { kind: 'line', id: 'fin.2', speaker: 'nadezhda' },
@@ -129,4 +130,15 @@ export const STORY_SCENES: StoryScene[] = [
     { kind: 'state', id: 'finaleReady', value: 'on' },
   ] },
 ];
+// Позиции сцены общие для сервера и LocalSession; отсутствующие герои пропускаются.
+const formations: Record<string, number> = {
+  prologue: 80, street_vat: 360, arch: 2390, vestibule: 80, wagon: 80,
+  mayak: 80, shaman: 820, pizdulina: 960, local_mfc: 430, city: 100,
+  milonov: 2400, leverage: 2400, sender: 2400, katya: 2630, withdrawal: 3900,
+};
+for (const scene of STORY_SCENES) {
+  const x = formations[scene.id];
+  scene.steps.unshift(...['ramil', 'kris', 'nadezhda', 'anastasia'].flatMap((hero, i) =>
+    [walk(hero, x + i * 30, 200 + (i % 2) * 15, 0), face(hero, 1)]));
+}
 export const storyScene = (id: string) => STORY_SCENES.find(scene => scene.id === id);
