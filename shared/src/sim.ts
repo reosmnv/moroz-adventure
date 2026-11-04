@@ -164,7 +164,14 @@ export interface Enemy {
 
 export interface BossShot { x: number; y: number; dir: number; speed: number; dmg: number }
 export interface BossZone { x: number; y: number; r: number; ms: number; tickMs: number; dmg: number }
+export interface Actor {
+  id: string; look: string; x: number; y: number; tx: number; ty: number;
+  facing: 1 | -1; anim: string; speed: number; keep?: boolean;
+}
+
 export interface World {
+  actors: Record<string, Actor>;
+  storyCamX?: number;
   storyPizDown?: boolean;
   storyPushes?: number[]; storyReady?: string[]; storyLineAt?: number; storyManualAt?: number;
   storyLast?: { id: string; line: string; at: number }[]; storyKiss?: boolean;
@@ -267,7 +274,7 @@ function focusX(w: World): number {
 
 export function createWorld(seed = 1, testTools = false, level: 'route' | 'old' = 'route', stage = 0): World {
   stage = Number.isInteger(stage) && stage >= 0 && stage < LEVELS[level].stages.length ? stage : 0;
-  return { halt: -1, introduced: [], shots: [], zones: [], timeMs: 0, tokenReleased: {}, won: false, enc: { stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 }, level, stage, tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
+  return { actors: {}, halt: -1, introduced: [], shots: [], zones: [], timeMs: 0, tokenReleased: {}, won: false, enc: { stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 }, level, stage, tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
 }
 
 export function takenChars(w: World): string[] {
@@ -1929,4 +1936,18 @@ export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): S
   if (w.stage === 3 && w.enc.cleared >= 1) mark(3);
   if (w.stage === 5 && w.enc.cleared >= 1) mark(5);
   return ev;
+}
+
+// Постановка использует отдельный шаг: бой и его часы стоят.
+export function stepActors(w: World, dtMs: number) {
+  for (const a of Object.values(w.actors)) {
+    const dx = a.tx - a.x, dy = a.ty - a.y, distance = Math.hypot(dx, dy);
+    if (distance > 0) {
+      const ratio = Math.min(1, a.speed * dtMs / 1000 / distance);
+      a.x += dx * ratio; a.y += dy * ratio;
+      if (ratio === 1) a.anim = 'idle';
+    }
+    const player = Object.values(w.players).find(p => p.char === a.id);
+    if (player) { player.x = a.x; player.y = a.y; player.facing = a.facing; player.anim = a.anim as Anim; }
+  }
 }

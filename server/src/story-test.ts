@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { ENEMY_INTRO, LEVELS, STORY_CONTENT, STORY_SCENES, advanceStory, createStoryProgress, startStory, startStoryForWorld, storyStepKey, wantedStatus } from '@bc/shared';
+import { ENEMY_INTRO, LEVELS, STORY_CONTENT, STORY_SCENES, advanceStory, createStoryProgress, startStory, startStoryForWorld, storyStepKey, wantedStatus, createWorld, addPlayer, tickStory } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean) { console.log(`${ok ? 'OK' : 'FAIL'} ${name}`); if (!ok) failed++; }
@@ -10,7 +10,7 @@ let valid = true, longest = 0;
 for (const scene of STORY_SCENES) {
   let lines = 0;
   for (const step of scene.steps) {
-    if (step.kind === 'state') { lines = 0; continue; }
+    if (step.kind === 'state' || step.kind === 'act') { lines = 0; continue; }
     const ids = step.kind === 'phone' ? step.ids : [step.id];
     for (const id of ids) {
       const value = content[id];
@@ -78,6 +78,35 @@ finishScene(); routeWorld.enemies = {}; routeWorld.enc.cleared = 3; routeWorld.w
 check('отзыв доноса и поздравление следуют за боем', startStoryForWorld(route, routeWorld) && route.scene === 'withdrawal');
 finishScene();
 check('финал открыт после отзыва доноса', route.flags.finaleReady === 'on');
+
+// Изолированная сцена проверяет часы, движение, дубли и очистку без изменения сюжета.
+STORY_SCENES.push({ id: 'actors_test', trigger: 'actors_test', steps: [
+  { kind: 'act', actor: 'vat1', do: 'spawn', look: 'vatnik', x: 100, y: 200 },
+  { kind: 'act', actor: 'camera', do: 'focus', x: 150 },
+  { kind: 'act', actor: 'vat1', do: 'walk', x: 200, ms: 1000 },
+  { kind: 'line', id: 'vat.2', speaker: 'Ватник', at: 'vat1' },
+  { kind: 'act', actor: 'kris', do: 'walk', x: 300, ms: 5000 },
+  { kind: 'act', actor: 'anastasia', do: 'walk', x: 250, ms: 500 },
+] });
+const actorsWorld = createWorld(1), actorsStory = createStoryProgress();
+addPlayer(actorsWorld, 'a', 'anastasia');
+startStory(actorsStory, 'actors_test');
+tickStory(actorsStory, actorsWorld, 400);
+check('нулевые act выполняются в одном тике, движение частичное', actorsStory.index === 2 && actorsWorld.actors.vat1.x === 140 && actorsWorld.storyCamX === 150);
+check('storyNext не может пропустить act', !advanceStory(actorsStory, storyStepKey(actorsStory), actorsWorld));
+tickStory(actorsStory, actorsWorld, 599);
+check('act ждёт полное время', actorsStory.index === 2 && actorsWorld.actors.vat1.x < 200);
+tickStory(actorsStory, actorsWorld, 1);
+check('act проходит сам точно по таймеру', actorsStory.index === 3 && actorsWorld.actors.vat1.x === 200);
+check('часы боя во время постановки стоят', actorsWorld.timeMs === 0 && actorsWorld.tick === 0);
+const actorsKey = storyStepKey(actorsStory);
+advanceStory(actorsStory, actorsKey, actorsWorld);
+check('повтор команды реплики не пропускает act', !advanceStory(actorsStory, actorsKey, actorsWorld));
+tickStory(actorsStory, actorsWorld, 250);
+check('отсутствующий герой пропущен, выбранный идёт', actorsStory.index === 5 && actorsWorld.players.a.x !== 250 && !actorsWorld.actors.kris);
+tickStory(actorsStory, actorsWorld, 250);
+check('герой дошёл, актёры и камера удалены после сцены', !actorsStory.scene && actorsWorld.players.a.x === 250 && Object.keys(actorsWorld.actors).length === 0 && actorsWorld.storyCamX === undefined);
+STORY_SCENES.pop();
 
 console.log(failed ? `${failed} проверок не прошло` : 'Все проверки прошли');
 process.exitCode = failed ? 1 : 0;

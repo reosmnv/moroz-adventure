@@ -141,7 +141,7 @@ export function syncStoryView(session: GameSession) {
   activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; activeStoryKey = viewKey;
   if (!key || !snap) return;
   const step = storyScene(snap.storyScene)?.steps[snap.storyIndex];
-  if (!step || step.kind === 'state') return;
+  if (!step || step.kind === 'state' || step.kind === 'act') return;
   session.resetControls();
   const { root, card } = overlay(); activeStoryRoot = root;
   root.style.background = 'rgba(9, 10, 22, .91)';

@@ -1,10 +1,13 @@
 import type { StoryTextId } from './story-content.ts';
 
+export type ActorRef = string;
 export type StoryStep =
-  | { kind: 'line'; id: StoryTextId; speaker: string }
+  | { kind: 'line'; id: StoryTextId; speaker: string; at?: ActorRef }
   | { kind: 'card'; id: StoryTextId }
-  | { kind: 'phone'; ids: StoryTextId[] }
+  | { kind: 'phone'; ids: StoryTextId[]; at?: ActorRef }
   | { kind: 'composition'; id: StoryTextId; images: string[] }
+  | { kind: 'act'; actor: ActorRef; do: 'spawn' | 'walk' | 'face' | 'exit' | 'pose'; look?: string; x?: number; y?: number; ms?: number; facing?: 1 | -1; pose?: string; keep?: boolean }
+  | { kind: 'act'; actor: 'camera'; do: 'focus'; x: number; ms?: number }
   | { kind: 'state'; id: string; value: string };
 export interface StoryScene { id: string; trigger: string; steps: StoryStep[] }
 
