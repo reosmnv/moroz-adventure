@@ -131,6 +131,7 @@ export async function showFinale(replay: () => void = () => location.replace(loc
 let activeStoryKey = '';
 let activeStoryRoot: HTMLElement | undefined;
 let revealStory: (() => void) | undefined;
+let comicPanel: { card: HTMLElement; at: string; wide: boolean } | undefined;
 let dialogue: { name: string; speaker: string; at: string; value: string; count: number; hint: string } | undefined;
 
 // Один DOM-интерфейс для телефона, реплик, карточек и композиций.
@@ -139,7 +140,7 @@ export function syncStoryView(session: GameSession) {
   const key = snap?.storyScene ? `${snap.storyScene}:${snap.storyIndex}` : '';
   const viewKey = key ? `${key}:${snap?.storyHost}` : '';
   if (viewKey === activeStoryKey) return;
-  activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; dialogue = undefined; activeStoryKey = viewKey;
+  activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; dialogue = undefined; comicPanel = undefined; activeStoryKey = viewKey;
   if (!key || !snap) return;
   const step = storyScene(snap.storyScene)?.steps[snap.storyIndex];
   if (!step || step.kind === 'state' || step.kind === 'act') return;
@@ -171,6 +172,9 @@ export function syncStoryView(session: GameSession) {
   card.classList.toggle('notification', step.kind === 'phone' && !terminal);
   card.classList.toggle('story-terminal', terminal);
   if (step.kind === 'phone') {
+    root.style.background = 'transparent'; root.classList.add('story-comic-input');
+    card.classList.add('comic-phone');
+    comicPanel = { card, at: step.at ?? 'anastasia', wide: phoneId === 'intro.title' };
     const heading = phoneId.startsWith('cty.') ? 'ПРЯМОЙ ЭФИР · LIVE'
       : phoneId.startsWith('hck.') ? 'БАЗА · ТЕРМИНАЛ'
       : phoneId.startsWith('res.') ? 'БАЗА · АККАУНТ МИЛОНОВА'
@@ -180,11 +184,12 @@ export function syncStoryView(session: GameSession) {
     text(card, 'small', heading);
   }
   if (step.kind === 'composition') {
+    root.style.background = 'transparent'; card.classList.add('comic-polaroid');
     if (krisFrame) { const frame = document.createElement('img'); frame.src = krisFrame; frame.alt = 'Кадр Kris'; frame.className = 'story-frame'; card.append(frame); }
     else for (const file of step.images) { const img = document.createElement('img'); img.src = file; img.alt = ''; img.className = 'story-portrait'; card.append(img); }
   }
   const lines = step.kind === 'phone' ? step.ids.map(id => STORY_CONTENT[id]) : [STORY_CONTENT[step.id]];
-  const value = lines.join('\n\n');
+  const value = lines.join(step.kind === 'phone' ? '\n' : '\n\n');
   const body = text(card, step.kind === 'card' ? 'h2' : 'p', '');
   body.style.whiteSpace = 'pre-wrap';
   const hint = text(card, 'small', snap.storyHost === session.me ? 'Нажми, чтобы продолжить' : 'Продолжает ведущий');
@@ -212,6 +217,19 @@ const COMIC_WIDTH = 170;
 
 // UI-сцена не зависит от камеры боя; координаты головы переводятся в экранные.
 export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snapshot) {
+  if (comicPanel) {
+    const { card, at, wide } = comicPanel;
+    const target = snap.actors.get(at) ?? [...snap.players.values()].find(p => p.char === at);
+    const rect = game.game.canvas.getBoundingClientRect();
+    const cam = game.cameras.main, ratio = rect.width / game.scale.width;
+    const anchor = target ? rect.left + (cam.width / 2 + (target.x - cam.midPoint.x) * cam.zoom) * ratio : rect.left + rect.width / 2;
+    const width = Math.min(wide ? 340 : 230, rect.width * 0.51), height = rect.height * 0.4;
+    const right = anchor + 24, left = anchor - width - 24;
+    const x = right + width < rect.right - 8 ? right : left >= rect.left + 8 ? left : rect.left + (rect.width - width) / 2;
+    card.style.width = `${width}px`; card.style.height = `${height}px`;
+    card.style.left = `${Math.max(8, Math.min(innerWidth - width - 8, x))}px`;
+    card.style.top = `${Math.max(8, rect.top + rect.height * 0.19)}px`;
+  }
   let bubble = comicBubbles.get(ui);
   if (!dialogue) { bubble?.box.setVisible(false); return; }
   if (!bubble?.box.scene) {
