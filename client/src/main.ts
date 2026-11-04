@@ -11,6 +11,8 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? `${location.protocol}//${l
 const params = new URLSearchParams(location.search);
 const roomCode = location.hash.slice(1).toUpperCase() || undefined;
 const DEBUG = params.has('debug');
+let debugTouch = '-';
+if (DEBUG) document.addEventListener('touchstart', e => { const t = e.touches[0]; const el = document.elementFromPoint(t.clientX, t.clientY); debugTouch = `${t.clientX | 0},${t.clientY | 0} ${el?.tagName ?? '?'}${el?.id ? '#' + el.id : ''}${el && typeof el.className === 'string' && el.className ? '.' + el.className.split(' ')[0] : ''}`; }, { capture: true, passive: true });
 const MENU_SCREENS = ['menuHome', 'newScreen', 'joinScreen', 'testScreen'];
 const portrait = (id: string) => id === HERO_ID ? 'ui/portrait-prime.png' : id === NADYA_ID ? 'ui/nadya/portrait.png' : id === KRIS_ID ? 'ui/kris/portrait.png' : 'ui/ramil/portrait.png';
 let session: GameSession | null = null;
@@ -237,6 +239,11 @@ setInterval(() => {
   renderPicker(); maybeIntro(); syncStoryView(session);
   if (DEBUG) {
     const last = session.snapshots.at(-1);
-    $('debug').textContent = `${session.kind} #${session.roomId} · ${session.status}\nfps ${Math.round(game.loop.actualFps)} · ping ${session.ping()} мс\ntick ${last?.tick ?? '-'} · звук ${audioState()}`;
+    const r = game.canvas.getBoundingClientRect(), vv = window.visualViewport, me = last?.players.get(session.me);
+    $('debug').textContent = `${session.kind} #${session.roomId} · ${session.status}\nfps ${Math.round(game.loop.actualFps)} · ping ${session.ping()} мс\ntick ${last?.tick ?? '-'} · звук ${audioState()}`
+      + `\nwin ${innerWidth}x${innerHeight} vv ${Math.round(vv?.width ?? 0)}x${Math.round(vv?.height ?? 0)}@${Math.round(vv?.offsetLeft ?? 0)},${Math.round(vv?.offsetTop ?? 0)} s${vv?.scale?.toFixed(2)}`
+      + `\ncanvas ${Math.round(r.width)}x${Math.round(r.height)}@${Math.round(r.left)},${Math.round(r.top)} game ${game.scale.width}x${game.scale.height}`
+      + `\ntouch ${debugTouch} · ptr ${game.input.activePointer.x | 0},${game.input.activePointer.y | 0} down ${game.input.activePointer.isDown}`
+      + `\nme x${(me?.x ?? 0) | 0} ${me?.anim ?? '-'} away ${me?.away} paused ${session.isPaused()} story ${last?.storyScene || '-'} cine ${last?.cineId || '-'}`;
   }
 }, 100);
