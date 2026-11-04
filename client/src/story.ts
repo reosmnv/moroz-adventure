@@ -1,6 +1,6 @@
 import { CHARACTERS, HERO_ID, NADYA_ID, KRIS_ID } from '@bc/shared';
 import { STORY_CONTENT, storyScene, type StoryStep } from '@bc/shared';
-import type { GameSession } from './session.ts';
+import type { Snapshot, GameSession } from './session.ts';
 export const GAME_TITLE = 'Moroz Birthday Adventures';
 // Тексты завязки и поздравления редактируются отдельно от экранов.
 export const STORY = {
@@ -131,6 +131,7 @@ export async function showFinale(replay: () => void = () => location.replace(loc
 let activeStoryKey = '';
 let activeStoryRoot: HTMLElement | undefined;
 let revealStory: (() => void) | undefined;
+let dialogue: { name: string; speaker: string; at: string; value: string; count: number; hint: string } | undefined;
 
 // Один DOM-интерфейс для телефона, реплик, карточек и композиций.
 export function syncStoryView(session: GameSession) {
@@ -138,24 +139,37 @@ export function syncStoryView(session: GameSession) {
   const key = snap?.storyScene ? `${snap.storyScene}:${snap.storyIndex}` : '';
   const viewKey = key ? `${key}:${snap?.storyHost}` : '';
   if (viewKey === activeStoryKey) return;
-  activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; activeStoryKey = viewKey;
+  activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; dialogue = undefined; activeStoryKey = viewKey;
   if (!key || !snap) return;
   const step = storyScene(snap.storyScene)?.steps[snap.storyIndex];
   if (!step || step.kind === 'state' || step.kind === 'act') return;
   session.resetControls();
   const { root, card } = overlay(); activeStoryRoot = root;
+  if (step.kind === 'line') {
+    root.classList.add('story-dialogue-input'); root.style.background = 'transparent'; card.remove();
+    const speaker = CHARACTERS.find(c => c.id === step.speaker);
+    const host = CHARACTERS.find(c => c.id === snap.players.get(snap.storyHost)?.char)?.name ?? '';
+    const model = dialogue = { name: speaker?.name ?? step.speaker, speaker: step.speaker,
+      at: step.at ?? step.speaker, value: STORY_CONTENT[step.id], count: 0,
+      hint: snap.storyHost === session.me ? 'Нажми, чтобы продолжить' : `Продолжает ${host}` };
+    const timer = window.setInterval(() => {
+      if (activeStoryKey !== viewKey) { clearInterval(timer); return; }
+      model.count = Math.min(model.value.length, model.count + 2);
+      if (model.count === model.value.length) clearInterval(timer);
+    }, TYPE_MS);
+    let revealed = false;
+    root.addEventListener('pointerdown', event => {
+      event.preventDefault(); event.stopPropagation();
+      if (!revealed) { revealed = true; model.count = model.value.length; clearInterval(timer); return; }
+      if (snap.storyHost === session.me) session.advanceStory(key);
+    });
+    return;
+  }
   root.style.background = 'rgba(9, 10, 22, .91)';
   const phoneId = step.kind === 'phone' ? step.ids[0] : '';
   const terminal = phoneId.startsWith('hck.');
   card.classList.toggle('notification', step.kind === 'phone' && !terminal);
   card.classList.toggle('story-terminal', terminal);
-  const speaker = step.kind === 'line' ? CHARACTERS.find(c => c.id === step.speaker) : undefined;
-  if (step.kind === 'line') {
-    const row = document.createElement('div'); row.className = 'dialogue-row'; card.append(row);
-    const picture = speaker ? portrait(speaker.id) : storyPortrait[step.speaker];
-    if (picture) { const img = document.createElement('img'); img.src = picture; img.alt = speaker?.name ?? step.speaker; row.append(img); }
-    text(row, 'strong', speaker?.name ?? step.speaker);
-  }
   if (step.kind === 'phone') {
     const heading = phoneId.startsWith('cty.') ? 'ПРЯМОЙ ЭФИР · LIVE'
       : phoneId.startsWith('hck.') ? 'БАЗА · ТЕРМИНАЛ'
@@ -185,4 +199,54 @@ export function syncStoryView(session: GameSession) {
     if (!touched) { touched = true; revealStory?.(); return; }
     if (snap.storyHost === session.me) { hint.textContent = 'Продолжаем…'; session.advanceStory(key); }
   });
+}
+
+interface ComicBubble {
+  box: Phaser.GameObjects.Container; frame: Phaser.GameObjects.Graphics;
+  name: Phaser.GameObjects.Text; body: Phaser.GameObjects.Text; hint: Phaser.GameObjects.Text;
+  picture: Phaser.GameObjects.Image;
+}
+const comicBubbles = new WeakMap<Phaser.Scene, ComicBubble>();
+const COMIC_FONT = '"Press Start 2P", monospace';
+const COMIC_WIDTH = 170;
+
+// UI-сцена не зависит от камеры боя; координаты головы переводятся в экранные.
+export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snapshot) {
+  let bubble = comicBubbles.get(ui);
+  if (!dialogue) { bubble?.box.setVisible(false); return; }
+  if (!bubble?.box.scene) {
+    const style = { fontFamily: COMIC_FONT, fontSize: '8px', color: '#121212', wordWrap: { width: COMIC_WIDTH - 16 }, lineSpacing: 3 };
+    const frame = ui.add.graphics();
+    const name = ui.add.text(8, 7, '', style);
+    const body = ui.add.text(8, 23, '', style);
+    const hint = ui.add.text(0, 0, '', { ...style, fontSize: '6px', color: '#ffffff', backgroundColor: '#121212', padding: { x: 3, y: 3 }, wordWrap: { width: COMIC_WIDTH - 6 } });
+    const picture = ui.add.image(0, 0, 'story-portrait/anastasia').setDisplaySize(30, 30).setOrigin(0, 1);
+    const box = ui.add.container(0, 0, [frame, name, body, hint, picture]).setDepth(5000).setScrollFactor(0);
+    bubble = { box, frame, name, body, hint, picture }; comicBubbles.set(ui, bubble);
+  }
+  const model = dialogue;
+  bubble.box.setVisible(true);
+  bubble.name.setText(model.name); bubble.body.setText(model.value);
+  const height = 31 + bubble.body.height;
+  bubble.body.setText(model.value.slice(0, model.count));
+  const player = [...snap.players.values()].find(p => p.char === model.at);
+  const target = snap.actors.get(model.at) ?? player ?? snap.enemies.get(model.at);
+  const cam = game.cameras.main, width = ui.scale.width;
+  const targetX = target ? cam.width / 2 + (target.x - cam.midPoint.x) * cam.zoom : 0;
+  const targetY = target ? cam.height / 2 + (target.y - 90 - cam.midPoint.y) * cam.zoom : 0;
+  const onScreen = !!target && targetX >= 0 && targetX <= width;
+  const x = Math.max(6, Math.min(width - COMIC_WIDTH - 6, onScreen ? targetX - COMIC_WIDTH / 2 : 8));
+  const y = Math.max(6, Math.min(220 - height, onScreen ? targetY - height - 12 : 44));
+  const color = CHARACTERS.some(c => c.id === model.speaker) ? 0x111111 : 0xb82030;
+  const frame = bubble.frame; frame.clear(); frame.fillStyle(0xffffff); frame.lineStyle(2, color);
+  frame.fillRoundedRect(0, 0, COMIC_WIDTH, height, 6); frame.strokeRoundedRect(0, 0, COMIC_WIDTH, height, 6);
+  if (onScreen) {
+    const tip = Math.max(12, Math.min(COMIC_WIDTH - 12, targetX - x));
+    frame.fillTriangle(tip - 7, height - 1, tip + 7, height - 1, tip, height + 11);
+    frame.lineBetween(tip - 7, height, tip, height + 11); frame.lineBetween(tip, height + 11, tip + 7, height);
+  }
+  bubble.hint.setText(model.hint).setPosition(0, height + 16);
+  bubble.picture.setVisible(!onScreen && CHARACTERS.some(c => c.id === model.speaker));
+  if (bubble.picture.visible) bubble.picture.setTexture('story-portrait/' + model.speaker).setDisplaySize(30, 30).setPosition(COMIC_WIDTH - 30, -3);
+  bubble.box.setPosition(x, y);
 }

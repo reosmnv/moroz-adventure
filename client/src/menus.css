@@ -100,3 +100,6 @@ button[aria-pressed="true"], button.selected { outline: 2px solid var(--gold); c
 .logo-adv { margin-top:14px; font-size:clamp(10px, 1.6vw, 13px); color:var(--gold); letter-spacing:3px; text-shadow:2px 2px var(--ink); transform:rotate(2deg); }
 @keyframes logo-bob { 0%,100% { translate:0 0; } 50% { translate:0 -4px; } }
 @media (prefers-reduced-motion: reduce) { .logo-moroz i { animation:none; } }
+
+/* Прозрачный захват тапа: реплика рисуется в Phaser. */
+.overlay.story-dialogue-input { background: transparent; cursor: pointer; touch-action: none; }
