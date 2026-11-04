@@ -94,6 +94,7 @@ export class StageView {
       else x = -w;
       this.train.setX(x).setVisible(x > -w);
     }
+    this.card?.setVisible(!deferCard);
     if (deferCard) return;
     this.cardElapsed += dt;
     const index = Math.floor(this.cardElapsed / CARD_MS);

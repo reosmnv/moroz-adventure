@@ -386,7 +386,7 @@ export class UIScene extends Phaser.Scene {
 
   private updateStory(last: import('./session.ts').Snapshot) {
     // Окно уведомления определяется временем снимка, включая поздний вход.
-    const active = last.storyPushes.findIndex((at, i) => at > 0 && last.storyTime >= at && last.storyTime < at + 3000 && !this.pushSeen.has(i));
+    const active = last.storyScene ? -1 : last.storyPushes.findIndex((at, i) => at > 0 && last.storyTime >= at && last.storyTime < at + 3000 && !this.pushSeen.has(i));
     if (active >= 0) {
       if (!this.storyPush) {
         this.storyPush = document.createElement('div'); this.storyPush.className = 'registry-push';

@@ -838,7 +838,7 @@ export class GameScene extends Phaser.Scene {
       const stage = localMfc ? { ...LEVELS.route.stages[6], width: baseStage.width, cards: [], signs: [], props: [] } : baseStage;
       this.worldWidth = stage.width;
       if (b.level === 'old') { buildLevel(this); showCard(this); debugLane(this, stage); }
-      else this.stageView = new StageView(this, stage, b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
+      else this.stageView = new StageView(this, stage, !!latestStage.storyScene || b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
       if (localMfc) {
         // Стойка перекрывает ноги сотрудника, фон окон взят из готового МФЦ.
         this.add.rectangle(650, 183, 126, 32, 0x744d3b).setStrokeStyle(2, 0x302530).setDepth(210);
@@ -854,7 +854,7 @@ export class GameScene extends Phaser.Scene {
       this.bossShow ??= new BossShow(this, b);
       this.bossShow.update(latestStage, delta * pace);
     } else { this.bossShow?.destroy(); this.bossShow = undefined; }
-    this.stageView?.update(delta * pace, latestStage.halt, b.level === 'route' && b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen), latestStage.wantedReward);
+    this.stageView?.update(delta * pace, latestStage.halt, !!latestStage.storyScene || b.level === 'route' && b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen), latestStage.wantedReward);
     const seen = new Set<string>();
     const draw = (key: string, isPlayer: boolean, sa: EntitySnap | undefined, sb: EntitySnap, live = false) => {
       seen.add(key);

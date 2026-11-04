@@ -137,7 +137,7 @@ let dialogue: { name: string; speaker: string; at: string; value: string; count:
 // Один DOM-интерфейс для телефона, реплик, карточек и композиций.
 export function syncStoryView(session: GameSession) {
   const snap = session.snapshots.at(-1);
-  const key = snap?.storyScene ? `${snap.storyScene}:${snap.storyIndex}` : '';
+  const key = snap?.storyScene && session.hasMe() ? `${snap.storyScene}:${snap.storyIndex}` : '';
   const viewKey = key ? `${key}:${snap?.storyHost}` : '';
   if (viewKey === activeStoryKey) return;
   activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; dialogue = undefined; comicPanel = undefined; activeStoryKey = viewKey;
