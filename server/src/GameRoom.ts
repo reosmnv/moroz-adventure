@@ -1,7 +1,7 @@
 import { Room, type Client } from 'colyseus';
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
-  encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars, switchHero, testHeal, testGod, testKillAll,
+  encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars, switchHero, testHeal, testGod, testSummon, testKillAll,
   type Input, type World,
   tickStory, advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus,
 } from '@bc/shared';
@@ -168,6 +168,10 @@ export class GameRoom extends Room<{ state: GameState }> {
     // Тестовые команды доступны только в режиме комнаты
     this.onMessage('spawn', (client: Client) => {
       if (this.world.testTools && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
+    });
+
+    this.onMessage('summon', (client: Client) => {
+      if (this.world.testTools && this.world.players[client.sessionId]) testSummon(this.world);
     });
 
     this.onMessage('charge', (client: Client) => {

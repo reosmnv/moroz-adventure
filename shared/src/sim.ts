@@ -22,7 +22,7 @@ export const LANE_BOTTOM = 255;
 export const LEVEL_W = 1920; // длина уровня: 4 экрана по 480
 
 // Доступность тест-режима в меню. Режим игры хранится в world.testTools
-export const TEST_TOOLS = false;
+export const TEST_TOOLS = true;
 
 const PLAYER_SPEED = 90; // единиц в секунду
 const ENEMY_DMG = 7;
@@ -346,6 +346,14 @@ export function testHeal(w: World): void {
     }
     p.hp = PLAYER_HP; p.downMs = 0;
     if (amount > 0) (w.events ??= []).push({ t: 'heal', id: p.id, amount });
+  }
+}
+
+// Тест: призвать недостающих героев. Стоят без ввода и бессмертны (id с префиксом npc-)
+export function testSummon(w: World): void {
+  if (!w.testTools) return;
+  for (const c of CHARACTERS) if (!takenChars(w).includes(c.id)) {
+    const p = addPlayer(w, `npc-${c.id}`, c.id); p.god = true;
   }
 }
 

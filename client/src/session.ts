@@ -2,7 +2,7 @@
 // Сцена знает только снимки и события, режим ей не важен.
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  encountersOf, switchHero, testHeal, testGod, testKillAll, TEST_TOOLS, TICK_MS, nextStage, addPlayer, chargeUlt, createWorld, emptyInput, spawnEnemies, step, takenChars,
+  encountersOf, switchHero, testHeal, testGod, testSummon, testKillAll, TEST_TOOLS, TICK_MS, nextStage, addPlayer, chargeUlt, createWorld, emptyInput, spawnEnemies, step, takenChars,
   type Actor, type Anim, type Form, type Input, type SimEvent, type World,
   tickStory, advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus,
 } from '@bc/shared';
@@ -45,6 +45,7 @@ export interface GameSession {
   resetControls(): void;
   view(x: number, width: number): void;
   spawn(): void;
+  summon(): void;
   next(): void;
   charge(): void;
   pick(char: string): void;
@@ -121,6 +122,7 @@ export class LocalSession implements GameSession {
   resetControls() { this.input = emptyInput(); }
   next() { if (this.testMode) nextStage(this.world); }
   spawn() { if (this.testMode) spawnEnemies(this.world, 3); }
+  summon() { if (this.testMode) testSummon(this.world); }
   charge() { if (this.testMode) chargeUlt(this.world, this.me); }
   heal() { if (this.testMode) testHeal(this.world); }
   god(on: boolean) { if (this.testMode) testGod(this.world, this.me, on); }
@@ -306,6 +308,7 @@ export class OnlineSession implements GameSession {
   }
   next() { if (this.testMode) this.safeSend('next', true); }
   spawn() { if (this.testMode) this.safeSend('spawn', true); }
+  summon() { if (this.testMode) this.safeSend('summon', true); }
   charge() { if (this.testMode) this.safeSend('charge', true); }
   heal() { if (this.testMode) this.safeSend('heal', true); }
   god(on: boolean) { if (this.testMode) this.safeSend('god', on); }
