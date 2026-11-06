@@ -159,7 +159,9 @@ export function syncStoryView(session: GameSession) {
       if (model.count === model.value.length) clearInterval(timer);
     }, TYPE_MS);
     let revealed = false;
-    root.addEventListener('pointerdown', event => {
+    // click приходит после touchend: Safari успевает освободить Phaser Pointer
+    // до того, как офлайн-сцена синхронно заменит этот DOM-overlay.
+    root.addEventListener('click', event => {
       event.preventDefault(); event.stopPropagation();
       if (!revealed) { revealed = true; model.count = model.value.length; clearInterval(timer); return; }
       if (snap.storyHost === session.me) session.advanceStory(key);
@@ -200,7 +202,9 @@ export function syncStoryView(session: GameSession) {
     if (count === value.length) clearInterval(timer);
   }, TYPE_MS);
   revealStory = () => { count = value.length; body.textContent = value; clearInterval(timer); };
-  root.addEventListener('pointerdown', () => {
+  // Не удаляем overlay на pointerdown: иначе Safari может потерять touchend,
+  // а Phaser оставит один из ограниченных touch Pointer активным.
+  root.addEventListener('click', () => {
     if (!touched) { touched = true; revealStory?.(); return; }
     if (snap.storyHost === session.me) { hint.textContent = 'Продолжаем…'; session.advanceStory(key); }
   });

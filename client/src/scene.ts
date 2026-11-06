@@ -1037,8 +1037,24 @@ export function startGame(parent: string, session: GameSession): Phaser.Game {
       },
     },
   });
-  // Поворот, появление/исчезновение панелей Safari: подгоняем ширину
-  const refit = () => game.scale.setGameSize(viewWidth(), VIEW_H);
-  window.addEventListener('resize', () => setTimeout(refit, 100));
+  // Поворот, появление/исчезновение панелей Safari: подгоняем ширину и заново
+  // измеряем DOM-границы canvas, по которым Phaser переводит касания в координаты игры.
+  const refit = () => {
+    game.scale.setGameSize(viewWidth(), VIEW_H);
+    game.scale.updateBounds();
+  };
+  let refitTimer = 0;
+  const scheduleRefit = () => {
+    window.clearTimeout(refitTimer);
+    refitTimer = window.setTimeout(refit, 100);
+  };
+  window.addEventListener('resize', scheduleRefit);
+  window.visualViewport?.addEventListener('resize', scheduleRefit);
+  scheduleRefit();
+  game.events.once('destroy', () => {
+    window.clearTimeout(refitTimer);
+    window.removeEventListener('resize', scheduleRefit);
+    window.visualViewport?.removeEventListener('resize', scheduleRefit);
+  });
   return game;
 }

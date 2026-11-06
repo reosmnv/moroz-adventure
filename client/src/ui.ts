@@ -81,6 +81,7 @@ export class UIScene extends Phaser.Scene {
   private tipTime = 0;
   private combatControls!: Phaser.GameObjects.Container;
   private controlsInStory = false;
+  private inputBlockedByDom = false;
   private joyId = -1;
   private joyOrigin = new Phaser.Math.Vector2();
   private joyBase!: Phaser.GameObjects.Image;
@@ -432,7 +433,12 @@ export class UIScene extends Phaser.Scene {
     if (s.hasMe()) s.move(...this.readMove());
     const last = s.snapshots[s.snapshots.length - 1];
     if (!last) return;
-    if (s.isPaused() || s.connectionLost || s.introOpen || s.needsIntro() || last.storyScene) this.releaseAll();
+    const inputBlockedByDom = s.isPaused() || s.connectionLost || s.introOpen || s.needsIntro() || !!last.storyScene;
+    // DOM-экраны получают касания через window-listener Phaser. Если Safari потерял
+    // touchend при замене overlay, очищаем застрявшие Pointer перед возвратом в бой.
+    if (this.inputBlockedByDom && !inputBlockedByDom) this.input.resetPointers();
+    this.inputBlockedByDom = inputBlockedByDom;
+    if (inputBlockedByDom) this.releaseAll();
     this.wantedText.setX(this.scale.width - 8).setText(last.wantedStars ? `${'★'.repeat(last.wantedStars)}  ${last.wantedReward ? Math.round(last.wantedReward / 1000) + ' тыс. ₽' : ''}` : '');
     this.recText.setVisible(last.recording && !last.finaleReady);
     this.waveText.setText(last.level === 'route' ? (last.stage === 3 && last.halt >= 0 && last.halt < HALT_MS ? '' : last.lockX0 < 0 ? STORY.service.forward : STORY.service.fight.replace('{n}', String(last.encDone + 1)).replace('{total}', String(last.encTotal))) : s.testMode ? 'ТЕСТ: МАНЕКЕН' : `ВОЛНА ${last.wave}`);
