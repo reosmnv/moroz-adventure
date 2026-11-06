@@ -3,7 +3,6 @@ import { HALT_MS, LEVELS, VIEW_H, type Stage } from '@bc/shared';
 import { FONT } from './ui.ts';
 
 const BG_SCALE = 1.5;
-const CARD_MS = 1730;
 const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
 const key = (file: string) => 'stage:' + file;
 
@@ -39,10 +38,6 @@ export class StageView {
   private glintAt = 0;
   private glintX = 0;
   private elapsed = 0;
-  private card?: Phaser.GameObjects.Container;
-  private cardIndex = -1;
-  private cardElapsed = 0;
-  private wantedPoster?: Phaser.GameObjects.Text;
 
   constructor(private scene: Phaser.Scene, private stage: Stage, deferCard = false) {
     const own = <T extends Phaser.GameObjects.GameObject>(o: T): T => { this.objects.push(o); return o; };
@@ -60,17 +55,12 @@ export class StageView {
       own(scene.add.image(0, 0, key(layer.file)).setOrigin(0).setScale(BG_SCALE).setDepth(depth));
     });
     for (const p of stage.props) own(scene.add.image(p.x, p.y, key(p.file)).setOrigin(0.5, 1).setScale(p.scale ?? BG_SCALE).setFlipX(!!p.flip).setDepth(p.depth ?? p.y));
-    for (const s of stage.signs) {
-      const sign = own(scene.add.text(s.x, s.y, s.text, { fontFamily: FONT, fontSize: `${s.size}px`, color: s.color, backgroundColor: s.bg, padding: s.bg ? { x: 2, y: 2 } : undefined, lineSpacing: 6 }).setOrigin(0.5).setDepth(-900));
-      if (stage.id === 'wagon' && s.text.includes('150 000')) this.wantedPoster = sign;
-    }
     this.objects.push(...debugLane(scene, stage));
     this.update(0, -1, deferCard);
   }
 
   update(dt: number, halt = -1, deferCard = false, reward = 150000) {
     this.elapsed += dt;
-    if (this.wantedPoster) this.wantedPoster.setText(`РОЗЫСК:\nАНАСТАСИЯ М.\n${reward >= 500000 ? '500 000 ₽' : '150 000 ₽'}`);
     if (this.tunnel && this.stage.tunnel) {
       const fx = this.stage.tunnel;
       const speed = fx.speed * (halt < 0 ? 1 : Math.max(0, 1 - halt / HALT_MS) ** 2);
@@ -94,27 +84,8 @@ export class StageView {
       else x = -w;
       this.train.setX(x).setVisible(x > -w);
     }
-    this.card?.setVisible(!deferCard);
-    if (deferCard) return;
-    this.cardElapsed += dt;
-    const index = Math.floor(this.cardElapsed / CARD_MS);
-    if (index !== this.cardIndex) {
-      this.card?.destroy(); this.card = undefined; this.cardIndex = index;
-      const text = this.stage.cards[index];
-      if (text) {
-        const small = this.scene.add.text(0, -22, text[0], { fontFamily: FONT, fontSize: '8px', color: '#ffffff', backgroundColor: '#120c19', padding: { x: 6, y: 5 } }).setOrigin(0.5);
-        const big = this.scene.add.text(0, 4, text[1], { fontFamily: FONT, fontSize: '16px', color: '#120c19', backgroundColor: '#ffe45c', padding: { x: 8, y: 7 } }).setOrigin(0.5);
-        this.card = this.scene.add.container(this.scene.scale.width / 2, VIEW_H + 80, [small, big]).setScrollFactor(0).setDepth(5000).setAngle(-4);
-        const card = this.card;
-        const available = this.scene.scale.width - 32;
-        const extent = Math.max(small.width, big.width) + 12;
-        card.setScale(Math.min(1, available / extent));
-        this.scene.tweens.add({ targets: card, x: this.scene.scale.width / 2, y: VIEW_H / 2, duration: 180, ease: 'Cubic.easeOut' });
-        this.scene.tweens.add({ targets: card, x: this.scene.scale.width / 2, y: -80, delay: 1580, duration: 150 });
-      }
-    }
-
+    // Плашки-карточки локаций убраны (решение mr.R 06.11); данные `cards` остаются для названий в меню.
   }
 
-  destroy() { this.card?.destroy(); this.objects.forEach(o => o.destroy()); }
+  destroy() { this.objects.forEach(o => o.destroy()); }
 }

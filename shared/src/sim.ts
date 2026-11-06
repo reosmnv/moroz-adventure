@@ -171,7 +171,7 @@ export interface Actor {
 
 export interface World {
   actors: Record<string, Actor>;
-  storyCamX?: number;
+  storyCamX?: number; storyStrict?: boolean;
   storyPizDown?: boolean;
   storyPushes?: number[]; storyReady?: string[]; storyLineAt?: number; storyManualAt?: number;
   storyLast?: { id: string; line: string; at: number }[]; storyKiss?: boolean;
@@ -479,14 +479,6 @@ const clampEnemyX = (w: World, x: number, e: Enemy) => w.enc.lock
   ? e.entered ? clamp(x, w.enc.lock[0] + 12, e.entering ? Math.max(e.x, w.enc.lock[1] - 12) : w.enc.lock[1] - 12) : x
   : clamp(x, Math.max(-40, focusX(w) - 300), Math.min(levelW(w) + 40, focusX(w) + 300));
 
-function introduce(w: World, ev: SimEvent[]): boolean {
-  const e = Object.values(w.enemies).find(e => e.hp > 0 && combatReady(w, e) && !w.introduced.includes(e.boss ?? e.kind));
-  if (!w.enc.lock || !e) return false;
-  const kind = e.boss ?? e.kind;
-  w.introduced.push(kind); w.cine = { id: e.id, kind, ms: CINE_MS };
-  ev.push({ t: 'cine', id: e.id, kind });
-  return true;
-}
 function setAir(e: Enemy, ms: number, peak: number, bounce: boolean) {
   e.air = ms; e.airSpan = ms; e.airPeak = peak; e.airStartH = bounce ? 0 : (e.height ?? 0); e.bouncing = bounce;
   e.height = e.airStartH; e.pin = undefined;
@@ -1688,7 +1680,6 @@ function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimE
     e.entering = e.x > w.enc.lock[1] - 12;
     e.entered = true;
   }
-  if (introduce(w, ev)) return ev;
   w.tick++; w.timeMs += dtMs;
 
   if (w.trans) {
@@ -1902,7 +1893,6 @@ function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimE
     ev.push({ t: 'exit', to: w.trans.to });
   }
 
-  introduce(w, ev);
   return ev;
 }
 
@@ -1916,14 +1906,10 @@ function storyEvent(w: World, ev: SimEvent[], kind: 'won' | 'friend' | 'down' | 
   ev.push({ t: 'taunt', id: p.id, line }); w.storyLineAt = w.timeMs;
 }
 export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimEvent[] {
-  const cine = w.cine?.kind, stage = w.stage;
+  const stage = w.stage;
   for (const i of Object.values(inputs)) if (i.taunt) w.storyManualAt = w.timeMs;
   const ev = stepCore(w, inputs, dtMs);
   const alive = livePlayers(w);
-  if (cine && !w.cine && LINES.reply[cine] && alive.length) {
-    const p = alive.find(p => p.char === HERO_ID) ?? alive[Math.floor(rand(w) * alive.length)];
-    ev.push({ t: 'taunt', id: p.id, line: LINES.reply[cine] });
-  }
   w.storyReady ??= [];
   for (const p of alive) if (p.ult >= 100 && !w.storyReady.includes(p.char)) {
     w.storyReady.push(p.char); ev.push({ t: 'taunt', id: p.id, line: LINES.ready[LINE_HEROES.indexOf(p.char)] });
@@ -1956,6 +1942,6 @@ export function stepActors(w: World, dtMs: number) {
       if (ratio === 1) a.anim = 'idle';
     }
     const player = Object.values(w.players).find(p => p.char === a.id);
-    if (player) { player.x = a.x; player.y = a.y; player.facing = a.facing; player.anim = a.anim as Anim; }
+    if (player) { player.facing = a.facing; player.anim = a.anim as Anim; }
   }
 }

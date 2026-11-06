@@ -4,7 +4,7 @@ import { Client, type Room } from '@colyseus/sdk';
 import {
   encountersOf, switchHero, testHeal, testGod, testSummon, testKillAll, TEST_TOOLS, TICK_MS, nextStage, addPlayer, chargeUlt, createWorld, emptyInput, spawnEnemies, step, takenChars,
   type Actor, type Anim, type Form, type Input, type SimEvent, type World,
-  tickStory, advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus,
+  tickStory, advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus, pendingStory, testStoryScene, testStoryStrict,
 } from '@bc/shared';
 
 export interface EntitySnap {
@@ -16,7 +16,7 @@ export interface EntitySnap {
   enterMs?: number; kind?: string; phase?: string; boss?: string; bossPhase?: number; atk?: string;
   slow?: boolean; stun?: boolean; charm?: boolean;
 }
-export interface Snapshot { actors: Map<string, Actor>; storyCamX?: number; recording: boolean; finaleReady: boolean; wantedStars: number; wantedReward: number; storyScene: string; storyIndex: number; storyHost: string; storyTime: number; storyPushes: number[]; pausedBy: string; pauseMs: number; slowmoMs: number; halt: number; cineId: string; cineKind: string; cineMs: number; shots: { x: number; y: number; dir: number }[]; zones: { x: number; y: number; r: number; ms: number }[]; lockX0: number; lockX1: number; encDone: number; encTotal: number; won: boolean; level: 'route' | 'old'; stage: number; trans: number; t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
+export interface Snapshot { actors: Map<string, Actor>; storyCamX?: number; pendingStoryX?: number; recording: boolean; finaleReady: boolean; wantedStars: number; wantedReward: number; storyScene: string; storyIndex: number; storyHost: string; storyTime: number; storyPushes: number[]; pausedBy: string; pauseMs: number; slowmoMs: number; halt: number; cineId: string; cineKind: string; cineMs: number; shots: { x: number; y: number; dir: number }[]; zones: { x: number; y: number; r: number; ms: number }[]; lockX0: number; lockX1: number; encDone: number; encTotal: number; won: boolean; level: 'route' | 'old'; stage: number; trans: number; t: number; players: Map<string, EntitySnap>; enemies: Map<string, EntitySnap>; wave: number; tick: number }
 export type Button = 'skip' | 'attack' | 'heavy' | 'taunt' | 'ult' | 'ult2';
 
 export interface GameSession {
@@ -46,6 +46,8 @@ export interface GameSession {
   view(x: number, width: number): void;
   spawn(): void;
   summon(): void;
+  runScene(id: string, strict: boolean): void;
+  strictScenes(strict: boolean): void;
   next(): void;
   charge(): void;
   pick(char: string): void;
@@ -110,7 +112,7 @@ export class LocalSession implements GameSession {
     for (const p of Object.values(this.world.players)) players.set(p.id, { ...p, storm: p.stormMs, invuln: p.invulnMs > 0 });
     const enemies = new Map<string, EntitySnap>();
     for (const e of Object.values(this.world.enemies)) enemies.set(e.id, { ...e, meteorX: e.thrown?.x, meteorY: e.thrown?.y, meteorMs: e.thrown?.ms, carryBy: e.held?.by ?? e.thrown?.by ?? '', thrown: !!e.thrown, carried: !!(e.held || e.thrown), kind: e.boss ?? e.kind, frozen: (e.frozenMs ?? 0) > 0, slow: (e.slowMs ?? 0) > 0, stun: (e.stunMs ?? 0) > 0, charm: (e.charmMs ?? 0) > 0 });
-    pushSnap(this.snapshots, { actors: new Map(Object.entries(this.world.actors).map(([id, a]) => [id, { ...a }])), storyCamX: this.world.storyCamX, recording: this.story.flags.recording === 'on', finaleReady: this.story.flags.finaleReady === 'on', wantedStars: wantedStatus(this.world, this.story).stars, wantedReward: wantedStatus(this.world, this.story).reward, storyScene: this.story.scene, storyIndex: this.story.index, storyHost: this.me, storyTime: this.world.timeMs, storyPushes: [...(this.world.storyPushes ?? [])], pausedBy: this.paused ? this.me : '', pauseMs: this.world.pauseMs ?? 0, slowmoMs: this.world.slowmoMs ?? 0, halt: this.world.halt, cineId: this.world.cine?.id ?? '', cineKind: this.world.cine?.kind ?? '', cineMs: this.world.cine?.ms ?? 0, shots: this.world.shots.map(s => ({ ...s })), zones: this.world.zones.map(z => ({ ...z })), t: performance.now(), players, enemies, lockX0: this.world.enc.lock?.[0] ?? -1, lockX1: this.world.enc.lock?.[1] ?? -1, encDone: this.world.enc.cleared, encTotal: encountersOf(this.world).length, won: this.world.won, level: this.world.level, stage: this.world.stage, trans: this.world.trans?.ms ?? 0, wave: this.world.wave, tick: this.world.tick });
+    pushSnap(this.snapshots, { actors: new Map(Object.entries(this.world.actors).map(([id, a]) => [id, { ...a }])), storyCamX: this.world.storyCamX, pendingStoryX: pendingStory(this.story, this.world)?.x, recording: this.story.flags.recording === 'on', finaleReady: this.story.flags.finaleReady === 'on', wantedStars: wantedStatus(this.world, this.story).stars, wantedReward: wantedStatus(this.world, this.story).reward, storyScene: this.story.scene, storyIndex: this.story.index, storyHost: this.me, storyTime: this.world.timeMs, storyPushes: [...(this.world.storyPushes ?? [])], pausedBy: this.paused ? this.me : '', pauseMs: this.world.pauseMs ?? 0, slowmoMs: this.world.slowmoMs ?? 0, halt: this.world.halt, cineId: this.world.cine?.id ?? '', cineKind: this.world.cine?.kind ?? '', cineMs: this.world.cine?.ms ?? 0, shots: this.world.shots.map(s => ({ ...s })), zones: this.world.zones.map(z => ({ ...z })), t: performance.now(), players, enemies, lockX0: this.world.enc.lock?.[0] ?? -1, lockX1: this.world.enc.lock?.[1] ?? -1, encDone: this.world.enc.cleared, encTotal: encountersOf(this.world).length, won: this.world.won, level: this.world.level, stage: this.world.stage, trans: this.world.trans?.ms ?? 0, wave: this.world.wave, tick: this.world.tick });
     if (evs.length) this.onEvents(evs);
   }
 
@@ -122,6 +124,8 @@ export class LocalSession implements GameSession {
   resetControls() { this.input = emptyInput(); }
   next() { if (this.testMode) nextStage(this.world); }
   spawn() { if (this.testMode) spawnEnemies(this.world, 3); }
+  runScene(id: string, strict: boolean) { if (this.testMode && testStoryScene(this.story, this.world, id, strict)) { this.resetControls(); } }
+  strictScenes(strict: boolean) { if (this.testMode) testStoryStrict(this.world, strict); }
   summon() { if (this.testMode) testSummon(this.world); }
   charge() { if (this.testMode) chargeUlt(this.world, this.me); }
   heal() { if (this.testMode) testHeal(this.world); }
@@ -232,7 +236,7 @@ export class OnlineSession implements GameSession {
       state.players.forEach((p: any, id: string) => players.set(id, { god: p.god, ultLevel: p.ultLevel, ultWindow: p.ultWindow, x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, fDashMs: p.fDashMs, idleInput: p.idleInput, hiddenMs: p.hiddenMs, heavySmokeMs: p.heavySmokeMs, fireMs: p.fireMs, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, bCooldownMs: p.bCooldownMs, bChainActive: p.bChainActive, fireFacing: p.fireFacing, shooting: p.shooting, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
       state.enemies.forEach((e: any, id: string) => enemies.set(id, { meteorX: e.meteorX, meteorY: e.meteorY, meteorMs: e.meteorMs, ultStopMs: e.ultStopMs, carryBy: e.carryBy, thrown: e.thrown, carried: e.carried, carryAngle: e.carryAngle, carryHeight: e.carryHeight, burnMs: e.burnMs, markedBy: e.markedBy, enterMs: e.enterMs, boss: e.boss, bossPhase: e.bossPhase, atk: e.atk, kind: e.kind, phase: e.phase, x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
-      pushSnap(this.snapshots, { actors: new Map(Array.from(state.actors, ([id, a]: [string, any]) => [id, { id: a.id, look: a.look, x: a.x, y: a.y, tx: a.tx, ty: a.ty, facing: a.facing, anim: a.anim, speed: a.speed, keep: a.keep }])), storyCamX: state.hasStoryCam ? state.storyCamX : undefined, recording: state.recording, finaleReady: state.finaleReady, wantedStars: state.wantedStars, wantedReward: state.wantedReward, storyScene: state.storyScene, storyIndex: state.storyIndex, storyHost: state.storyHost, storyTime: state.storyTime, storyPushes: JSON.parse(state.storyPushes || '[]'), pausedBy: state.pausedBy, pauseMs: state.pauseMs, slowmoMs: state.slowmoMs, halt: state.halt, cineId: state.cineId, cineKind: state.cineKind, cineMs: state.cineMs, shots: Array.from(state.shots, (s: any) => ({ x: s.x, y: s.y, dir: s.dir })), zones: Array.from(state.zones, (z: any) => ({ x: z.x, y: z.y, r: z.r, ms: z.ms })), t: performance.now(), players, enemies, lockX0: state.lockX0, lockX1: state.lockX1, encDone: state.encDone, encTotal: state.encTotal, won: state.won, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
+      pushSnap(this.snapshots, { actors: new Map(Array.from(state.actors, ([id, a]: [string, any]) => [id, { id: a.id, look: a.look, x: a.x, y: a.y, tx: a.tx, ty: a.ty, facing: a.facing, anim: a.anim, speed: a.speed, keep: a.keep }])), pendingStoryX: state.pendingStoryX < 0 ? undefined : state.pendingStoryX, storyCamX: state.hasStoryCam ? state.storyCamX : undefined, recording: state.recording, finaleReady: state.finaleReady, wantedStars: state.wantedStars, wantedReward: state.wantedReward, storyScene: state.storyScene, storyIndex: state.storyIndex, storyHost: state.storyHost, storyTime: state.storyTime, storyPushes: JSON.parse(state.storyPushes || '[]'), pausedBy: state.pausedBy, pauseMs: state.pauseMs, slowmoMs: state.slowmoMs, halt: state.halt, cineId: state.cineId, cineKind: state.cineKind, cineMs: state.cineMs, shots: Array.from(state.shots, (s: any) => ({ x: s.x, y: s.y, dir: s.dir })), zones: Array.from(state.zones, (z: any) => ({ x: z.x, y: z.y, r: z.r, ms: z.ms })), t: performance.now(), players, enemies, lockX0: state.lockX0, lockX1: state.lockX1, encDone: state.encDone, encTotal: state.encTotal, won: state.won, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
       if (this.testMode && this.intro && players.has(this.me)) this.finishIntro();
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;
@@ -308,6 +312,8 @@ export class OnlineSession implements GameSession {
   }
   next() { if (this.testMode) this.safeSend('next', true); }
   spawn() { if (this.testMode) this.safeSend('spawn', true); }
+  runScene(id: string, strict: boolean) { if (this.testMode) this.safeSend('testScene', { id, strict }); }
+  strictScenes(strict: boolean) { if (this.testMode) this.safeSend('storyStrict', strict); }
   summon() { if (this.testMode) this.safeSend('summon', true); }
   charge() { if (this.testMode) this.safeSend('charge', true); }
   heal() { if (this.testMode) this.safeSend('heal', true); }

@@ -1,6 +1,6 @@
 // Сетевые сценарии без браузера: два бота на @colyseus/sdk против живого сервера.
 // Запуск: сервер уже работает, затем `npm run test:net` (SERVER_URL переопределяет адрес).
-import { STORY_SCENES } from '@bc/shared';
+import { STORY_SCENES, STORY_CONTENT } from '@bc/shared';
 import { Client, type Room } from '@colyseus/sdk';
 
 const URL = process.env.SERVER_URL ?? 'http://100.118.72.60:2567';
@@ -17,6 +17,10 @@ async function testStoryFlow() {
   a.reconnection.enabled = false; a.onMessage('ev', () => {});
   a.send('pick', 'anastasia'); await sleep(350);
   const first = a.state as any;
+  check('TZ21 титры стартуют без команды', first.storyScene === 'prologue' && first.storyIndex === 0);
+  a.send('storyNext', 'prologue:0'); await sleep(100);
+  check('TZ21 тап не пропускает титр', first.storyIndex === 0);
+  await sleep(Math.max(2200, 55 * STORY_CONTENT['title.1'].length) + Math.max(2200, 55 * STORY_CONTENT['title.2'].length));
   const indices = STORY_SCENES.find(s => s.id === 'prologue')!.steps.flatMap((step, i) => step.kind === 'card' || step.kind === 'phone' || step.kind === 'line' ? [i] : []);
   check('V3 пролог виден ведущему', first.storyScene === 'prologue' && first.storyIndex === indices[0] && first.storyHost === a.sessionId);
   const b = await new Client(URL).joinById(a.roomId);
@@ -29,7 +33,7 @@ async function testStoryFlow() {
   const token = a.reconnectionToken;
   a.connection.close(4999, 'story host drop'); await sleep(550);
   check('V3 ведущий перешёл следующему игроку', (b.state as any).storyHost === b.sessionId && (b.state as any).storyIndex === indices[1]);
-  b.send('storyNext', `prologue:${indices[1]}`); await sleep(200);
+  b.send('storyNext', `prologue:${indices[1]}`); await sleep(800);
   const a2 = await new Client(URL).reconnect(token);
   a2.reconnection.enabled = false; a2.onMessage('ev', () => {}); await sleep(300);
   check('V3 вернувшийся получает текущий шаг', (a2.state as any).storyScene === 'prologue' && (a2.state as any).storyIndex === indices[2]);
@@ -49,7 +53,7 @@ async function testNormalMode() {
   check('TZ18 обычная комната: режим false по умолчанию, stage 0', s().testMode === false && s().stage === 0);
   const before = { enemies: s().enemies.size, ult: players(r).get(r.sessionId)?.ult, hp: players(r).get(r.sessionId)?.hp };
   for (const command of ['spawn', 'next', 'charge', 'heal', 'killall']) r.send(command);
-  r.send('god', true); await sleep(400);
+  r.send('god', true); r.send('testScene', { id: 'arch', strict: false }); r.send('storyStrict', false); await sleep(400);
   check('TZ18 обычная комната отклоняет все тестовые команды', s().enemies.size === before.enemies && s().stage === 0 && !s().trans
     && players(r).get(r.sessionId)?.ult === before.ult && players(r).get(r.sessionId)?.hp === before.hp && players(r).get(r.sessionId)?.god === false);
   r.send('switch', 'kris'); await sleep(200);
@@ -81,6 +85,14 @@ async function testStageAndTools() {
     && [...s().enemies.values()].every((e: any) => e.hp === 0));
   r.send('next'); await sleep(200);
   check('TZ18 тестовый next', s().trans > 0);
+  r.send('testScene', { id: 'arch', strict: true }); await sleep(300);
+  check('TZ21 сервер запускает выбранную сцену и призывает героев', s().stage === 0 && s().storyScene === 'arch' && players(r).size === 4
+    && [...players(r).values()].every((p: any) => p.x >= 640 && p.x <= 700 && p.god));
+  const before = new Map([...players(r).entries()].map(([id, p]: [string, any]) => [id, p.x]));
+  r.send('storyNext', `arch:${s().storyIndex}`); await sleep(250);
+  check('TZ21 сцена онлайн сохраняет координаты', [...players(r).entries()].every(([id, p]: [string, any]) => p.x === before.get(id)));
+  r.send('testScene', { id: 'sender', strict: false }); await sleep(250);
+  check('TZ21 повторный запуск другой сцены онлайн', s().stage === 6 && s().storyScene === 'sender' && s().actors.has('milonov'));
   await r.leave(true);
 }
 

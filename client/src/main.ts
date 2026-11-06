@@ -1,4 +1,4 @@
-import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, LEVELS, TEST_TOOLS } from '@bc/shared';
+import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, LEVELS, TEST_TOOLS, STORY_SCENES } from '@bc/shared';
 import { LocalSession, OnlineSession, clearReconnect, returnToMenu, savedReconnect, type GameSession } from './session.ts';
 import { GAME_TITLE, STORY, showIntro, syncStoryView } from './story.ts';
 import { startGame } from './scene.ts';
@@ -110,6 +110,7 @@ async function begin(online: boolean, code?: string, stage = 0, testMode = false
     if (!resume) clearReconnect();
     introSeen = false;
     session = online ? await OnlineSession.open(SERVER_URL, code, 'route', stage, testMode, resume) : new LocalSession('route', stage, testMode);
+    ($('storyStrict') as HTMLInputElement).checked = true;
     session.onPickError = message => { pendingHero = ''; $('pickNote').textContent = message; };
     if (session.roomId) history.replaceState(null, '', location.pathname + '#' + session.roomId);
     else history.replaceState(null, '', location.pathname);
@@ -134,6 +135,14 @@ $('testBtn').onclick = () => {
 };
 $('nextBtn').onclick = () => session?.next();
 $('spawnBtn').onclick = () => session?.spawn();
+if (TEST_TOOLS) {
+  const names: Record<string, string> = { prologue: 'Вступление', street_vat: 'Ватники у подъезда', arch: 'ОМОН у арки', vestibule: 'Вестибюль', wagon: 'Вагон', mayak: 'Маяковская', shaman: 'Шаман', pizdulina: 'Пиздулина', local_mfc: 'Местный МФЦ', city: 'Москва-Сити', milonov: 'Милонов', leverage: 'Доступ к базе', sender: 'Отправитель', katya: 'Катя', withdrawal: 'Отзыв доноса и финал' };
+  const select = $('storySceneSelect') as HTMLSelectElement;
+  for (const scene of STORY_SCENES) select.add(new Option(`${scene.id} · ${names[scene.id] ?? scene.id}`, scene.id));
+  const strict = $('storyStrict') as HTMLInputElement;
+  $('storySceneBtn').onclick = () => session?.runScene(select.value, strict.checked);
+  strict.onchange = () => session?.strictScenes(strict.checked);
+}
 $('summonBtn').onclick = () => session?.summon();
 $('chargeBtn').onclick = () => session?.charge();
 $('healBtn').onclick = () => session?.heal();
@@ -227,6 +236,7 @@ $('closeShareBtn').onclick = () => { visible('shareBox', false); pausePanel = ''
 setInterval(() => {
   if (!session || !game) { if (!busy) refreshContinue(); return; }
   visible('testBtn', session.testMode);
+  $('topbar').style.zIndex = session.testMode && session.snapshots.at(-1)?.storyScene ? '13' : '';
   $('testBtn').setAttribute('aria-expanded', String(!$('testPanel').classList.contains('hidden')));
   if (!session.testMode) closeTest();
   $('godBtn').textContent = 'Бессмертие: ' + (session.snapshots.at(-1)?.players.get(session.me)?.god ? 'вкл' : 'выкл');

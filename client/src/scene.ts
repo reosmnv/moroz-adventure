@@ -4,7 +4,7 @@ import { shake, settings } from './settings.ts';
 import { returnToMenu } from './session.ts';
 import { Impact } from './impact.ts';
 import { BossShow } from './boss-show.ts';
-import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, ENEMY_INTRO, HALT_MS, BOSS, BOSS_ATTACK, STORY_CONTENT, type BossId, ENEMY_ANIMS, KATYA_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, moveDurMs, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, HALT_MS, BOSS, BOSS_ATTACK, STORY_CONTENT, type BossId, ENEMY_ANIMS, KATYA_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, moveDurMs, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { RAMIL_TIPS, RAMIL_FISTS, RAMIL_GRIP } from './ramil-tips.ts';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
@@ -51,11 +51,6 @@ export class GameScene extends Phaser.Scene {
   private bossHp?: Phaser.GameObjects.Rectangle;
   private bossName?: Phaser.GameObjects.Text;
   private phaseUntil = 0;
-  private cineKey = '';
-  private cineStart = 0;
-  private cineShade?: Phaser.GameObjects.Rectangle;
-  private cinePanel?: Phaser.GameObjects.Container;
-  private cineBubble?: Phaser.GameObjects.Text;
   private guide?: Phaser.GameObjects.Graphics;
   private exitLabel?: Phaser.GameObjects.Text;
   private stopped = false;
@@ -755,43 +750,12 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private drawCine(s: Snapshot) {
-    const cam = this.cameras.main;
-    if (s.cineId !== this.cineKey) {
-      this.cineShade?.destroy(); this.cinePanel?.destroy(); this.cineBubble?.destroy();
-      this.cineShade = undefined; this.cinePanel = undefined; this.cineBubble = undefined;
-      this.cineKey = s.cineId; this.cineStart = this.time.now;
-      const intro = ENEMY_INTRO[s.cineKind];
-      if (s.cineId && intro) {
-        this.cineShade = this.add.rectangle(0, 0, this.scale.width, VIEW_H, 0x000000, 0.55).setOrigin(0).setScrollFactor(0).setDepth(3000);
-        const ui = this.scene.get('ui');
-        const name = ui.add.text(0, 0, intro.name, { ...textStyle(16, '#ffffff'), backgroundColor: '#c82032', padding: { x: 6, y: 5 } });
-        const tag = ui.add.text(6, 30, intro.tag, textStyle(8, '#ffe45c'));
-        const shadow = ui.add.rectangle(5, 5, Math.max(name.width, tag.width + 6), 46, 0x000000).setOrigin(0);
-        this.cinePanel = ui.add.container(-500, VIEW_H + 100, [shadow, name, tag]).setScrollFactor(0).setDepth(3200);
-        ui.tweens.add({ targets: this.cinePanel, x: 12, y: VIEW_H - 107, duration: 180, ease: 'Back.easeOut' });
-        this.cineBubble = this.add.text(0, 0, '', { ...textStyle(8, '#120c19'), stroke: '#000000', strokeThickness: 1, backgroundColor: '#ffffff', padding: { x: 5, y: 5 }, wordWrap: { width: 208 } }).setOrigin(0.5, 1).setDepth(3200);
-      }
-    }
-    const targetZoom = s.cineId ? 1.12 : 1;
-    const zoom = cam.zoom + (targetZoom - cam.zoom) * (1 - Math.exp(-this.game.loop.delta / 180));
-    cam.setZoom(Math.abs(zoom - targetZoom) < 0.001 ? targetZoom : zoom);
-    if (!s.cineId) return;
-    this.cineShade?.setSize(this.scale.width, VIEW_H);
-    const v = this.views.get('e:' + s.cineId), e = s.enemies.get(s.cineId);
-    v?.sprite?.setDepth(3100); if (v && !v.sprite) v.body.setDepth(3100);
-    if (e && this.cineBubble) {
-      const line = ENEMY_INTRO[s.cineKind].line;
-      this.cineBubble.setText(line.slice(0, Math.ceil(line.length * Math.min(1, (this.time.now - this.cineStart) / 600))));
-      this.cineBubble.setPosition(e.x, Math.max(64, e.y - 102));
-    }
-  }
-
   private drawGuides(s: Snapshot) {
     const stage = LEVELS[s.level].stages[s.stage], cam = this.cameras.main;
     this.guide ??= this.add.graphics().setDepth(2000);
     this.guide.clear();
     if (s.storyScene) { this.exitLabel?.setVisible(false); this.prompt?.setVisible(false); return; }
+    const waiting = s.pendingStoryX !== undefined && s.lockX0 < 0;
     const ready = s.encDone >= s.encTotal && s.lockX0 < 0 && !s.won && (!stage.tunnel || s.halt >= HALT_MS);
     const pulse = 0.55 + 0.45 * Math.sin(this.time.now / 220) ** 2;
     this.exitLabel ??= this.add.text(0, 0, '↓\nВЫХОД', { ...textStyle(12, '#ffe45c'), align: 'center' }).setOrigin(0.5, 1).setDepth(2001);
@@ -802,9 +766,9 @@ export class GameScene extends Phaser.Scene {
       this.guide.lineStyle(2, 0xffe45c, pulse).strokeRect(e.x0, y - 20, e.x1 - e.x0, 20);
     }
     const braking = !!stage.tunnel && s.halt >= 0 && s.halt < HALT_MS;
-    const goal = ready ? stage.exit?.x0 : s.lockX0 < 0 ? ENCOUNTERS[stage.id]?.[s.encDone]?.trigger : undefined;
+    const goal = waiting ? s.pendingStoryX : ready ? stage.exit?.x0 : s.lockX0 < 0 ? ENCOUNTERS[stage.id]?.[s.encDone]?.trigger : undefined;
     this.prompt ??= this.add.text(0, 120, '', { ...textStyle(10, '#ffe45c'), align: 'center' }).setOrigin(0.5).setScrollFactor(0).setDepth(2100);
-    this.prompt.setPosition(braking ? this.scale.width / 2 : this.scale.width - 52, 120).setText(braking ? STORY.service.halt : goal !== undefined && goal > cam.scrollX + this.scale.width ? `→\n${ready ? 'ВЫХОД' : 'ВПЕРЁД'}` : '').setAlpha(pulse).setVisible(!s.cineId);
+    this.prompt.setPosition(braking ? this.scale.width / 2 : this.scale.width - 52, 120).setText(braking ? STORY.service.halt : waiting || goal !== undefined && goal > cam.scrollX + this.scale.width ? `→\n${ready && !waiting ? 'ВЫХОД' : 'ВПЕРЁД'}` : '').setAlpha(pulse).setVisible(!s.cineId);
     if (s.lockX0 >= 0 && !s.cineId) for (const e of s.enemies.values()) {
       if (e.hp <= 0 || e.x >= cam.scrollX && e.x <= cam.scrollX + this.scale.width) continue;
       const left = e.x < cam.scrollX, x = cam.scrollX + (left ? 5 : this.scale.width - 5), d = left ? 1 : -1;
@@ -827,13 +791,13 @@ export class GameScene extends Phaser.Scene {
     const locationKey = b.level + ':' + b.stage + (localMfc ? ':local-mfc' : '');
     if (locationKey !== this.locationKey) {
       const first = !this.locationKey;
+      const sameStage = this.locationKey.split(':').slice(0, 2).join(':') === `${b.level}:${b.stage}`;
       this.bossShow?.destroy(); this.bossShow = undefined;
       this.stageView?.destroy();
       this.tweens.killAll(); this.time.removeAllEvents();
       this.children.removeAll(true); this.views.clear(); this.prompt = undefined; this.forwardFrom = undefined;
       this.floorFx = this.shotFx = this.guide = undefined; this.bossHp = undefined; this.bossName = undefined;
-      this.cinePanel?.destroy();
-      this.cineKey = ''; this.cineShade = undefined; this.cinePanel = undefined; this.cineBubble = undefined; this.exitLabel = undefined; this.stopped = false;
+      this.exitLabel = undefined; this.stopped = false;
       this.locationKey = locationKey;
       const baseStage = LEVELS[b.level].stages[b.stage];
       const stage = localMfc ? { ...LEVELS.route.stages[6], width: baseStage.width, cards: [], signs: [], props: [] } : baseStage;
@@ -842,13 +806,15 @@ export class GameScene extends Phaser.Scene {
       else this.stageView = new StageView(this, stage, !!latestStage.storyScene || b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
       if (localMfc) {
         // Стойка перекрывает ноги сотрудника, фон окон взят из готового МФЦ.
-        this.add.rectangle(650, 183, 126, 32, 0x744d3b).setStrokeStyle(2, 0x302530).setDepth(210);
-        this.add.rectangle(650, 165, 136, 6, 0xd4b99b).setDepth(210);
+        const counterX = Math.max(...[...latestStage.players.values()].filter(p => p.hp > 0).map(p => p.x)) + 150;
+        this.add.rectangle(counterX, 183, 126, 32, 0x744d3b).setStrokeStyle(2, 0x302530).setDepth(210);
+        this.add.rectangle(counterX, 165, 136, 6, 0xd4b99b).setDepth(210);
       }
-      this.camX = undefined; this.layout();
+      if (!sameStage) this.camX = undefined;
+      this.layout();
       const me = b.players.get(this.session.me);
-      if (me) this.follow(me.x);
-      if (!first) this.cameras.main.fadeIn(350);
+      if (me && !sameStage) this.follow(me.x);
+      if (!first && !sameStage) this.cameras.main.fadeIn(350);
     }
     const pace = latestStage.storyScene || latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
     if (b.level === 'route' && b.stage === 4 && !localMfc) {
@@ -1003,7 +969,6 @@ export class GameScene extends Phaser.Scene {
       draw('e:' + id, false, a.enemies.get(id), sb);
     }
     this.drawActors(latest);
-    this.drawCine(latest.storyScene ? { ...latest, cineId: '' } : latest);
     drawStoryBubble(this, this.scene.get('ui'), latest);
     for (const [key, v] of this.views) {
       if (seen.has(key)) continue;

@@ -3,7 +3,7 @@ import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
   encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars, switchHero, testHeal, testGod, testSummon, testKillAll,
   type Input, type World,
-  tickStory, advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus,
+  tickStory, advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus, pendingStory, testStoryScene, testStoryStrict,
 } from '@bc/shared';
 
 export const PlayerState = schema({
@@ -59,7 +59,7 @@ export const ShotState = schema({ x: t.number(), y: t.number(), dir: t.number() 
 export const ZoneState = schema({ x: t.number(), y: t.number(), r: t.number(), ms: t.number() }, 'ZoneState');
 export const ActorState = schema({ id: t.string(), look: t.string(), x: t.number(), y: t.number(), tx: t.number(), ty: t.number(), facing: t.number(), anim: t.string(), speed: t.number(), keep: t.boolean() }, 'ActorState');
 export const GameState = schema({
-  actors: t.map(ActorState), storyCamX: t.number(), hasStoryCam: t.boolean(),
+  actors: t.map(ActorState), storyCamX: t.number(), pendingStoryX: t.number(), hasStoryCam: t.boolean(),
   recording: t.boolean(), finaleReady: t.boolean(), wantedStars: t.number(), wantedReward: t.number(),
   storyScene: t.string(), storyIndex: t.number(), storyHost: t.string(),
   storyTime: t.number(), storyPushes: t.string(),
@@ -170,6 +170,16 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (this.world.testTools && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
     });
 
+    if (TEST_TOOLS) {
+      this.onMessage('testScene', (client: Client, data: unknown) => {
+        if (!this.world.testTools || !this.world.players[client.sessionId] || !data || typeof data !== 'object') return;
+        const { id, strict } = data as { id?: unknown; strict?: unknown };
+        if (typeof id === 'string' && typeof strict === 'boolean' && testStoryScene(this.story, this.world, id, strict)) { this.clearInputs(); this.sync(); }
+      });
+      this.onMessage('storyStrict', (client: Client, strict: unknown) => {
+        if (this.world.players[client.sessionId] && typeof strict === 'boolean') testStoryStrict(this.world, strict);
+      });
+    }
     this.onMessage('summon', (client: Client) => {
       if (this.world.testTools && this.world.players[client.sessionId]) testSummon(this.world);
     });
@@ -244,6 +254,7 @@ export class GameRoom extends Room<{ state: GameState }> {
   // Копия мира в Schema: Colyseus сам отправит только изменившиеся поля
   sync() {
     const s = this.state, w = this.world;
+    s.pendingStoryX = pendingStory(this.story, w)?.x ?? -1;
     s.hasStoryCam = w.storyCamX !== undefined; s.storyCamX = w.storyCamX ?? 0;
     for (const id of [...s.actors.keys()]) if (!w.actors[id]) s.actors.delete(id);
     for (const actor of Object.values(w.actors)) {

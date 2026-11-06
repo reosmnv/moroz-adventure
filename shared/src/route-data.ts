@@ -31,13 +31,7 @@ export const ROUTE: Stage[] = [
       { file: 'route/props/manhole.png', x: 1900, y: 196, scale: 1, depth: DECAL },
       { file: 'route/props/manhole.png', x: 2450, y: 232, scale: 1, depth: DECAL },
     ],
-    signs: [
-      { text: 'ЖИЛЬЦЫ!\nСОБЛЮДАЙТЕ\nТИШИНУ', x: 300, y: 95, size: 8, color: '#ffffff', bg: '#1f3a6b' },
-      { text: 'ЖАЛОБЫ: КВ. 41', x: 720, y: 90, size: 8, color: '#ffffff', bg: '#1f3a6b' },
-      { text: 'ПОДЪЕЗД 3', x: 196, y: 62, size: 8, color: '#ffffff', bg: '#1f4e8c' },
-      { text: 'ПОДЪЕЗД 4', x: 630, y: 34, size: 8, color: '#ffffff', bg: '#1f4e8c' },
-      { text: 'ПОДЪЕЗД 5', x: 1302, y: 34, size: 8, color: '#ffffff', bg: '#1f4e8c' },
-    ],
+    signs: [],
   },
   {
     // Двор: зеркало двора, двор (yard_a), павильон «Беговая», выход 3 (rt_e). Выход в двери павильона
@@ -56,11 +50,7 @@ export const ROUTE: Stage[] = [
       { file: 'route/props/manhole.png', x: 300, y: 214, scale: 1, depth: DECAL },
       { file: 'route/props/manhole.png', x: 785, y: 230, scale: 1, depth: DECAL },
     ],
-    signs: [
-      { text: 'Спереди ОМОН не пробить', x: 420, y: 106, size: 8, color: '#ff4fa0' },
-      { text: 'БЕГОВАЯ', x: 1005, y: 60, size: 8, color: '#ffffff', bg: '#c8102e' },
-      { text: 'ВЫХОД 3', x: 930, y: 82, size: 8, color: '#ffffff', bg: '#1f2a44' },
-    ],
+    signs: [],
   },
   {
     // Вестибюль выхода 3 (условно, референса нет): двойные двери, кассы, турникеты → эскалаторы вниз. Выход у эскалатора
@@ -74,12 +64,7 @@ export const ROUTE: Stage[] = [
     exit: { x0: 1208, x1: 1280, y1: 255 },
     layers: [{ file: 'route/vestibule.png' }],
     props: [],
-    signs: [
-      { text: 'РОЗЫСК\nАКТИВЕН', x: 760, y: 110, size: 8, color: '#ffffff', bg: '#1f3a6b' },
-      { text: 'ВЫХОД В ГОРОД', x: 480, y: 42, size: 8, color: '#ffffff', bg: '#1f2a44' },
-      { text: 'БЕГОВАЯ', x: 1046, y: 72, size: 8, color: '#ffffff' },
-      { text: 'К ПОЕЗДАМ', x: 1320, y: 24, size: 8, color: '#ffffff', bg: '#1f2a44' },
-    ],
+    signs: [],
   },
   {
     // Вагон 81-765 (wagon_w1, 5 повторов): в окнах бежит тоннель. Выход в последнюю дверь
@@ -93,8 +78,7 @@ export const ROUTE: Stage[] = [
     layers: [{ file: 'route/wagon.png', fx: 'tunnel' }],
     tunnel: { y0: 50, y1: 108, speed: 900 },
     props: [],
-    signs: [
-      { text: 'РОЗЫСК:\nАНАСТАСИЯ М.\n150 000 ₽', x: 1080, y: 105, size: 8, color: '#ffffff', bg: '#1f3a6b' },],
+    signs: [],
   },
   {
     // Маяковская (mayak_w1, экран + зеркальные куски по центрам арок): за арками приходит и уходит поезд.
@@ -115,11 +99,7 @@ export const ROUTE: Stage[] = [
       { file: 'route/props/metro_bench.png', x: 450, y: 148 },
       { file: 'route/props/metro_bench.png', x: 800, y: 148 },
     ],
-    signs: [
-      { text: 'ШАМАН. ТУР\n«ВСТАЮ». ВСЕ\nВСТАЮТ', x: 650, y: 95, size: 8, color: '#ffffff', bg: '#1f3a6b' },
-      { text: 'МАЯКОВСКАЯ', x: 300, y: 66, size: 8, color: '#f6e7c8', bg: '#3b2a20' },
-      { text: 'МАЯКОВСКАЯ', x: 900, y: 66, size: 8, color: '#f6e7c8', bg: '#3b2a20' },
-    ],
+    signs: [],
   },
   {
     // Улица у Москва-Сити (день): кафе, остановка с газоном, зеркала, вход в главный МФЦ (без привязки к реальному). Выход в двери
@@ -138,10 +118,7 @@ export const ROUTE: Stage[] = [
       { file: 'route/props/manhole.png', x: 520, y: 226, scale: 1, depth: DECAL },
       { file: 'route/props/manhole.png', x: 1500, y: 204, scale: 1, depth: DECAL },
     ],
-    signs: [
-      { text: 'КУРС: КАК\nПОЙМАТЬ\nЭКСТРЕМИСТА', x: 750, y: 80, size: 8, color: '#ffffff', bg: '#1f3a6b' },
-      { text: 'ГЛАВНЫЙ МФЦ', x: 2160, y: 70, size: 8, color: '#1f3a6b' },
-    ],
+    signs: [],
   },
   {
     // Главный МФЦ, 9 экранов: вход (рамки, охрана), окна 1-6, ожидание (вендинг, детский уголок), архив (фотобудка),
@@ -154,39 +131,6 @@ export const ROUTE: Stage[] = [
     spawn: [80, 200],
     layers: [{ file: 'route/mfc.png' }],
     props: [],
-    signs: [
-      { text: 'УСЛУГА:\nВОССТАНОВЛЕНИЕ\nРЕЗИДЕНТСТВА', x: 4080, y: 100, size: 8, color: '#ffffff', bg: '#1f3a6b' },
-      { text: 'ВХОД', x: 33, y: 63, size: 8, color: '#ffffff', bg: '#1f3a6b' },
-      { text: 'ТАЛОНЫ', x: 142, y: 99, size: 8, color: '#ffffff', bg: '#2e7d4f' },
-      { text: 'ОХРАНА', x: 308, y: 102, size: 8, color: '#ffffff', bg: '#5a5f6b' },
-      { text: '1', x: 540, y: 68, size: 8, color: '#ff4040' },
-      { text: '2', x: 578, y: 68, size: 8, color: '#ff4040' },
-      { text: '3', x: 612, y: 68, size: 8, color: '#ff4040' },
-      { text: '4', x: 648, y: 68, size: 8, color: '#ff4040' },
-      { text: '5', x: 686, y: 68, size: 8, color: '#ff4040' },
-      { text: '6', x: 722, y: 68, size: 8, color: '#ff4040' },
-      { text: 'В ОЧЕРЕДИ:\n4 812 ЧЕЛ.', x: 806, y: 70, size: 8, color: '#ffffff' },
-      { text: 'ДОКУМЕНТЫ\nНЕ ПРИНИМАЮТСЯ', x: 1106, y: 70, size: 8, color: '#ffffff' },
-      { text: 'ДЕТИ', x: 1398, y: 111, size: 8, color: '#ffffff', bg: '#e07a2e' },
-      { text: 'ФОТО', x: 1467, y: 63, size: 8, color: '#ffffff', bg: '#1f3a6b' },
-      { text: 'АРХИВ', x: 1590, y: 51, size: 8, color: '#ffffff', bg: '#5a5f6b' },
-      { text: '7', x: 2158, y: 68, size: 8, color: '#ff4040' },
-      { text: '8', x: 2194, y: 68, size: 8, color: '#ff4040' },
-      { text: '9', x: 2232, y: 68, size: 8, color: '#ff4040' },
-      { text: '10', x: 2268, y: 68, size: 8, color: '#ff4040' },
-      { text: '11', x: 2302, y: 68, size: 8, color: '#ff4040' },
-      { text: '12', x: 2340, y: 68, size: 8, color: '#ff4040' },
-      { text: 'СТАТУС:\nВ РОЗЫСКЕ', x: 2074, y: 70, size: 8, color: '#ffffff' },
-      { text: '101', x: 2496, y: 66, size: 8, color: '#1f3a6b' },
-      { text: 'РУКОВОДИТЕЛЬ', x: 2607, y: 66, size: 8, color: '#ffffff', bg: '#5a3a2a' },
-      { text: '102', x: 2847, y: 66, size: 8, color: '#1f3a6b' },
-      { text: 'ОБЪЯВЛЕНИЯ', x: 2726, y: 60, size: 8, color: '#1f3a6b' },
-      { text: 'ПЕРЕРЫВ\n13-14', x: 3214, y: 70, size: 8, color: '#ffffff' },
-      { text: 'АРХИВ 2', x: 3690, y: 51, size: 8, color: '#ffffff', bg: '#5a5f6b' },
-      { text: 'ФОТО', x: 3813, y: 63, size: 8, color: '#ffffff', bg: '#1f3a6b' },
-      { text: 'ГЛАВНОЕ ОКНО', x: 4080, y: 50, size: 8, color: '#ffd84a' },
-      { text: 'ВЕРНУТЬ\nНАСТЮ', x: 3926, y: 70, size: 8, color: '#ff4040' },
-      { text: 'ВЕРНУТЬ\nНАСТЮ', x: 4233, y: 70, size: 8, color: '#ffffff' },
-    ],
+    signs: [],
   },
 ];

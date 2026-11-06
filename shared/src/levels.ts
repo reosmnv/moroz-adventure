@@ -3,7 +3,6 @@ import { ROUTE } from './route-data.ts';
 export interface LaneZone { x0: number; x1: number; y1: number }
 export interface StageLayer { file: string; fx?: 'tunnel' | 'train' }
 export interface StageProp { file: string; x: number; y: number; scale?: number; flip?: boolean; depth?: number }
-export interface StageSign { text: string; x: number; y: number; size: number; color: string; bg?: string }
 export interface TunnelFx { y0: number; y1: number; speed: number }
 export interface TrainFx { y: number; h: number; arriveMs: number; standMs: number; leaveMs: number; emptyMs: number }
 export interface Stage {
@@ -19,7 +18,7 @@ export interface Stage {
   tunnel?: TunnelFx;
   train?: TrainFx;
   props: StageProp[];
-  signs: StageSign[];
+  signs: never[];
 }
 export interface Level { id: 'route' | 'old'; stages: Stage[] }
 export const LEVELS: Record<'route' | 'old', Level> = {

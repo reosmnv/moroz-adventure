@@ -9,9 +9,7 @@ export const STORY = {
     "online": "Создать комнату"
   },
   "intro": {
-    "title": STORY_CONTENT['intro.title'],
     "body": STORY_CONTENT['intro.body'],
-    "foot": STORY_CONTENT['intro.foot'],
     "button": STORY_CONTENT['intro.button'],
     "go": [
       "08:40. Подъезд 3.",
@@ -100,8 +98,7 @@ export async function showIntro(done: () => void) {
   const { root, card } = overlay();
   root.style.background = '#100d18';
   card.classList.add('notification');
-  text(card, 'h2', STORY.intro.title); text(card, 'p', STORY.intro.body);
-  text(card, 'small', STORY.intro.foot);
+  text(card, 'p', STORY.intro.body);
   await button(card, STORY.intro.button);
   card.replaceChildren(); card.classList.remove('notification');
   for (const line of STORY.intro.go) await type(card, line, root);
@@ -140,12 +137,22 @@ export function syncStoryView(session: GameSession) {
   const key = snap?.storyScene && session.hasMe() ? `${snap.storyScene}:${snap.storyIndex}` : '';
   const viewKey = key ? `${key}:${snap?.storyHost}` : '';
   if (viewKey === activeStoryKey) return;
-  activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; dialogue = undefined; comicPanel = undefined; activeStoryKey = viewKey;
+  if (activeStoryRoot?.classList.contains('story-caption')) {
+    const old = activeStoryRoot; old.style.opacity = '0'; window.setTimeout(() => old.remove(), 250);
+  } else activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; dialogue = undefined; comicPanel = undefined; activeStoryKey = viewKey;
   if (!key || !snap) return;
   const step = storyScene(snap.storyScene)?.steps[snap.storyIndex];
   if (!step || step.kind === 'state' || step.kind === 'act') return;
   session.resetControls();
   const { root, card } = overlay(); activeStoryRoot = root;
+  if (step.kind === 'caption') {
+    root.classList.add('story-caption'); card.remove();
+    root.style.cssText = 'background:transparent;pointer-events:none;opacity:0;transition:opacity 250ms;display:flex;flex-direction:row;align-items:flex-end;justify-content:center;padding:0 8% 6vh;box-sizing:border-box';
+    const caption = text(root, 'p', STORY_CONTENT[step.id]);
+    caption.style.cssText = 'font-family:"Press Start 2P",monospace;font-size:clamp(10px,2vw,16px);color:#f5f5f5;text-shadow:2px 2px 3px #000;text-align:center;line-height:1.7';
+    requestAnimationFrame(() => { root.style.opacity = '1'; });
+    return;
+  }
   if (step.kind === 'line') {
     root.classList.add('story-dialogue-input'); root.style.background = 'transparent'; card.remove();
     const speaker = CHARACTERS.find(c => c.id === step.speaker);
@@ -176,7 +183,7 @@ export function syncStoryView(session: GameSession) {
   if (step.kind === 'phone') {
     root.style.background = 'transparent'; root.classList.add('story-comic-input');
     card.classList.add('comic-phone');
-    comicPanel = { card, at: step.at ?? 'anastasia', wide: phoneId === 'intro.title' };
+    comicPanel = { card, at: step.at ?? 'anastasia', wide: phoneId === 'intro.body' };
     const heading = phoneId.startsWith('cty.') ? 'ПРЯМОЙ ЭФИР · LIVE'
       : phoneId.startsWith('hck.') ? 'БАЗА · ТЕРМИНАЛ'
       : phoneId.startsWith('res.') ? 'БАЗА · АККАУНТ МИЛОНОВА'

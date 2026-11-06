@@ -21,16 +21,6 @@ const PROPS: Prop[] = [
   { key: 'lamp', x: 1540, y: 170, scale: 1 },
 ];
 
-// Надписи шрифтом поверх фона (ИИ коверкает буквы): координаты мира
-interface Sign { text: string; x: number; y: number; size: number; color: string; bg?: string }
-const SIGNS: Sign[] = [
-  { text: 'ПОДЪЕЗД 3', x: 240, y: 96, size: 8, color: '#ffffff', bg: '#1f4e8c' },
-  { text: 'ПРОДУКТЫ', x: 542, y: 103, size: 8, color: '#2f5f3a' },
-  { text: 'ЦВЕТЫ', x: 820, y: 103, size: 8, color: '#b0405a' },
-  { text: 'МАГАЗИНЫ', x: 1199, y: 107, size: 8, color: '#3b4a6b' },
-  { text: 'БЕГОВАЯ', x: 1683, y: 76, size: 8, color: '#ffffff', bg: '#c8102e' },
-];
-
 export function preloadLevel(scene: Phaser.Scene) {
   for (let i = 0; i < SEGMENTS; i++) scene.load.image(`seg${i}`, `level1/seg-${i}.png`);
   for (const k of new Set(PROPS.map(p => p.key))) scene.load.image(k, `level1/${k}.png`);
@@ -40,10 +30,6 @@ export function preloadLevel(scene: Phaser.Scene) {
 export function buildLevel(scene: Phaser.Scene) {
   for (let i = 0; i < SEGMENTS; i++) {
     scene.add.image(i * SEG_W, 0, `seg${i}`).setOrigin(0, 0).setScale(BG_SCALE).setDepth(-1000);
-  }
-  for (const s of SIGNS) {
-    scene.add.text(s.x, s.y, s.text, { fontFamily: FONT, fontSize: `${s.size}px`, color: s.color, backgroundColor: s.bg, padding: s.bg ? { x: 2, y: 2 } : undefined })
-      .setOrigin(0.5).setDepth(-900);
   }
   for (const p of PROPS) {
     scene.add.image(p.x, p.y, p.key).setOrigin(0.5, 1).setScale(p.scale ?? BG_SCALE).setFlipX(!!p.flip).setDepth(p.y);
