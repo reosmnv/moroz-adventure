@@ -1,0 +1,339 @@
+{
+ "frames": [
+  {
+   "filename": "nastya-ult 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 1.png",
+   "frame": {
+    "x": 77,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 2.png",
+   "frame": {
+    "x": 154,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 3.png",
+   "frame": {
+    "x": 231,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 4.png",
+   "frame": {
+    "x": 0,
+    "y": 99,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 5.png",
+   "frame": {
+    "x": 77,
+    "y": 99,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 6.png",
+   "frame": {
+    "x": 154,
+    "y": 99,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 7.png",
+   "frame": {
+    "x": 231,
+    "y": 99,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 8.png",
+   "frame": {
+    "x": 0,
+    "y": 198,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 9.png",
+   "frame": {
+    "x": 77,
+    "y": 198,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 10.png",
+   "frame": {
+    "x": 154,
+    "y": 198,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  },
+  {
+   "filename": "nastya-ult 11.png",
+   "frame": {
+    "x": 231,
+    "y": 198,
+    "w": 77,
+    "h": 99
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 77,
+    "h": 99
+   },
+   "sourceSize": {
+    "w": 77,
+    "h": 99
+   },
+   "pivot": {
+    "x": 0.5324675324675324,
+    "y": 0.36363636363636365
+   },
+   "duration": 63
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "nastya-ult.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 308,
+   "h": 297
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 41,
+   "y": 36
+  },
+  "frameTags": [
+   {
+    "name": "nastya-ult",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

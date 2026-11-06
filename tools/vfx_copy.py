@@ -70,6 +70,24 @@ for key, name in BOSS.items():
     fps = round(1000 / j["frames"][0]["duration"])
     loop = name == "boss-pyro-pillar"
     rows.append(f"  '{key}': {{ w: {w}, h: {h}, n: {len(fr)}, fps: {fps}, loop: {str(loop).lower()} }},")
+# Пачка 06.11 (vfx_workbench): Анастасия-снежинки, блок, смерть врага, лечение, падение героя, удар Кати, конфетти.
+# Кадр сдвигается так, чтобы опорная точка эффекта (pivot) стала центром кадра: fx() в сцене ставит центр.
+FX2 = {"nastya-hit": False, "nastya-ult": False, "nastya-storm": False, "block-clang": False, "enemy-poof": False,
+       "heal-plus": False, "hero-down": False, "katya-ground": False, "party-confetti": False}
+for key, loop in FX2.items():
+    j = json.loads((SRC / "fx2" / f"{key}.json").read_text())
+    sheet = Image.open(SRC / "fx2" / f"{key}.png").convert("RGBA")
+    fr = j["frames"]; w0, h0 = fr[0]["frame"]["w"], fr[0]["frame"]["h"]
+    px, py = round(fr[0]["pivot"]["x"] * w0), round(fr[0]["pivot"]["y"] * h0)
+    hw, hh = max(px, w0 - px), max(py, h0 - py)
+    w, h = hw * 2, hh * 2
+    strip = Image.new("RGBA", (w * len(fr), h))
+    for i, f in enumerate(fr):
+        r = f["frame"]
+        strip.paste(sheet.crop((r["x"], r["y"], r["x"] + w0, r["y"] + h0)), (i * w + hw - px, hh - py))
+    strip.save(DST / f"{key}.png")
+    fps = round(1000 / fr[0]["duration"])
+    rows.append(f"  '{key}': {{ w: {w}, h: {h}, n: {len(fr)}, fps: {fps}, loop: {str(loop).lower()} }},")
 for key, (rel, w, h, fps, loop) in STRIPS.items():
     if rel is None:  # петля стеблей: 4 кадра в полосу
         strip = Image.new("RGBA", (w * 4, h))

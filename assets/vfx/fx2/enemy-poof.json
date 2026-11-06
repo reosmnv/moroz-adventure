@@ -1,0 +1,339 @@
+{
+ "frames": [
+  {
+   "filename": "enemy-poof 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 1.png",
+   "frame": {
+    "x": 74,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 2.png",
+   "frame": {
+    "x": 148,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 3.png",
+   "frame": {
+    "x": 222,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 4.png",
+   "frame": {
+    "x": 0,
+    "y": 75,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 5.png",
+   "frame": {
+    "x": 74,
+    "y": 75,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 6.png",
+   "frame": {
+    "x": 148,
+    "y": 75,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 7.png",
+   "frame": {
+    "x": 222,
+    "y": 75,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 8.png",
+   "frame": {
+    "x": 0,
+    "y": 150,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 9.png",
+   "frame": {
+    "x": 74,
+    "y": 150,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 10.png",
+   "frame": {
+    "x": 148,
+    "y": 150,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  },
+  {
+   "filename": "enemy-poof 11.png",
+   "frame": {
+    "x": 222,
+    "y": 150,
+    "w": 74,
+    "h": 75
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 75
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 75
+   },
+   "pivot": {
+    "x": 0.527027027027027,
+    "y": 0.4666666666666667
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "enemy-poof.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 296,
+   "h": 225
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 39,
+   "y": 35
+  },
+  "frameTags": [
+   {
+    "name": "enemy-poof",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

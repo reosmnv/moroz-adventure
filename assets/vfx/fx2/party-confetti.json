@@ -1,0 +1,443 @@
+{
+ "frames": [
+  {
+   "filename": "party-confetti 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 1.png",
+   "frame": {
+    "x": 138,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 2.png",
+   "frame": {
+    "x": 276,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 3.png",
+   "frame": {
+    "x": 414,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 4.png",
+   "frame": {
+    "x": 0,
+    "y": 102,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 5.png",
+   "frame": {
+    "x": 138,
+    "y": 102,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 6.png",
+   "frame": {
+    "x": 276,
+    "y": 102,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 7.png",
+   "frame": {
+    "x": 414,
+    "y": 102,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 8.png",
+   "frame": {
+    "x": 0,
+    "y": 204,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 9.png",
+   "frame": {
+    "x": 138,
+    "y": 204,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 10.png",
+   "frame": {
+    "x": 276,
+    "y": 204,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 11.png",
+   "frame": {
+    "x": 414,
+    "y": 204,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 12.png",
+   "frame": {
+    "x": 0,
+    "y": 306,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 13.png",
+   "frame": {
+    "x": 138,
+    "y": 306,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 14.png",
+   "frame": {
+    "x": 276,
+    "y": 306,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  },
+  {
+   "filename": "party-confetti 15.png",
+   "frame": {
+    "x": 414,
+    "y": 306,
+    "w": 138,
+    "h": 102
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 138,
+    "h": 102
+   },
+   "sourceSize": {
+    "w": 138,
+    "h": 102
+   },
+   "pivot": {
+    "x": 0.5144927536231884,
+    "y": 0.5098039215686274
+   },
+   "duration": 67
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "party-confetti.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 552,
+   "h": 408
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 71,
+   "y": 52
+  },
+  "frameTags": [
+   {
+    "name": "party-confetti",
+    "from": 0,
+    "to": 15,
+    "direction": "forward"
+   }
+  ]
+ }
+}

@@ -1,0 +1,339 @@
+{
+ "frames": [
+  {
+   "filename": "hero-down 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 1.png",
+   "frame": {
+    "x": 53,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 2.png",
+   "frame": {
+    "x": 106,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 3.png",
+   "frame": {
+    "x": 159,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 4.png",
+   "frame": {
+    "x": 0,
+    "y": 57,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 5.png",
+   "frame": {
+    "x": 53,
+    "y": 57,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 6.png",
+   "frame": {
+    "x": 106,
+    "y": 57,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 7.png",
+   "frame": {
+    "x": 159,
+    "y": 57,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 8.png",
+   "frame": {
+    "x": 0,
+    "y": 114,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 9.png",
+   "frame": {
+    "x": 53,
+    "y": 114,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 10.png",
+   "frame": {
+    "x": 106,
+    "y": 114,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  },
+  {
+   "filename": "hero-down 11.png",
+   "frame": {
+    "x": 159,
+    "y": 114,
+    "w": 53,
+    "h": 57
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 57
+   },
+   "sourceSize": {
+    "w": 53,
+    "h": 57
+   },
+   "pivot": {
+    "x": 0.4716981132075472,
+    "y": 0.43859649122807015
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "hero-down.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 212,
+   "h": 171
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 25,
+   "y": 25
+  },
+  "frameTags": [
+   {
+    "name": "hero-down",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

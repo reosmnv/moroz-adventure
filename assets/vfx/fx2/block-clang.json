@@ -1,0 +1,287 @@
+{
+ "frames": [
+  {
+   "filename": "block-clang 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  },
+  {
+   "filename": "block-clang 1.png",
+   "frame": {
+    "x": 78,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  },
+  {
+   "filename": "block-clang 2.png",
+   "frame": {
+    "x": 156,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  },
+  {
+   "filename": "block-clang 3.png",
+   "frame": {
+    "x": 234,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  },
+  {
+   "filename": "block-clang 4.png",
+   "frame": {
+    "x": 0,
+    "y": 82,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  },
+  {
+   "filename": "block-clang 5.png",
+   "frame": {
+    "x": 78,
+    "y": 82,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  },
+  {
+   "filename": "block-clang 6.png",
+   "frame": {
+    "x": 156,
+    "y": 82,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  },
+  {
+   "filename": "block-clang 7.png",
+   "frame": {
+    "x": 234,
+    "y": 82,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  },
+  {
+   "filename": "block-clang 8.png",
+   "frame": {
+    "x": 0,
+    "y": 164,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  },
+  {
+   "filename": "block-clang 9.png",
+   "frame": {
+    "x": 78,
+    "y": 164,
+    "w": 78,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 82
+   },
+   "pivot": {
+    "x": 0.07692307692307693,
+    "y": 0.4024390243902439
+   },
+   "duration": 56
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "block-clang.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 312,
+   "h": 246
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 6,
+   "y": 33
+  },
+  "frameTags": [
+   {
+    "name": "block-clang",
+    "from": 0,
+    "to": 9,
+    "direction": "forward"
+   }
+  ]
+ }
+}

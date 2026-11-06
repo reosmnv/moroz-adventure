@@ -1,0 +1,339 @@
+{
+ "frames": [
+  {
+   "filename": "katya-ground 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 1.png",
+   "frame": {
+    "x": 91,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 2.png",
+   "frame": {
+    "x": 182,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 3.png",
+   "frame": {
+    "x": 273,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 4.png",
+   "frame": {
+    "x": 0,
+    "y": 42,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 5.png",
+   "frame": {
+    "x": 91,
+    "y": 42,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 6.png",
+   "frame": {
+    "x": 182,
+    "y": 42,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 7.png",
+   "frame": {
+    "x": 273,
+    "y": 42,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 8.png",
+   "frame": {
+    "x": 0,
+    "y": 84,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 9.png",
+   "frame": {
+    "x": 91,
+    "y": 84,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 10.png",
+   "frame": {
+    "x": 182,
+    "y": 84,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  },
+  {
+   "filename": "katya-ground 11.png",
+   "frame": {
+    "x": 273,
+    "y": 84,
+    "w": 91,
+    "h": 42
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 91,
+    "h": 42
+   },
+   "sourceSize": {
+    "w": 91,
+    "h": 42
+   },
+   "pivot": {
+    "x": 0.4945054945054945,
+    "y": 0.5
+   },
+   "duration": 83
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "katya-ground.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 364,
+   "h": 126
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 45,
+   "y": 21
+  },
+  "frameTags": [
+   {
+    "name": "katya-ground",
+    "from": 0,
+    "to": 11,
+    "direction": "forward"
+   }
+  ]
+ }
+}

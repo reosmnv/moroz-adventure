@@ -1,0 +1,391 @@
+{
+ "frames": [
+  {
+   "filename": "heal-plus 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 1.png",
+   "frame": {
+    "x": 62,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 2.png",
+   "frame": {
+    "x": 124,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 3.png",
+   "frame": {
+    "x": 186,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 4.png",
+   "frame": {
+    "x": 0,
+    "y": 60,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 5.png",
+   "frame": {
+    "x": 62,
+    "y": 60,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 6.png",
+   "frame": {
+    "x": 124,
+    "y": 60,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 7.png",
+   "frame": {
+    "x": 186,
+    "y": 60,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 8.png",
+   "frame": {
+    "x": 0,
+    "y": 120,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 9.png",
+   "frame": {
+    "x": 62,
+    "y": 120,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 10.png",
+   "frame": {
+    "x": 124,
+    "y": 120,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 11.png",
+   "frame": {
+    "x": 186,
+    "y": 120,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 12.png",
+   "frame": {
+    "x": 0,
+    "y": 180,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  },
+  {
+   "filename": "heal-plus 13.png",
+   "frame": {
+    "x": 62,
+    "y": 180,
+    "w": 62,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 62,
+    "h": 60
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.7
+   },
+   "duration": 71
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "heal-plus.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 248,
+   "h": 240
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 31,
+   "y": 42
+  },
+  "frameTags": [
+   {
+    "name": "heal-plus",
+    "from": 0,
+    "to": 13,
+    "direction": "forward"
+   }
+  ]
+ }
+}
