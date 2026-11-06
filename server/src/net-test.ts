@@ -77,7 +77,7 @@ async function testStageAndTools() {
   const s = () => r.state as any;
   check('TZ18 тестовая комната принимает stage', s().testMode === true && s().stage === 2);
   r.send('god', true); r.send('charge'); r.send('spawn'); await sleep(300);
-  check('TZ18 тестовые god/charge/spawn', players(r).get(r.sessionId)?.god === true && players(r).get(r.sessionId)?.ult === 100 && s().enemies.size === 3);
+  check('TZ18 тестовые god/charge/spawn', players(r).get(r.sessionId)?.god === true && players(r).get(r.sessionId)?.ult === 100 && s().enemies.size >= 3);
   r.send('god', 'false'); await sleep(200);
   check('TZ18 god принимает только boolean', players(r).get(r.sessionId)?.god === true);
   r.send('god', false); r.send('heal'); r.send('killall'); await sleep(300);
@@ -87,10 +87,19 @@ async function testStageAndTools() {
   check('TZ18 тестовый next', s().trans > 0);
   r.send('testScene', { id: 'arch', strict: true }); await sleep(300);
   check('TZ21 сервер запускает выбранную сцену и призывает героев', s().stage === 0 && s().storyScene === 'arch' && players(r).size === 4
-    && [...players(r).values()].every((p: any) => p.x >= 640 && p.x <= 700 && p.god));
+    && [...players(r).values()].every((p: any) => p.x >= 1214 && p.x <= 1268 && p.god));
   const before = new Map([...players(r).entries()].map(([id, p]: [string, any]) => [id, p.x]));
   r.send('storyNext', `arch:${s().storyIndex}`); await sleep(250);
   check('TZ21 сцена онлайн сохраняет координаты', [...players(r).entries()].every(([id, p]: [string, any]) => p.x === before.get(id)));
+  for (const scene of STORY_SCENES) {
+    r.send('testScene', { id: scene.id, strict: true }); await sleep(180);
+    const heroes = [...players(r).values()] as any[];
+    const center = (Math.min(...heroes.map(p => p.x)) + Math.max(...heroes.map(p => p.x))) / 2;
+    const viewX = Math.max(0, center - 300), viewW = 600;
+    r.send('view', { x: viewX, width: viewW }); await sleep(80);
+    check(`R1 ${scene.id}: четыре подключённых героя в кадре idle`, heroes.length === 4 && heroes.every(p => p.connected && !p.away && p.anim === 'idle' && p.move === 'idle' && p.x >= viewX && p.x <= viewX + viewW)
+      && new Set(heroes.map(p => `${p.x}:${p.y}`)).size === 4);
+  }
   r.send('testScene', { id: 'sender', strict: false }); await sleep(250);
   check('TZ21 повторный запуск другой сцены онлайн', s().stage === 6 && s().storyScene === 'sender' && s().actors.has('milonov'));
   await r.leave(true);

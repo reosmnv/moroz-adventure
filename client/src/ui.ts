@@ -390,6 +390,12 @@ export class UIScene extends Phaser.Scene {
     p.root.setAlpha(sb.connected === false || sb.away ? 0.4 : 1);
   }
 
+  private wantedTop() {
+    const canvas = this.game.canvas.getBoundingClientRect();
+    const bar = document.getElementById('topbar')?.getBoundingClientRect();
+    return Math.max(6, ((bar?.bottom ?? canvas.top) - canvas.top + 6) * this.scale.height / canvas.height);
+  }
+
   private updateStory(last: import('./session.ts').Snapshot) {
     // Окно уведомления определяется временем снимка, включая поздний вход.
     const active = last.storyScene ? -1 : last.storyPushes.findIndex((at, i) => at > 0 && last.storyTime >= at && last.storyTime < at + 3000 && !this.pushSeen.has(i));
@@ -400,12 +406,18 @@ export class UIScene extends Phaser.Scene {
         this.events.once('shutdown', () => { this.storyPush?.remove(); this.storyPush = undefined; });
       }
       const push = this.storyPush;
-      push.replaceChildren();
-      const title = document.createElement('small'); title.textContent = 'Госуслуги';
-      const body = document.createElement('div'); body.textContent = STORY.pushes[active];
-      push.append(title, body); push.hidden = false;
-      push.onclick = () => { this.pushSeen.add(active); push.hidden = true; };
-    } else if (this.storyPush) this.storyPush.hidden = true;
+      if (push.dataset.push !== String(active)) {
+        push.dataset.push = String(active); push.replaceChildren();
+        const icon = document.createElement('span'); icon.className = 'push-icon'; icon.textContent = 'Г';
+        const content = document.createElement('div'); content.className = 'push-content';
+        const header = document.createElement('small'); header.textContent = 'ГОСУСЛУГИ';
+        const time = document.createElement('span'); time.textContent = 'сейчас'; header.append(time);
+        const body = document.createElement('div'); body.textContent = STORY.pushes[active];
+        content.append(header, body); push.append(icon, content);
+      }
+      push.classList.add('visible');
+      push.onclick = () => { this.pushSeen.add(active); push.classList.remove('visible'); };
+    } else if (this.storyPush) { this.storyPush.classList.remove('visible'); delete this.storyPush.dataset.push; }
     const p = last.players.get(this.session.me);
     if (!p) return;
     if (this.session.testMode || this.session.introOpen || this.session.needsIntro()) return;
@@ -439,7 +451,7 @@ export class UIScene extends Phaser.Scene {
     if (this.inputBlockedByDom && !inputBlockedByDom) this.input.resetPointers();
     this.inputBlockedByDom = inputBlockedByDom;
     if (inputBlockedByDom) this.releaseAll();
-    this.wantedText.setX(this.scale.width - 8).setText(last.wantedStars ? `${'★'.repeat(last.wantedStars)}  ${last.wantedReward ? Math.round(last.wantedReward / 1000) + ' тыс. ₽' : ''}` : '');
+    this.wantedText.setPosition(this.scale.width - 8, this.wantedTop()).setText(last.wantedStars ? `${'★'.repeat(last.wantedStars)}  ${last.wantedReward ? Math.round(last.wantedReward / 1000) + ' тыс. ₽' : ''}` : '');
     this.recText.setVisible(last.recording && !last.finaleReady);
     this.waveText.setText(last.level === 'route' ? (last.stage === 3 && last.halt >= 0 && last.halt < HALT_MS ? '' : last.lockX0 < 0 ? STORY.service.forward : STORY.service.fight.replace('{n}', String(last.encDone + 1)).replace('{total}', String(last.encTotal))) : s.testMode ? 'ТЕСТ: МАНЕКЕН' : `ВОЛНА ${last.wave}`);
 

@@ -1,6 +1,7 @@
 import { STORY_CONTENT } from './story-content.ts';
 import { clampToLane } from './levels.ts';
-import { CHARACTERS, TEST_TOOLS, addPlayer, stepActors, createWorld, testSummon, testHeal, encountersOf, step, type World } from './sim.ts';
+import { CHARACTERS, TEST_TOOLS, addPlayer, stepActors, createWorld, testSummon, testHeal, encountersOf, prepareStoryEncounter, placeStoryFormation, stopStoryHeroes, step, type World } from './sim.ts';
+import type { EnemyKind } from './enemy-data.ts';
 import { storyScene, STORY_SCENES, type StoryStep } from './story-scenes.ts';
 
 export interface StoryProgress { scene: string; index: number; completed: string[]; flags: Record<string, string>; actKey?: string; actMs?: number }
@@ -8,10 +9,11 @@ export const createStoryProgress = (): StoryProgress => ({ scene: '', index: 0, 
 export const storyStep = (story: StoryProgress): StoryStep | undefined => storyScene(story.scene)?.steps[story.index];
 export const storyStepKey = (story: StoryProgress): string => story.scene ? `${story.scene}:${story.index}` : '';
 
-export function startStory(story: StoryProgress, trigger: string): boolean {
+export function startStory(story: StoryProgress, trigger: string, world?: World): boolean {
   if (story.scene) return false;
   const scene = STORY_SCENES.find(s => s.trigger === trigger && !story.completed.includes(s.id));
   if (!scene) return false;
+  if (world) stopStoryHeroes(world);
   story.scene = scene.id; story.index = 0;
   applyStoryState(story);
   return true;
@@ -30,6 +32,8 @@ function applyStoryState(story: StoryProgress, world?: World) {
     if (world) {
       for (const [id, actor] of Object.entries(world.actors)) if (!actor.keep || scene.id === 'sender') delete world.actors[id];
       world.storyCamX = undefined;
+      if (world.storyEncounter) world.storyEncounter.waiting = false;
+      for (const enemy of Object.values(world.enemies)) if (enemy.storyWaiting) { enemy.storyWaiting = false; enemy.storyAdvanceMs = 600; }
     }
   }
 }
@@ -58,12 +62,48 @@ export function pendingStory(story: StoryProgress, world: StoryWorld) {
   if (world.won) triggers.push('victory');
   return triggers.flatMap(trigger => STORY_SCENES.filter(s => s.trigger === trigger && !story.completed.includes(s.id)))[0];
 }
+const SCENE_FIGHTS: Record<string, { index: number; refs: [string, EnemyKind][] }> = {
+  street_vat: { index: 0, refs: [['vat1', 'vatnik'], ['vat2', 'vatnik']] },
+  arch: { index: 1, refs: [['omon1', 'omon'], ['vat1', 'vatnik']] },
+  vestibule: { index: 0, refs: [['omon1', 'omon']] },
+  wagon: { index: 0, refs: [['zek1', 'zek'], ['zek2', 'zek']] },
+  mayak: { index: 0, refs: [['official', 'clerk']] },
+  city: { index: 0, refs: [['info_f', 'info_f'], ['info_m', 'info_m']] },
+};
+function prepareScene(world: World, scene: NonNullable<ReturnType<typeof storyScene>>) {
+  if (scene.id === 'milonov' && !world.actors.milonov) {
+    world.actors.milonov = { id: 'milonov', look: 'milonov', x: scene.x!, y: 185, tx: scene.x!, ty: 185,
+      facing: -1, anim: 'idle', speed: 0, keep: true };
+  }
+  const fight = SCENE_FIGHTS[scene.id];
+  if (fight) prepareStoryEncounter(world, fight.index, scene.x!, fight.refs);
+  if (scene.trigger.startsWith('boss:')) {
+    const enemies = Object.values(world.enemies).filter(e => e.hp > 0);
+    if (enemies.some(e => !e.storyWaiting)) {
+      enemies.sort((a, b) => a.x - b.x);
+      const right = world.enc.lock?.[1] ?? Math.max(...enemies.map(e => e.x)) + 12;
+      placeStoryFormation(world, enemies, Math.min(...enemies.map(e => e.x), right - 12 - (enemies.length - 1) * 24));
+    }
+    for (const e of enemies) {
+      e.storyWaiting = true; e.anim = 'idle'; e.animMs = 0; e.enterMs = 0;
+      e.entered = true; e.entering = false; e.phase = 'none'; e.phaseMs = 0; e.token = undefined;
+    }
+  }
+}
 export function startStoryForWorld(story: StoryProgress, world: StoryWorld): boolean {
   const scene = pendingStory(story, world);
   if (!scene) return false;
+  const full = 'pending' in world ? world as World : undefined;
+  if (full) prepareScene(full, scene);
   const alive = Object.values(world.players).filter(p => p.hp > 0);
-  if (scene.x !== undefined && world.storyStrict !== false && (!alive.length || alive.some(p => p.x < scene.x! - 260))) return false;
-  return startStory(story, scene.trigger);
+  const boss = scene.trigger.startsWith('boss:') ? Object.values(world.enemies).find(e => e.boss === scene.trigger.slice(5) && e.hp > 0) : undefined;
+  const x = scene.x ?? (boss && 'x' in boss ? Number(boss.x) : undefined);
+  const fight = SCENE_FIGHTS[scene.id];
+  const speakers = full && fight ? Object.values(full.enemies).filter(e => e.hp > 0 && fight.refs.some(([ref]) => e.id.endsWith('--' + ref))) : [];
+  const dialogueX = speakers.length ? Math.max(...speakers.map(e => e.x)) : x;
+  const threshold = dialogueX === undefined ? undefined : Math.max(dialogueX - 220, full && fight ? encountersOf(full)[fight.index].arena[0] + 20 : 0);
+  if (threshold !== undefined && world.storyStrict !== false && (!alive.length || alive.some(p => p.x < threshold))) return false;
+  return startStory(story, scene.trigger, full);
 }
 
 // Единственное перемещение группы в сюжете разрешено только тестовым запуском.
@@ -82,10 +122,11 @@ export function testStoryScene(story: StoryProgress, world: World, id: string, s
   Object.assign(world, fresh, { storyStrict: strict });
   testSummon(world); testHeal(world);
   const bossX: Record<string, number> = { shaman: 940, pizdulina: 1100, katya: 2770, withdrawal: 2900 };
-  const anchor = (scene.x ?? bossX[id] ?? 320) - 200;
+  const fight = SCENE_FIGHTS[id];
+  const anchor = Math.max((scene.x ?? bossX[id] ?? 320) - 150, fight ? encountersOf(world)[fight.index].arena[0] + 74 : 0);
   Object.values(world.players).forEach((p, i) => {
     // Герои встают вразброс (по x и y), а не стопкой; все правее порога строгой проверки x.
-    Object.assign(p, clampToLane(world, anchor - i * 18, [205, 178, 232, 192][i % 4]), { god: true, anim: 'idle', animMs: 0 });
+    Object.assign(p, clampToLane(world, anchor - i * 18, [205, 178, 232, 192][i % 4]), { god: true, connected: true, away: false, anim: 'idle', animMs: 0 });
   });
   Object.assign(story, createStoryProgress());
   const n = STORY_SCENES.indexOf(scene);
@@ -104,6 +145,19 @@ export function testStoryScene(story: StoryProgress, world: World, id: string, s
     world.actors.milonov = { id: 'milonov', look: 'milonov', x: anchor + 160, y: 185, tx: anchor + 160, ty: 185, facing: -1, anim: 'idle', speed: 0, keep: true };
   }
   if (id === 'withdrawal') world.won = true;
+  prepareScene(world, scene); stopStoryHeroes(world);
+  if (fight) {
+    const speakers = Object.values(world.enemies).filter(e => fight.refs.some(([ref]) => e.id.endsWith('--' + ref)));
+    const near = Math.max(anchor, Math.max(...speakers.map(e => e.x)) - 160);
+    Object.values(world.players).forEach((p, i) => Object.assign(p, clampToLane(world, near - i * 18, p.y)));
+  }
+  const boss = Object.values(world.enemies).find(e => e.boss === scene.trigger.slice(5));
+  if (scene.trigger.startsWith('boss:') && boss) Object.values(world.players).forEach((p, i) => {
+    Object.assign(p, clampToLane(world, boss.x - 150 - i * 18, p.y));
+  });
+  const xs = Object.values(world.players).map(p => p.x);
+  world.storyCamX = (Math.min(...xs) + Math.max(...xs)) / 2;
+  for (const p of Object.values(world.players)) { p.viewW = p.viewW ?? 600; p.viewX = Math.max(0, world.storyCamX - p.viewW / 2); }
   story.scene = id; story.index = 0;
   return true;
 }

@@ -28,7 +28,7 @@ const known = new Set(CHARACTERS.map(c => c.id));
 const kept = new Set<string>();
 let refsValid = true;
 for (const scene of STORY_SCENES) {
-  const actors = new Set([...known, ...kept]);
+  const actors = new Set([...known, ...kept, 'vat1', 'vat2', 'omon1', 'zek1', 'zek2', 'official', 'info_f', 'info_m', 'pizdulina', 'katya', 'milonov']);
   for (const step of scene.steps) {
     if (step.kind === 'act' && step.do === 'spawn') {
       actors.add(step.actor); if (step.keep) kept.add(step.actor);
@@ -60,12 +60,18 @@ for (const scene of STORY_SCENES) {
   }
   check(`сцена ${scene.id} завершилась`, !progress.scene);
 }
+for (const scene of STORY_SCENES) {
+  const w = createWorld(22, true); addPlayer(w, 'me', 'anastasia');
+  const progress = createStoryProgress(); testStoryScene(progress, w, scene.id, true);
+  const heroes = Object.values(w.players), me = w.players.me;
+  check(`R1 один клиент, ${scene.id}: все герои idle в кадре`, heroes.length === 4 && heroes.every(p => p.connected && !p.away && p.anim === 'idle' && p.move === 'idle' && p.x >= me.viewX! && p.x <= me.viewX! + me.viewW!) && new Set(heroes.map(p => `${p.x}:${p.y}`)).size === 4);
+}
 const gateWorld = createWorld(42, true, 'route');
 addPlayer(gateWorld, 'a', 'anastasia'); addPlayer(gateWorld, 'b', 'ramil');
 const gate = createStoryProgress(); gate.completed.push('prologue');
-gateWorld.players.a.x = 240; gateWorld.players.b.x = 219;
+gateWorld.players.a.x = 338; gateWorld.players.b.x = 283;
 check('один отставший герой задерживает сцену', !startStoryForWorld(gate, gateWorld));
-gateWorld.players.b.x = 220;
+gateWorld.players.b.x = 284;
 check('вся группа у порога запускает сцену', startStoryForWorld(gate, gateWorld));
 gate.scene = ''; gateWorld.players.b.x = 10; gateWorld.players.b.hp = 0;
 check('павший герой не задерживает сцену', startStoryForWorld(gate, gateWorld));
@@ -127,9 +133,9 @@ check('сцена Маяковской начинается при входе', 
 finishScene();
 check('местный МФЦ не запускается до выхода с Маяковской', !startStoryForWorld(route, routeWorld));
 routeWorld.enc.cleared = 1;
-check('переадресация происходит до Сити', startStoryForWorld(route, routeWorld) && route.scene === 'local_mfc');
+check('после обоих боссов нет местного МФЦ', !startStoryForWorld(route, routeWorld));
 finishScene(); routeWorld.stage = 5; routeWorld.enc.cleared = 0;
-check('Сити следует после местного МФЦ', startStoryForWorld(route, routeWorld) && route.scene === 'city');
+check('Сити следует после Маяковской', startStoryForWorld(route, routeWorld) && route.scene === 'city');
 finishScene(); routeWorld.stage = 6;
 check('Милонов не встречается у входа в главный МФЦ', !startStoryForWorld(route, routeWorld));
 routeWorld.enc.cleared = 2;
@@ -149,14 +155,30 @@ check('финал открыт после отзыва доноса', route.flag
 const campaignWorld = createWorld(8, false, 'route'), campaign = createStoryProgress();
 for (const hero of CHARACTERS) { const p = addPlayer(campaignWorld, hero.id, hero.id); p.god = true; }
 startStory(campaign, 'start');
+const tracked = new Set(['street_vat', 'arch', 'vestibule', 'wagon', 'mayak', 'city', 'shaman', 'pizdulina', 'katya']);
+const seenReal = new Set<string>();
+const spread = (es: { x: number; y: number }[]) => es.every((a, i) => es.slice(i + 1).every(b => Math.abs(a.x - b.x) >= 18 - 1e-6 || Math.abs(a.y - b.y) >= 22 - 1e-6));
+let realScene = '', realBefore: { id: string; x: number; y: number }[] = [];
 for (let ticks = 0; ticks < 50000 && campaign.flags.finaleReady !== 'on'; ticks++) {
   startStoryForWorld(campaign, campaignWorld);
   if (campaign.scene) {
+    if (tracked.has(campaign.scene) && realScene !== campaign.scene) {
+      realScene = campaign.scene; seenReal.add(realScene);
+      realBefore = Object.values(campaignWorld.enemies).filter(e => e.hp > 0 && e.storyWaiting).map(e => ({ id: e.id, x: e.x, y: e.y }));
+      check(`R4 реальный подход ${realScene}`, realBefore.length > 0 && spread(realBefore));
+    }
     tickStory(campaign, campaignWorld, 20000);
     advanceStory(campaign, storyStepKey(campaign), campaignWorld);
+    if (!campaign.scene && realScene) {
+      check(`R4 конец диалога ${realScene}`, realBefore.every(e => campaignWorld.enemies[e.id]?.x === e.x && campaignWorld.enemies[e.id]?.y === e.y) && spread(realBefore));
+      for (let n = 0; n < 30; n++) step(campaignWorld, {} , 20);
+      const after = realBefore.map(e => campaignWorld.enemies[e.id]).filter(Boolean);
+      check(`R4 600мс боя ${realScene}`, after.length === realBefore.length && spread(after) && after.every((e, i) => Math.abs(e.x - realBefore[i].x) <= 22 && e.x <= realBefore[i].x));
+      realScene = '';
+    }
     continue;
   }
-  for (const e of Object.values(campaignWorld.enemies)) if (e.entered || e.boss) e.hp = 0;
+  for (const e of Object.values(campaignWorld.enemies)) if (!e.storyWaiting && (e.entered || e.boss)) e.hp = 0;
   const exit = stageOf(campaignWorld).exit;
   const inputs = Object.fromEntries(Object.values(campaignWorld.players).map(p => {
     const input = { ...emptyInput(), mx: 1, run: true };
@@ -168,7 +190,48 @@ for (let ticks = 0; ticks < 50000 && campaign.flags.finaleReady !== 'on'; ticks+
   }));
   step(campaignWorld, inputs);
 }
+check('R4 пройдены все сцены обычным маршрутом', seenReal.size === tracked.size);
 check('кампания от пролога до победы с четырьмя героями', campaignWorld.won && campaign.flags.finaleReady === 'on' && STORY_SCENES.every(s => campaign.completed.includes(s.id)));
+
+// Тот же порядок вызовов, что у LocalSession, с одним игроком и ходьбой.
+{
+  const w = createWorld(22, false, 'route'), st = createStoryProgress();
+  addPlayer(w, 'solo', 'anastasia'); st.completed.push('prologue');
+  for (let n = 0; n < 500 && !st.scene; n++) {
+    startStoryForWorld(st, w);
+    if (!st.scene) { step(w, { solo: { ...emptyInput(), mx: 1 } }); startStoryForWorld(st, w); }
+  }
+  const before = Object.values(w.enemies).filter(e => e.storyWaiting).map(e => ({ id: e.id, x: e.x, y: e.y }));
+  check('R4 соло пешком: строй до диалога', st.scene === 'street_vat' && before.length === 6 && spread(before));
+  while (st.scene) { tickStory(st, w, 20000); advanceStory(st, storyStepKey(st), w); }
+  check('R4 соло: строй после диалога', before.every(e => w.enemies[e.id]?.x === e.x && w.enemies[e.id]?.y === e.y) && spread(before));
+  for (let n = 0; n < 30; n++) step(w, {}, 20);
+  const after = before.map(e => w.enemies[e.id]).filter(Boolean);
+  check('R4 соло: строй через 600 мс', after.length === 6 && spread(after) && after.every((e, i) => e.x <= before[i].x && before[i].x - e.x <= 22));
+}
+
+// R2: сюжет снимает даже незавершённую атаку, сохраняя координаты.
+for (const anim of ['run', 'attack'] as const) {
+  const w = createWorld(42, true), progress = createStoryProgress();
+  const p = addPlayer(w, 'me', 'ramil'); p.x = 480; p.y = 205;
+  p.anim = anim; p.move = 'fist'; p.combo = 2; p.fDashMs = 100; p.approach = { x: 0, y: 0, tx: 500, ty: 205, ms: 100, rush: true, target: '' };
+  progress.completed.push('prologue');
+  check(`R2 старт из ${anim}`, startStoryForWorld(progress, w));
+  check(`R2 idle без перемещения ${anim}`, String(p.anim) === 'idle' && p.move === 'idle' && p.combo === 0 && !p.fDashMs && !p.approach && p.x === 480 && p.y === 205);
+}
+for (const id of ['street_vat', 'arch', 'vestibule', 'wagon', 'mayak', 'city', 'shaman', 'pizdulina', 'katya']) {
+  const w = createWorld(42, true), progress = createStoryProgress(); addPlayer(w, 'me', 'anastasia');
+  testStoryScene(progress, w, id, true);
+  const before = Object.values(w.enemies).filter(e => e.hp > 0).map(e => ({ id: e.id, x: e.x, y: e.y, hp: e.hp }));
+  check(`R4 настоящие враги ${id}`, before.length > 0 && before.every(e => w.enemies[e.id].storyWaiting));
+  check(`R4 строй ${id}`, before.every((a, i) => before.slice(i + 1).every(b => Math.abs(a.x - b.x) >= 18 || Math.abs(a.y - b.y) >= 22)));
+  tickStory(progress, w, 20000);
+  check(`R4 ожидание ${id}`, before.every(e => w.enemies[e.id].x === e.x && w.enemies[e.id].y === e.y && w.enemies[e.id].hp === e.hp && w.enemies[e.id].anim === 'idle'));
+  for (let n = 0; progress.scene && n < 200; n++) { tickStory(progress, w, 20000); advanceStory(progress, storyStepKey(progress), w); }
+  check(`R4 те же сущности в начале боя ${id}`, before.every(e => w.enemies[e.id].x === e.x && w.enemies[e.id].y === e.y && !w.enemies[e.id].storyWaiting));
+  const ids = before.map(e => e.id); step(w, {});
+  check(`R4 встреча не пересоздаёт участников ${id}`, ids.every(id => !!w.enemies[id]));
+}
 
 // Изолированная сцена проверяет часы, движение, дубли и очистку без изменения сюжета.
 STORY_SCENES.push({ id: 'actors_test', trigger: 'actors_test', steps: [

@@ -116,7 +116,7 @@ export class GameRoom extends Room<{ state: GameState }> {
       }
       const p = addPlayer(this.world, client.sessionId, char);
       if (!this.storyHost || !this.world.players[this.storyHost]) this.storyHost = client.sessionId;
-      if (level === 'route' && stage === 0 && startStory(this.story, 'start')) this.clearInputs();
+      if (level === 'route' && stage === 0 && startStory(this.story, 'start', this.world)) this.clearInputs();
       if (this.state.intro && !this.introReady.has(client.sessionId)) { this.introReaders.add(client.sessionId); p.away = true; }
       this.playerInputs[client.sessionId] = emptyInput();
     });

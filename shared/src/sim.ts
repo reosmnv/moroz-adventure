@@ -110,6 +110,7 @@ export interface Player {
 }
 
 export interface Enemy {
+  storyWaiting?: boolean; storyAdvanceMs?: number;
   held?: { by: string }; carryAngle?: number; carryHeight?: number;
   thrown?: { by: string; ms: number; fromX: number; fromY: number; x: number; y: number };
   ultStopMs?: number; ultStopBy?: string; ultStunBy?: string;
@@ -171,6 +172,7 @@ export interface Actor {
 
 export interface World {
   actors: Record<string, Actor>;
+  storyEncounter?: { index: number; waiting: boolean; consumed: number[] };
   storyCamX?: number; storyStrict?: boolean;
   storyPizDown?: boolean;
   storyPushes?: number[]; storyReady?: string[]; storyLineAt?: number; storyManualAt?: number;
@@ -473,7 +475,7 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
   ev.push({ t: 'hit', target: e.id, dmg, x: e.x, y: e.y, word: opts.word, by: p.id, flurry: opts.flurry, ...(opts.tick ? { tick: true as const } : {}), impact: e.hp <= 0 ? 2 : opts.impact, ...(e.hp <= 0 ? { kill: true as const } : {}) });
 }
 
-const combatReady = (w: World, e: Enemy) => !e.thrown && (!w.enc.lock || !e.enterMs && (e.entered || e.x >= w.enc.lock[0] && e.x <= w.enc.lock[1] + ENTER_MARGIN));
+const combatReady = (w: World, e: Enemy) => !e.storyWaiting && !e.thrown && (!w.enc.lock || !e.enterMs && (e.entered || e.x >= w.enc.lock[0] && e.x <= w.enc.lock[1] + ENTER_MARGIN));
 // В полосе входа враг уже уязвим, но доходит до границы без скачка.
 const clampEnemyX = (w: World, x: number, e: Enemy) => w.enc.lock
   ? e.entered ? clamp(x, w.enc.lock[0] + 12, e.entering ? Math.max(e.x, w.enc.lock[1] - 12) : w.enc.lock[1] - 12) : x
@@ -532,6 +534,51 @@ function heroDown(p: Player) {
   p.form = HERO_FORM[p.char] ?? 'prime'; p.formMs = 0; p.combo = 0; p.bCombo = 0; p.queued = null;
   p.shooting = false; p.fireNeedsRelease = true; p.bChainActive = false;
   startMove(p, 'fall');
+}
+
+// Сюжет останавливает действия, сохраняя положение и накопленный заряд.
+export function stopStoryHeroes(w: World) {
+  for (const p of Object.values(w.players)) {
+    switchHeroReset(w, p);
+  }
+  w.pending = []; w.shots = []; w.zones = [];
+}
+function switchHeroReset(w: World, p: Player) {
+  for (const e of Object.values(w.enemies)) if (e.held?.by === p.id || e.thrown?.by === p.id) {
+    e.held = e.thrown = undefined; clearCarry(e); cancelAttack(w, e); e.anim = 'idle';
+  }
+  heroReset(p); p.anim = 'idle'; p.animMs = p.cdMs = p.hitstopMs = 0;
+  p.approach = p.hop = undefined;
+}
+
+// Участники разговора берутся из первой волны и затем исключаются из очереди.
+export function placeStoryFormation(w: World, enemies: Enemy[], startX: number) {
+  enemies.forEach((enemy, i) => {
+    const x = startX + i * 24;
+    const y = laneTop(w, x) + 4 + (i % 3) * 24;
+    Object.assign(enemy, clampToLane(w, x, y), { facing: -1 });
+  });
+}
+
+export function prepareStoryEncounter(w: World, index: number, x: number, refs: [string, EnemyKind][]) {
+  if (w.storyEncounter?.index === index) return;
+  const wave = encountersOf(w)[index]?.waves[0];
+  if (!wave) return;
+  const consumed = wave.map((_, i) => i);
+  const aliases = new Map<number, string>();
+  for (const [ref, kind] of refs) {
+    const slot = wave.findIndex((spawn, i) => spawn.kind === kind && !aliases.has(i));
+    if (slot >= 0) aliases.set(slot, ref);
+  }
+  wave.forEach((spawn, n) => {
+    const kind = spawn.kind, id = `e-story-${w.stage}-${index}--${aliases.get(n) ?? n}`;
+    const info = KIND[kind], hp = Math.round(ROLE[info.role].hp * (info.hpMult ?? 1));
+    const pos = clampToLane(w, x, 200);
+    w.enemies[id] = { id, kind, ...pos, hp, maxHp: hp, facing: -1, anim: 'idle', animMs: 0, cdMs: 0,
+      phase: 'none', phaseMs: 0, entered: true, storyWaiting: true };
+  });
+  placeStoryFormation(w, Object.values(w.enemies).filter(e => e.storyWaiting), x);
+  w.storyEncounter = { index, waiting: true, consumed };
 }
 
 function heroReset(p: Player) {
@@ -1330,8 +1377,13 @@ function cancelAttack(w: World, e: Enemy) {
 function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
   if (w.won) return;
   const enc = w.enc, data = encountersOf(w), next = data[enc.index];
-  if (!enc.lock && next && livePlayers(w).some(p => p.x >= next.trigger)) {
+  if (w.storyEncounter?.waiting) return;
+  if (!enc.lock && next && (w.storyEncounter?.index === enc.index || livePlayers(w).some(p => p.x >= next.trigger))) {
     enc.lock = [...next.arena]; enc.bossIndex = 0; enc.bossStarted = false; enc.wave = 0; enc.queue = [...(next.waves[0] ?? [])]; enc.spawnMs = 0;
+    if (w.storyEncounter?.index === enc.index) {
+      enc.queue = enc.queue.filter((_, i) => !w.storyEncounter!.consumed.includes(i));
+      w.storyEncounter = undefined;
+    }
     ev.push({ t: 'lock', x0: enc.lock[0], x1: enc.lock[1] });
   }
   if (!enc.lock || !next) return;
@@ -1368,8 +1420,8 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
         if (boss === 'shaman') { w.enemies[id].phase = 'enter'; w.enemies[id].anim = 'enter'; }
         else if (boss === 'pizdulina') for (let n = 0; n < 2; n++) {
           const oid = 'e' + w.nextEnemyId++, hp = ROLE[KIND.omon.role].hp;
-          w.enemies[oid] = { id: oid, kind: 'omon', hp, maxHp: hp, x: enc.lock[1] + ENTER_OFF + 30 + n * 22,
-            y: laneBottom(w) - 30 + n * 12, facing: -1, phase: 'none', phaseMs: 0, anim: 'run', animMs: 0, cdMs: 0 };
+          w.enemies[oid] = { id: oid, kind: 'omon', hp, maxHp: hp, x: enc.lock[1] - 90 + n * 38,
+            y: laneBottom(w) - 30 + n * 12, entered: true, facing: -1, phase: 'none', phaseMs: 0, anim: 'idle', animMs: 0, cdMs: 0 };
         }
         enc.bossStarted = true; ev.push({ t: 'boss', id }); return;
       }
@@ -1644,7 +1696,7 @@ function finishTransition(w: World, ev: SimEvent[]) {
   w.enc = { stage: w.stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 };
   w.tokenReleased = {}; w.won = false;
   w.trans = undefined;
-  w.enemies = {};
+  w.enemies = {}; w.storyEncounter = undefined;
   w.pending = []; w.shots = []; w.zones = [];
   const [x, y] = stageOf(w).spawn;
   Object.values(w.players).forEach((p, i) => {
@@ -1749,6 +1801,12 @@ function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimE
   // Враги: к ближайшему живому игроку на его дорожку, удар, пауза
   const targets = active.filter(p => p.hp > 0);
   for (const e of Object.values(w.enemies)) {
+    if (e.storyWaiting) continue;
+    if (e.storyAdvanceMs) {
+      const ms = Math.min(dtMs, e.storyAdvanceMs); e.storyAdvanceMs -= ms;
+      e.x = clampEnemyX(w, e.x - 35 * ms / 1000, e); e.anim = 'walk';
+      continue;
+    }
     if (e.held || e.thrown) {
       const owner = w.players[e.held?.by ?? e.thrown?.by ?? ''];
       if (!owner || !e.thrown && (owner.hp <= 0 || !owner.connected || owner.away || e.hp <= 0)) { if (owner) releaseGrab(w, owner); e.held = undefined; e.thrown = undefined; clearCarry(e); }
@@ -1881,6 +1939,7 @@ function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimE
     if (w.enc.lock) p.x = clamp(p.x, w.enc.lock[0] + 20, w.enc.lock[1] - 20);
   }
   for (const e of Object.values(w.enemies)) {
+    if (e.storyWaiting) continue;
     e.x = clampEnemyX(w, e.x, e);
     e.y = clamp(e.y, laneTop(w, clamp(e.x, 0, levelW(w))), laneBottom(w));
   }

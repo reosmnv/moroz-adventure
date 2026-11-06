@@ -1,4 +1,4 @@
-import { LINES, CALL_NAMES, createStoryProgress, wantedStatus } from '@bc/shared';
+import { LINES, CALL_NAMES, createStoryProgress, wantedStatus, startStoryForWorld } from '@bc/shared';
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
 import { CHARACTERS, HERO_FORM, PLAYER_HP, switchHero, testHeal, testGod, testKillAll, chargeUlt, nextStage, RAMIL, HERO_ANIMS, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
@@ -6,6 +6,14 @@ let failed = 0;
 function check(name: string, ok: boolean, info = '') {
   console.log(`${ok ? 'OK  ' : 'FAIL'} ${name}${info ? `  (${info})` : ''}`);
   if (!ok) failed++;
+}
+
+for (const anim of ['run', 'attack'] as const) {
+  const w = createWorld(22, false, 'route');
+  const p = addPlayer(w, 'story', 'anastasia'); p.x = 480; p.y = 200;
+  p.anim = anim; p.combo = 2; p.queued = 'attack'; p.fDashMs = 100;
+  const story = createStoryProgress(); story.completed.push('prologue');
+  check(`R2 сюжет сбрасывает ${anim}`, startStoryForWorld(story, w) && String(p.anim) === 'idle' && p.move === 'idle' && !p.combo && !p.queued && !p.fDashMs && p.x === 480 && p.y === 200);
 }
 
 function setup(withBuddy = false, char = HERO_ID) {

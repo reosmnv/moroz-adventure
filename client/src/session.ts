@@ -135,7 +135,7 @@ export class LocalSession implements GameSession {
     this.resetControls();
     if (this.story.scene || !switchHero(this.world, this.me, char)) this.onPickError('Персонаж занят');
   }
-  pick(char: string) { addPlayer(this.world, this.me, char); if (this.world.level === 'route' && this.world.stage === 0) { startStory(this.story, 'start'); this.resetControls(); } }
+  pick(char: string) { addPlayer(this.world, this.me, char); if (this.world.level === 'route' && this.world.stage === 0) { startStory(this.story, 'start', this.world); this.resetControls(); } }
   advanceStory(key: string) { if (advanceStory(this.story, key, this.world)) this.resetControls(); }
   setPaused(on: boolean) { this.resetControls(); this.paused = on; }
   isPaused() { return this.paused; }

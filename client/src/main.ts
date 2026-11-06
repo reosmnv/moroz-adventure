@@ -136,7 +136,7 @@ $('testBtn').onclick = () => {
 $('nextBtn').onclick = () => session?.next();
 $('spawnBtn').onclick = () => session?.spawn();
 if (TEST_TOOLS) {
-  const names: Record<string, string> = { prologue: 'Вступление', street_vat: 'Ватники у подъезда', arch: 'ОМОН у арки', vestibule: 'Вестибюль', wagon: 'Вагон', mayak: 'Маяковская', shaman: 'Шаман', pizdulina: 'Пиздулина', local_mfc: 'Местный МФЦ', city: 'Москва-Сити', milonov: 'Милонов', leverage: 'Доступ к базе', sender: 'Отправитель', katya: 'Катя', withdrawal: 'Отзыв доноса и финал' };
+  const names: Record<string, string> = { prologue: 'Вступление', street_vat: 'Ватники у подъезда', arch: 'ОМОН у арки', vestibule: 'Вестибюль', wagon: 'Вагон', mayak: 'Маяковская', shaman: 'Шаман', pizdulina: 'Пиздулина', city: 'Москва-Сити', milonov: 'Милонов', leverage: 'Доступ к базе', sender: 'Отправитель', katya: 'Катя', withdrawal: 'Отзыв доноса и финал' };
   const select = $('storySceneSelect') as HTMLSelectElement;
   for (const scene of STORY_SCENES) select.add(new Option(`${scene.id} · ${names[scene.id] ?? scene.id}`, scene.id));
   const strict = $('storyStrict') as HTMLInputElement;

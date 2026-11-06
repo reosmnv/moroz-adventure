@@ -31,36 +31,32 @@ export const STORY_SCENES: StoryScene[] = [
     { kind: 'state', id: 'recording', value: 'on' },
   ] },
   { id: 'street_vat', trigger: 'stage:0', x: 480, steps: [
-    focus(570), spawn('vat1', 'vatnik', 290, 153), walk('vat1', 250, 195),
-    { kind: 'line', id: 'vat.2', speaker: 'Ватник', at: 'vat1' }, spawn('vat2', 'vatnik', 290, 153), walk('vat2', 310, 225),
+    focus(570),
+    { kind: 'line', id: 'vat.2', speaker: 'Ватник', at: 'vat1' },
     { kind: 'line', id: 'vat.4', speaker: 'Ватник', at: 'vat2' },
     { kind: 'line', id: 'vat.5', speaker: 'Ватник', at: 'vat1' }, { kind: 'line', id: 'rdy.1', speaker: 'anastasia' },
     { kind: 'line', id: 'rdy.3', speaker: 'kris' }, { kind: 'line', id: 'rdy.4', speaker: 'ramil' },
   ] },
-  { id: 'arch', trigger: 'clear:0:1', x: 900, steps: [
-    focus(2530), spawn('omon1', 'omon', 280, 153), spawn('vat1', 'vatnik', 240, 165),
-    walk('omon1', 160, 205), walk('vat1', 220, 225),
+  { id: 'arch', trigger: 'clear:0:1', x: 1380, steps: [
+    focus(2530),
     { kind: 'line', id: 'arch.1', speaker: 'ОМОН', at: 'omon1' }, { kind: 'line', id: 'arch.4', speaker: 'ОМОН', at: 'omon1' },
     { kind: 'line', id: 'arch.5', speaker: 'ОМОН', at: 'omon1' }, { kind: 'line', id: 'arch.6', speaker: 'Ватник', at: 'vat1' },
     { kind: 'line', id: 'arch.7', speaker: 'nadezhda' }, { kind: 'line', id: 'arch.8', speaker: 'ОМОН', at: 'omon1' },
   ] },
-  { id: 'vestibule', trigger: 'stage:2', x: 320, steps: [
+  { id: 'vestibule', trigger: 'stage:2', x: 600, steps: [
     focus(260),
     { kind: 'line', id: 'vst.1', speaker: 'anastasia' }, { kind: 'line', id: 'vst.2', speaker: 'kris' },
     { kind: 'line', id: 'vst.3', speaker: 'nadezhda' }, { kind: 'line', id: 'vst.4', speaker: 'anastasia' },
-    spawn('omon1', 'omon', 360, 170), walk('omon1', 230, 200, 600),
     { kind: 'line', id: 'vst.5', speaker: 'ОМОН', at: 'omon1' }, { kind: 'line', id: 'vst.6', speaker: 'ramil' },
   ] },
-  { id: 'wagon', trigger: 'stage:3', x: 320, steps: [
-    focus(270), spawn('zek1', 'zek', 240, 157), spawn('zek2', 'zek', 340, 157),
-    { kind: 'act', actor: 'zek1', do: 'pose', pose: 'getup', ms: 600 }, walk('zek1', 230, 205, 400),
+  { id: 'wagon', trigger: 'stage:3', x: 650, steps: [
+    focus(270),
     { kind: 'line', id: 'wg.1', speaker: 'Зэк', at: 'zek1' }, { kind: 'line', id: 'wg.2', speaker: 'ramil' },
-    { kind: 'act', actor: 'zek2', do: 'pose', pose: 'getup', ms: 600 }, walk('zek2', 305, 225, 400),
     { kind: 'line', id: 'wg.3', speaker: 'Зэк', at: 'zek2' }, { kind: 'line', id: 'wg.4', speaker: 'Зэк', at: 'zek1' },
     { kind: 'line', id: 'wg.6', speaker: 'ramil' },
   ] },
-  { id: 'mayak', trigger: 'stage:4', x: 320, steps: [
-    focus(270), spawn('official', 'clerk', 360, 170), walk('official', 250),
+  { id: 'mayak', trigger: 'stage:4', x: 880, steps: [
+    focus(270),
     { kind: 'line', id: 'may.1', speaker: 'anastasia' }, { kind: 'line', id: 'may.2', speaker: 'Чиновник', at: 'official' },
     { kind: 'line', id: 'may.3', speaker: 'anastasia' }, { kind: 'line', id: 'may.4', speaker: 'Чиновник', at: 'official' },
     { kind: 'line', id: 'may.5', speaker: 'ramil' }, { kind: 'line', id: 'may.6', speaker: 'anastasia' },
@@ -70,25 +66,19 @@ export const STORY_SCENES: StoryScene[] = [
     { kind: 'line', id: 'sh.1', speaker: 'anastasia' }, { kind: 'line', id: 'sh.2', speaker: 'kris' },
   ] },
   { id: 'pizdulina', trigger: 'boss:pizdulina', steps: [
-    focus(1100), spawn('pizdulina', 'pizdulina', 190),
+    focus(1100),
     { kind: 'line', id: 'pz.1', speaker: 'Пиздулина', at: 'pizdulina' }, { kind: 'line', id: 'pz.2', speaker: 'Пиздулина', at: 'pizdulina' },
     { kind: 'line', id: 'pz.3', speaker: 'nadezhda' }, { kind: 'line', id: 'pz.4', speaker: 'ramil' },
   ] },
-  { id: 'local_mfc', trigger: 'clear:4:1', x: 1440, steps: [
-    { kind: 'card', id: 'lmfc.1' }, focus(610), spawn('clerk', 'clerk', 150, 195), face('clerk', -1),
-    { kind: 'line', id: 'lmfc.2', speaker: 'Сотрудница МФЦ', at: 'clerk' },
-    { kind: 'line', id: 'lmfc.3', speaker: 'Сотрудница МФЦ', at: 'clerk' }, { kind: 'line', id: 'lmfc.4', speaker: 'ramil' },
-  ] },
-  { id: 'city', trigger: 'stage:5', x: 340, steps: [
-    focus(310), spawn('info_f', 'info_f', 265), spawn('info_m', 'info_m', 360, 220), face('info_f', -1),
+  { id: 'city', trigger: 'stage:5', x: 700, steps: [
+    focus(310),
     { kind: 'phone', ids: ['cty.t1', 'cty.t2', 'cty.t3'], at: 'info_f' },
     { kind: 'line', id: 'cty.1', speaker: 'Инфоцыганка', at: 'info_f' }, { kind: 'line', id: 'cty.2', speaker: 'Инфоцыган', at: 'info_m' },
     { kind: 'line', id: 'cty.3', speaker: 'anastasia' }, { kind: 'line', id: 'cty.4', speaker: 'kris' },
     { kind: 'line', id: 'cty.5', speaker: 'ramil' },
   ] },
   { id: 'milonov', trigger: 'clear:6:2', x: 2280, steps: [
-    { kind: 'card', id: 'mfc.last' }, focus(2530), spawn('milonov', 'milonov', 187, 153, true),
-    walk('milonov', 187, 185, 500), face('milonov', -1),
+    focus(2530), face('milonov', -1),
     { kind: 'line', id: 'mil.1', speaker: 'Милонов', at: 'milonov' }, { kind: 'line', id: 'mil.2', speaker: 'anastasia' },
     { kind: 'line', id: 'mil.3', speaker: 'Милонов', at: 'milonov' }, { kind: 'line', id: 'mil.p4', speaker: 'Милонов', at: 'milonov' },
     { kind: 'line', id: 'mil.p5', speaker: 'Милонов', at: 'milonov' },
@@ -109,10 +99,7 @@ export const STORY_SCENES: StoryScene[] = [
     { kind: 'line', id: 'hck.7', speaker: 'ramil' },
   ] },
   { id: 'katya', trigger: 'boss:katya', steps: [
-    focus(2770), spawn('katya', 'katya', 360, 200), walk('katya', 200, 200, 1800), face('katya', -1),
-    { kind: 'act', actor: 'katya', do: 'pose', pose: 'cast', ms: 850 },
-    { kind: 'act', actor: 'katya', do: 'pose', pose: 'idle' },
-    { kind: 'card', id: 'ins.katya.name' },
+    focus(2770),
     { kind: 'line', id: 'kat.1', speaker: 'Катя', at: 'katya' }, { kind: 'line', id: 'kat.2', speaker: 'anastasia' },
   ] },
   { id: 'withdrawal', trigger: 'victory', steps: [

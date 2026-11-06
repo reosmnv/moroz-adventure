@@ -786,9 +786,8 @@ export class GameScene extends Phaser.Scene {
     if (!smp) return;
     let { a, b, f } = smp;
     const latestStage = this.session.snapshots[this.session.snapshots.length - 1];
-    if (latestStage.stage !== b.stage || latestStage.level !== b.level) { a = b = latestStage; f = 1; }
-    const localMfc = latestStage.storyScene === 'local_mfc';
-    const locationKey = b.level + ':' + b.stage + (localMfc ? ':local-mfc' : '');
+    if (latestStage.storyScene || latestStage.stage !== b.stage || latestStage.level !== b.level) { a = b = latestStage; f = 1; }
+    const locationKey = b.level + ':' + b.stage;
     if (locationKey !== this.locationKey) {
       const first = !this.locationKey;
       const sameStage = this.locationKey.split(':').slice(0, 2).join(':') === `${b.level}:${b.stage}`;
@@ -800,16 +799,10 @@ export class GameScene extends Phaser.Scene {
       this.exitLabel = undefined; this.stopped = false;
       this.locationKey = locationKey;
       const baseStage = LEVELS[b.level].stages[b.stage];
-      const stage = localMfc ? { ...LEVELS.route.stages[6], width: baseStage.width, cards: [], signs: [], props: [] } : baseStage;
+      const stage = baseStage;
       this.worldWidth = stage.width;
       if (b.level === 'old') { buildLevel(this); showCard(this); debugLane(this, stage); }
       else this.stageView = new StageView(this, stage, !!latestStage.storyScene || b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
-      if (localMfc) {
-        // Стойка перекрывает ноги сотрудника, фон окон взят из готового МФЦ.
-        const counterX = Math.max(...[...latestStage.players.values()].filter(p => p.hp > 0).map(p => p.x)) + 150;
-        this.add.rectangle(counterX, 183, 126, 32, 0x744d3b).setStrokeStyle(2, 0x302530).setDepth(210);
-        this.add.rectangle(counterX, 165, 136, 6, 0xd4b99b).setDepth(210);
-      }
       if (!sameStage) this.camX = undefined;
       this.layout();
       const me = b.players.get(this.session.me);
@@ -817,7 +810,7 @@ export class GameScene extends Phaser.Scene {
       if (!first && !sameStage) this.cameras.main.fadeIn(350);
     }
     const pace = latestStage.storyScene || latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
-    if (b.level === 'route' && b.stage === 4 && !localMfc) {
+    if (b.level === 'route' && b.stage === 4) {
       this.bossShow ??= new BossShow(this, b);
       this.bossShow.update(latestStage, delta * pace);
     } else { this.bossShow?.destroy(); this.bossShow = undefined; }
@@ -956,6 +949,7 @@ export class GameScene extends Phaser.Scene {
       else draw('p:' + id, true, a.players.get(id), sb);
     }
     const focus = latest.cineId ? latest.enemies.get(latest.cineId) : latest.players.get(this.session.me);
+    if (latest.storyCamX !== undefined && Math.abs(latest.storyCamX - this.cameras.main.midPoint.x) > this.scale.width / 2) this.camX = undefined;
     if (latest.storyCamX !== undefined) this.follow(latest.storyCamX, delta / 1000, true);
     else if (focus) this.follow(focus.x, delta / 1000, !!latest.cineId);
     this.drawGuides(latest);

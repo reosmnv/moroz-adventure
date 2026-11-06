@@ -5,7 +5,7 @@ export interface Encounter { trigger: number; arena: [number, number]; waves: Sp
 const BASE_ENCOUNTERS: Record<string, Encounter[]> = {
   street: [
     { trigger: 300, arena: [240, 720], waves: [[{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik', door: 630 }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'omon' }, { kind: 'omon' }]] },
-    { trigger: 1240, arena: [1180, 1660], waves: [[{ kind: 'vatnik', door: 1302 }, { kind: 'vatnik', door: 1302 }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'omon' }, { kind: 'omon' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'omon' }, { kind: 'omon' }]] },
+    { trigger: 1240, arena: [1180, 1660], waves: [[{ kind: 'vatnik', door: 1302 }, { kind: 'vatnik', door: 1302 }, { kind: 'omon' }, { kind: 'vatnik' }], [{ kind: 'vatnik' }, { kind: 'omon' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'omon' }, { kind: 'omon' }]] },
     { trigger: 2150, arena: [2090, 2570], waves: [[{ kind: 'omon' }, { kind: 'omon' }, { kind: 'omon' }], [{ kind: 'omon' }, { kind: 'omon' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'omon' }, { kind: 'omon' }, { kind: 'omon' }, { kind: 'vatnik' }]] },
   ],
   yard: [

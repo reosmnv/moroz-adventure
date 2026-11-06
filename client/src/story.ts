@@ -231,7 +231,7 @@ const COMIC_HEAD: Record<string, number> = { katya: 125, pizdulina: 107, shaman:
 export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snapshot) {
   if (comicPanel) {
     const { card, at, wide } = comicPanel;
-    const target = snap.actors.get(at) ?? [...snap.players.values()].find(p => p.char === at);
+    const target = snap.actors.get(at) ?? snap.enemies.get(at) ?? [...snap.enemies].find(([id, e]) => id.endsWith('--' + at) && e.hp > 0)?.[1] ?? [...snap.enemies.values()].find(e => e.boss === at) ?? [...snap.players.values()].find(p => p.char === at);
     const rect = game.game.canvas.getBoundingClientRect();
     const cam = game.cameras.main, ratio = rect.width / game.scale.width;
     const anchor = target ? rect.left + (cam.width / 2 + (target.x - cam.midPoint.x) * cam.zoom) * ratio : rect.left + rect.width / 2;
@@ -261,7 +261,7 @@ export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snap
   bubble.body.setText(model.value.slice(0, model.count));
   const player = [...snap.players.values()].find(p => p.char === model.at);
   const actor = snap.actors.get(model.at);
-  const target = actor ?? player ?? snap.enemies.get(model.at);
+  const target = actor ?? player ?? snap.enemies.get(model.at) ?? [...snap.enemies].find(([id, e]) => id.endsWith('--' + model.at) && e.hp > 0)?.[1] ?? [...snap.enemies.values()].find(e => e.boss === model.at);
   const cam = game.cameras.main, width = ui.scale.width;
   const targetX = target ? cam.width / 2 + (target.x - cam.midPoint.x) * cam.zoom : 0;
   const targetY = target ? cam.height / 2 + (target.y - (COMIC_HEAD[actor?.look ?? ''] ?? 90) - cam.midPoint.y) * cam.zoom : 0;
