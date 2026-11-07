@@ -8,8 +8,8 @@ export const RAMIL_ID = 'ramil';
 // Рамиль: стартовые числа приёмов и их постановки, для настройки mr.R.
 export const RAMIL = {
   A1_REACH: 56, A1_DASH_MAX: 200, A1_DASH_MS: 140, A1_GAP: 38, // рывок с ногой
-  A1_RANGE: 66, A1_DMG: 8, A1_KB: 10, A1_STUN: 500,
-  A2_STEP: 16, A2_RANGE: 64, A2_DMG: 4, GRAB_HOLD_MS: 2500,
+  A1_RANGE: 66, A1_DMG: 5, A1_KB: 10, A1_STUN: 500,
+  A2_STEP: 16, A2_RANGE: 64, A2_DMG: 10, GRAB_HOLD_MS: 2500,
   GRIP_X: 20, GRIP_Y: -50, HOLD_SPEED_MULT: 0.6, SPIN_SPEED_MULT: 0.5,
   SPIN_TURN_MS: [220, 160, 155, 155, 155, 155], SPIN_MS: 1000, SPIN_TURNS: 6,
   SPIN_R: 26, SPIN_HIT_R: 56, SPIN_DMG: 6, SPIN_HELD_DMG: 3, SPIN_KB: 110,
@@ -19,13 +19,13 @@ export const RAMIL = {
   METEOR_UP_MS: 200, METEOR_HANG_MS: 270, METEOR_FALL_MS: 110,
   METEOR_HEIGHT: 400, METEOR_AOE: 90, METEOR_DMG: 16, METEOR_HELD_DMG: 20, METEOR_KB: 150,
   KICK_MAX: 2, KICK_RANGE: 66, KICK_DMG: 20, RETURN_RANGE: 70, // серия B
-  FIRE_LEN: 120, FIRE_BAND: 30, FIRE_MS: 330, FIRE_DMG: 3,
+  FIRE_LEN: 120, FIRE_BAND: 30, FIRE_MS: 330, FIRE_DMG: 10,
   BURN_MS: 3000, BURN_TICK: 500, BURN_DMG: 3,
-  TELE_MS: 150, TELE_GAP: 34, RETURN_GAP: 40, TELE_DMG: 5, RETURN_DMG: 6,
+  TELE_MS: 150, TELE_GAP: 34, RETURN_GAP: 40, TELE_DMG: 5, RETURN_DMG: 5,
   MARK_MS: 6000, KICK_FLY: 300, B_COMBO_MS: 1200,
   B_COOLDOWN_MS: 3500,
   ULT_HITS: [2, 4, 8, 16, 32, 64], ULT_STEPS: [200, 140, 95, 65, 42, 28], // шесть ступеней
-  ULT_DMG: [4, 3, 2, 1, 1, 1], ULT_FINISH: [10, 10, 12, 14, 18, 30],
+  ULT_DMG: [2, 1.5, 1, 0.5, 0.5, 0.5], ULT_FINISH: [10, 10, 12, 14, 18, 30],
   ULT_HITSTOP: [90, 60, 30, 0, 0, 0], ULT_LAST_STOP: 120, ULT_FINISH_STOP: 200,
   ULT_WINDOW: 800, ULT_REACH: 260, ULT_RANGE: 70, ULT_STUN: 300, ULT_NUDGE: 2,
   ULT_DASH_MS: 160, ULT_EMPTY_MS: 400,
@@ -122,20 +122,20 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
   },
   prime: {
     jab: { range: 52, dmg: 5, kb: 2, stun: 250 },
-    cross: { range: 54, dmg: 7, kb: 3, stun: 250 },
-    teep: { impact: 1, range: 66, dmg: 10, kb: 14, stun: 400, word: 'БУМ!' },
-    superman: { impact: 1, range: 86, dmg: 15, kb: 28, stun: 500, rush: true, word: 'ВЖУХ!' },
-    highkick: { impact: 1, range: 70, dmg: 25, kb: 30, stun: 500 },
-    uppercut: { impact: 1, range: 58, dmg: 25, kb: 10, stun: 500, down: true, launch: true, word: 'ОП!' },
-    slam: { impact: 1, range: 70, dmg: 25, kb: 30, stun: 500, down: true, slam: true, word: 'ХРЯСЬ!' },
+    cross: { range: 54, dmg: 9, kb: 3, stun: 250 },
+    teep: { impact: 1, range: 66, dmg: 12, kb: 14, stun: 400, word: 'БУМ!' },
+    superman: { impact: 1, range: 86, dmg: 7, kb: 28, stun: 500, rush: true, word: 'ВЖУХ!' },
+    highkick: { impact: 1, range: 70, dmg: 9, kb: 30, stun: 500 },
+    uppercut: { impact: 1, range: 58, dmg: 7, kb: 10, stun: 500, down: true, launch: true, word: 'ОП!' },
+    slam: { impact: 1, range: 70, dmg: 8, kb: 30, stun: 500, down: true, slam: true, word: 'ХРЯСЬ!' },
   },
   ultimate: {
-    elbow: { range: 52, dmg: 15, kb: 2, stun: 250 },
-    knee: { range: 54, dmg: 20, kb: 3, stun: 250 },
-    roundhouse: { impact: 1, range: 72, dmg: 25, kb: 16, stun: 400, word: 'БУМ!' },
-    'spin-elbow': { impact: 1, range: 66, dmg: 30, kb: 24, stun: 500, down: true, launch: true, word: 'ОП!' },
-    'flying-knee': { impact: 1, range: 86, dmg: 35, kb: 30, stun: 500, rush: true, word: 'ВЖУХ!' },
-    hurricane: { impact: 1, range: 75, dmg: 30, kb: 1, stun: 400, word: 'УРАГАН!' }, // на каждое из трёх попаданий
+    elbow: { range: 52, dmg: 11, kb: 2, stun: 250 },
+    knee: { range: 54, dmg: 12, kb: 3, stun: 250 },
+    roundhouse: { impact: 1, range: 72, dmg: 14, kb: 16, stun: 400, word: 'БУМ!' },
+    'spin-elbow': { impact: 1, range: 66, dmg: 10, kb: 24, stun: 500, down: true, launch: true, word: 'ОП!' },
+    'flying-knee': { impact: 1, range: 86, dmg: 10, kb: 30, stun: 500, rush: true, word: 'ВЖУХ!' },
+    hurricane: { impact: 1, range: 75, dmg: 5, kb: 1, stun: 400, word: 'УРАГАН!' }, // на каждое из трёх попаданий
   },
   // Надя: контроль, урон ниже (числа предварительные, nadezhda.md)
   nadya: {
@@ -149,9 +149,9 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
   },
   // Kris: штатив вблизи, вспышка и шар издалека (числа предварительные, kris.md)
   kris: {
-    'a1-back': { range: 78, dmg: 4, kb: 0, stun: 0, stunMs: 800, word: 'СТОП!' },
-    a2: { impact: 1, range: 78, dmg: 5, kb: 30, stun: 0, stunMs: 800, word: 'ВЖУХ!' },
-    b: { range: 320, dmg: 4, kb: 2, stun: 500, kind: 'flash' },
+    'a1-back': { range: 78, dmg: 5, kb: 0, stun: 0, stunMs: 800, word: 'СТОП!' },
+    a2: { impact: 1, range: 78, dmg: 10, kb: 30, stun: 0, stunMs: 800, word: 'ВЖУХ!' },
+    b: { range: 320, dmg: 3.7, kb: 2, stun: 500, kind: 'flash' },
     ball: { impact: 1, range: 0, dmg: 25, kb: 20, stun: 500, kind: 'ball' },
   },
 };
