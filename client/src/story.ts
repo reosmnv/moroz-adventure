@@ -134,7 +134,7 @@ export function syncStoryView(session: GameSession) {
     const host = CHARACTERS.find(c => c.id === snap.players.get(snap.storyHost)?.char)?.name ?? '';
     const model = dialogue = { name: speaker?.name ?? step.speaker, speaker: step.speaker,
       at: step.at ?? step.speaker, value: STORY_CONTENT[step.id], count: 0,
-      hint: snap.storyHost === session.me ? '▶' : `ждём ${host}` };
+      hint: snap.storyHost === session.me ? '▶' : `листает ${host}` };
     const timer = window.setInterval(() => {
       if (activeStoryKey !== viewKey) { clearInterval(timer); return; }
       play('story_type');
