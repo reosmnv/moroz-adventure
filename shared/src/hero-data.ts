@@ -130,12 +130,12 @@ export const STRIKES: Record<Form, Record<string, Strike>> = {
     slam: { impact: 1, range: 70, dmg: 8, kb: 30, stun: 500, down: true, slam: true, word: 'ХРЯСЬ!' },
   },
   ultimate: {
-    elbow: { range: 52, dmg: 11, kb: 2, stun: 250 },
-    knee: { range: 54, dmg: 12, kb: 3, stun: 250 },
-    roundhouse: { impact: 1, range: 72, dmg: 14, kb: 16, stun: 400, word: 'БУМ!' },
-    'spin-elbow': { impact: 1, range: 66, dmg: 10, kb: 24, stun: 500, down: true, launch: true, word: 'ОП!' },
-    'flying-knee': { impact: 1, range: 86, dmg: 10, kb: 30, stun: 500, rush: true, word: 'ВЖУХ!' },
-    hurricane: { impact: 1, range: 75, dmg: 5, kb: 1, stun: 400, word: 'УРАГАН!' }, // на каждое из трёх попаданий
+    elbow: { range: 52, dmg: 15, kb: 2, stun: 250 },
+    knee: { range: 54, dmg: 25, kb: 3, stun: 250 },
+    roundhouse: { impact: 1, range: 72, dmg: 19, kb: 16, stun: 400, word: 'БУМ!' },
+    'spin-elbow': { impact: 1, range: 66, dmg: 22, kb: 24, stun: 500, down: true, launch: true, word: 'ОП!' },
+    'flying-knee': { impact: 1, range: 86, dmg: 14, kb: 30, stun: 500, rush: true, word: 'ВЖУХ!' },
+    hurricane: { impact: 1, range: 75, dmg: 11, kb: 1, stun: 400, word: 'УРАГАН!' }, // на каждое из трёх попаданий
   },
   // Надя: контроль, урон ниже (числа предварительные, nadezhda.md)
   nadya: {
