@@ -333,6 +333,7 @@ export function switchHero(w: World, id: string, char: string): boolean {
   w.pending = w.pending.filter(d => d.owner !== id);
   w.players[id] = { ...freshPlayer(id, char, p.x, p.y),
     facing: p.facing, connected: p.connected, away: p.away, hp: p.hp, ult: p.ult, god: p.god,
+    ...(p.hp <= 0 ? { downMs: p.downMs, anim: 'down' as const, animMs: p.animMs, move: 'fall', moveT: p.moveT } : {}),
     viewX: p.viewX, viewW: p.viewW };
   (w.events ??= []).push({ t: 'switch', id, char });
   return true;
@@ -547,7 +548,9 @@ function switchHeroReset(w: World, p: Player) {
   for (const e of Object.values(w.enemies)) if (e.held?.by === p.id || e.thrown?.by === p.id) {
     e.held = e.thrown = undefined; clearCarry(e); cancelAttack(w, e); e.anim = 'idle';
   }
-  heroReset(p); p.anim = 'idle'; p.animMs = p.cdMs = p.hitstopMs = 0;
+  const fallen = p.hp <= 0, moveT = p.moveT, animMs = p.animMs;
+  heroReset(p); p.anim = fallen ? 'down' : 'idle'; p.animMs = fallen ? animMs : 0; p.cdMs = p.hitstopMs = 0;
+  if (fallen) { p.move = 'fall'; p.moveT = moveT; }
   p.approach = p.hop = undefined;
 }
 
@@ -594,7 +597,7 @@ function special(w: World, p: Player, s: Strike, ev: SimEvent[]) {
   if (s.kind === 'flash') {
     // Летит до первого врага на дорожке перед Kris, урон, когда долетела
     const sx = p.x + p.facing * 20, sy = p.y - 70;
-    const front = Object.values(w.enemies).filter(e => combatReady(w, e) && Math.sign(e.x - p.x) === p.facing && Math.abs(e.x - p.x) < s.range && Math.abs(e.y - p.y) < LANE_TOLERANCE);
+    const front = Object.values(w.enemies).filter(e => e.hp > 0 && combatReady(w, e) && Math.sign(e.x - p.x) === p.facing && Math.abs(e.x - p.x) < s.range && Math.abs(e.y - p.y) < LANE_TOLERANCE);
     const t = front.length ? front.reduce((a, b) => (Math.abs(a.x - p.x) < Math.abs(b.x - p.x) ? a : b)) : undefined;
     const tx = t ? t.x : sx + p.facing * s.range;
     ev.push({ t: 'shot', id: p.id, x: sx, y: sy, tx, ty: t ? t.y - 60 : sy });
@@ -1459,8 +1462,8 @@ function prepareTokens(w: World, dtMs: number) {
   }
 }
 
-function enemyHit(w: World, p: Player, dmg: number, ev: SimEvent[], immunityMs?: number) {
-  if (p.hp <= 0 || !p.connected || p.away || !damagePlayer(p, dmg)) return;
+function enemyHit(w: World, p: Player, dmg: number, ev: SimEvent[], immunityMs?: number): boolean {
+  if (p.hp <= 0 || !p.connected || p.away || !damagePlayer(p, dmg)) return false;
   if (immunityMs !== undefined) p.invulnMs = Math.min(p.invulnMs, immunityMs);
   releaseGrab(w, p);
   ev.push({ t: 'hit', target: p.id, dmg, x: p.x, y: p.y });
@@ -1470,6 +1473,7 @@ function enemyHit(w: World, p: Player, dmg: number, ev: SimEvent[], immunityMs?:
     ev.push({ t: 'down', id: p.id });
     for (const e of Object.values(w.enemies)) if (e.token === p.id) cancelAttack(w, e);
   }
+  return true;
 }
 
 function stepEnemyAttack(w: World, e: Enemy, targets: Player[], speed: number, dtMs: number, ev: SimEvent[]) {
@@ -1556,9 +1560,6 @@ function stepBossHazards(w: World, dtMs: number, ev: SimEvent[]) {
 // Геометрия фиксируется при замахе; клиент получает те же фигуры.
 function planBossAttack(w: World, e: Enemy, targets: Player[], ev: SimEvent[]) {
   const a = BOSS_ATTACK[e.atk!], bounds = w.enc.lock ?? [0, levelW(w)];
-  const tele = (shape: Extract<SimEvent, { t: 'tele'; shape: string }>['shape'], x: number, y: number, r?: number, h?: number, delayMs = 0) =>
-    ev.push({ t: 'tele', id: e.id, attack: a.id, shape, x, y, r, h, ms: a.windupMs, delayMs });
-  if (a.kind === 'ring') tele('ring', e.x, e.y, a.radius);
   if (a.kind === 'line' || a.kind === 'grid') {
     const top = laneTop(w, (bounds[0] + bounds[1]) / 2), bottom = laneBottom(w);
     if (a.kind === 'grid') {
@@ -1569,13 +1570,10 @@ function planBossAttack(w: World, e: Enemy, targets: Player[], ev: SimEvent[]) {
       const second = y + (y < (top + bottom) / 2 ? 1 : -1) * 56;
       e.bands = [{ y, h: 16 }, { y: second, h: 16 }];
     }
-    for (const b of e.bands) tele(a.kind === 'grid' ? 'grid' : 'line', bounds[0], b.y, undefined, b.h);
   }
   if (a.kind === 'cross') {
     const target = targets.reduce((near, p) => Math.hypot(p.x-e.x,p.y-e.y) < Math.hypot(near.x-e.x,near.y-e.y) ? p : near);
     e.atkX = target.x; e.atkY = target.y;
-    tele('line', bounds[0], target.y, undefined, a.depth);
-    tele('column', target.x, laneTop(w, target.x), undefined, a.reach);
   }
   if (['zones', 'pyro', 'salute', 'banStrike'].includes(a.kind)) {
     e.zonePoints = Array.from({ length: a.kind === 'banStrike' ? targets.length : a.count! }, (_, i) => {
@@ -1583,8 +1581,38 @@ function planBossAttack(w: World, e: Enemy, targets: Player[], ev: SimEvent[]) {
       const x = bounds[0] + rand(w) * (bounds[1] - bounds[0]);
       return { x, y: laneTop(w, x) + rand(w) * (laneBottom(w) - laneTop(w, x)) };
     });
-    e.zonePoints.forEach((p, i) => tele(a.kind === 'banStrike' ? 'ban' : 'zone', p.x, p.y, a.zoneR, undefined, a.kind === 'salute' ? i * 120 : 0));
+    // Точки сохраняются до конца атаки.
   }
+  ev.push(...bossWarningEvents(w, e));
+}
+
+// Только чтение: возвращаем геометрию с оставшимся временем, без нового броска RNG.
+export function bossWarningEvents(w: World, enemy?: Enemy): SimEvent[] {
+  const ev: SimEvent[] = [], left = w.enc.lock?.[0] ?? 0;
+  for (const e of enemy ? [enemy] : Object.values(w.enemies)) {
+    const a = e.atk ? BOSS_ATTACK[e.atk] : undefined;
+    if (!e.boss || e.hp <= 0 || !a || e.phaseMs <= 0) continue;
+    const tele = (shape: Extract<SimEvent, { t: 'tele'; shape: string }>['shape'], x: number, y: number, r?: number, h?: number, delayMs = 0) =>
+      ev.push({ t: 'tele', id: e.id, attack: a.id, shape, x, y, r, h, ms: e.phaseMs, delayMs });
+    if (e.phase === 'windup') {
+      if (a.kind === 'ring') tele('ring', e.atkX!, e.atkY!, a.radius);
+      if (a.kind === 'line' || a.kind === 'grid') for (const b of e.bands ?? []) tele(a.kind === 'grid' ? 'grid' : 'line', left, b.y, undefined, b.h);
+      if (a.kind === 'cross') {
+        tele('line', left, e.atkY!, undefined, a.depth);
+        tele('column', e.atkX!, laneTop(w, e.atkX!), undefined, a.reach);
+      }
+      if (['zones', 'pyro', 'salute', 'banStrike'].includes(a.kind)) (e.zonePoints ?? []).forEach((p, i) =>
+        tele(a.kind === 'banStrike' ? 'ban' : 'zone', p.x, p.y, a.zoneR, undefined, a.kind === 'salute' ? i * 120 : 0));
+    } else if (e.phase === 'active') {
+      if (a.kind === 'line' || a.kind === 'grid') for (const b of e.bands ?? [])
+        ev.push({ t: 'bossFx', id: e.id, attack: a.id, x: left, y: b.y, h: b.h, ms: e.phaseMs });
+      if (a.kind === 'salute') (e.zonePoints ?? []).forEach((p, i) => {
+        const ms = i * 120 - (a.activeMs - e.phaseMs);
+        if (i >= (e.shotCount ?? 0) && ms > 0) ev.push({ t: 'tele', id: e.id, attack: a.id, shape: 'zone', ...p, r: a.zoneR, ms });
+      });
+    }
+  }
+  return ev;
 }
 const inEllipse = (p: Player, x: number, y: number, r: number, ratio: number) => ((p.x-x)/r)**2 + ((p.y-y)/(r*ratio))**2 <= 1;
 function resolveBossArea(w: World, e: Enemy, targets: Player[], ev: SimEvent[], point?: number) {
@@ -1593,7 +1621,8 @@ function resolveBossArea(w: World, e: Enemy, targets: Player[], ev: SimEvent[], 
   if (a.kind === 'ring') {
     fx(e.atkX!, e.atkY!);
     for (const p of targets) if (inEllipse(p, e.atkX!, e.atkY!, a.radius!, 0.35)) {
-      enemyHit(w, p, a.dmg, ev); p.x += (p.x < e.atkX! ? -1 : 1) * 90;
+      const controlImmune = p.form === 'ultimate', push = (p.x < e.atkX! ? -1 : 1) * 90;
+      if (enemyHit(w, p, a.dmg, ev) && !controlImmune) p.x += push;
     }
   }
   if (a.kind === 'line' || a.kind === 'grid') for (const b of e.bands ?? []) {
@@ -1703,6 +1732,11 @@ function finishTransition(w: World, ev: SimEvent[]) {
     Object.assign(p, clampToLane(w, x - i * 30, y + i * 20));
     p.approach = undefined; p.hop = undefined; p.queued = null; p.wantBall = false;
     p.stormMs = 0; p.hitstopMs = 0;
+    p.ramil = undefined; p.ultLevel = p.ultWindow = 0;
+    p.fDashMs = p.hiddenMs = p.heavySmokeMs = p.fireMs = 0;
+    p.combo = p.comboMs = p.bCombo = p.bComboMs = 0; p.bChainActive = false;
+    p.shooting = false; p.fireFacing = undefined; p.fireNeedsRelease = true;
+    p.dashFrom = p.x;
     p.anim = p.hp > 0 ? 'idle' : 'down'; p.animMs = 0;
     p.move = p.hp > 0 ? 'idle' : 'fall'; p.moveT = 0;
   });

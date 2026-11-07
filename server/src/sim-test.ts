@@ -1,4 +1,4 @@
-import { LINES, CALL_NAMES, createStoryProgress, wantedStatus, startStoryForWorld } from '@bc/shared';
+import { bossWarningEvents, stopStoryHeroes, LINES, CALL_NAMES, createStoryProgress, wantedStatus, startStoryForWorld } from '@bc/shared';
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
 import { CHARACTERS, HERO_FORM, PLAYER_HP, switchHero, testHeal, testGod, testKillAll, chargeUlt, nextStage, RAMIL, HERO_ANIMS, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
@@ -1506,6 +1506,73 @@ for (const [i, ch] of CHARACTERS.entries()) {
   const { w } = setup(false, KRIS_ID); dummy(w, 'e1', 100);
   w.introduced.push('shaman'); w.cine = { id: 'e1', kind: 'shaman', ms: 1 };
   check('TZ21 ответ вставки отсутствует и без Насти', !step(w, {}).some(e => e.t === 'taunt' && e.line === LINES.reply.shaman));
+}
+
+// TZ-23 A1: падение, смена карты, выбор цели и контроль.
+{
+  const { w, p } = setup(true); dummy(w, 'idle', 800);
+  p.hp = 0; p.anim = 'down'; p.move = 'fall'; p.moveT = 750; p.downMs = 2400;
+  check('A1.9 павший сменил героя', switchHero(w, p.id, KRIS_ID));
+  const q = w.players.h;
+  check('A1.9 сохранены падение и срок подъёма', q.hp === 0 && q.downMs === 2400 && q.anim === 'down' && q.move === 'fall' && q.moveT === 750);
+  run(w, 2300); check('A1.9 раннего подъёма нет', q.hp === 0);
+  run(w, 150); check('A1.9 подъём после исходного срока', q.hp === PLAYER_HP / 2);
+}
+{
+  const { w, p } = setup(true);
+  p.hp = 0; p.anim = 'down'; p.move = 'fall'; p.moveT = 840; p.downMs = 3100;
+  stopStoryHeroes(w);
+  check('A1.11 диалог сохраняет падение', p.anim === 'down' && p.move === 'fall' && p.moveT === 840 && p.downMs === 3100);
+  run(w, TICK_MS);
+  check('A1.11 после диалога павший остаётся лежать', p.hp === 0 && p.move === 'fall');
+}
+{
+  const { w, p } = setup(false, KRIS_ID);
+  dummy(w, 'dead', 45, 0); dummy(w, 'live', 100); w.enemies.live.dummy = true;
+  w.enemies.dead.boss = 'shaman'; w.enemies.dead.deathMs = 1400;
+  const ev = step(w, { h: { ...emptyInput(), heavy: true } });
+  // Вспышка срабатывает в кадре попадания, мёртвый босс ещё на экране.
+  const shots = [...ev];
+  for (let i = 0; i < 70 && !shots.some(e => e.t === 'shot'); i++) shots.push(...step(w, {}));
+  check('A1.7 вспышка выбирает живого за мёртвым боссом', shots.some(e => e.t === 'shot' && e.tx === w.enemies.live.x) && w.pending.some(d => d.flash && d.ids?.[0] === 'live'));
+}
+{
+  const w = createWorld(23, true, 'route'), p = addPlayer(w, 'h', 'ramil');
+  p.x = 900; p.y = 205; p.ult = 63; p.charge2 = 42; p.bCooldownMs = 1900;
+  p.ramil = { marks: ['old'], markMs: 1000, originX: 920, originY: 210, smokeMs: 900, smokeLine: 1, fireHit: ['old'],
+    grab: 'old', tele: { ms: 100, x: 1600, y: 200, back: true }, dash: { fromX: 800, fromY: 200, x: 1700, y: 205 },
+    ult: { ms: 10, count: 4, target: 'old', level: 2, buffered: false, window: 0, stunned: ['old'] } };
+  p.ultLevel = 2; p.ultWindow = 300; p.fDashMs = 200; p.hiddenMs = 200; p.fireMs = 100;
+  nextStage(w); step(w, {}, 901);
+  check('A1.8 переход очищает действия Рамиля', !p.ramil && !p.ultLevel && !p.ultWindow && !p.fDashMs && !p.hiddenMs && !p.fireMs);
+  check('A1.8 переход сохраняет заряды и кулдаун', p.ult === 63 && p.charge2 === 42 && p.bCooldownMs === 1900);
+  const x = p.x, y = p.y; step(w, {});
+  check('A1.8 старые координаты не срабатывают на следующем тике', p.x === x && p.y === y);
+}
+for (const defense of ['none', 'invuln', 'ultimate', 'god'] as const) {
+  const { w, p, e } = bossSetup(); forceBossAttack(e, 'vstayu'); e.phaseMs = 1;
+  p.x = e.x + 40; const x = p.x;
+  if (defense === 'invuln') p.invulnMs = 500;
+  if (defense === 'ultimate') { p.form = 'ultimate'; p.formMs = 1000; }
+  if (defense === 'god') p.god = true;
+  step(w, {});
+  check(`A1.10 кольцо: ${defense}`, p.x === x + (defense === 'none' ? 90 : 0) && p.hp === (defense === 'none' || defense === 'ultimate' ? 138 : 150));
+}
+// Восстановление предупреждений использует зафиксированные фигуры и остаток времени.
+for (const atk of ['vstayu', 'chorus', 'crossStage', 'pyro', 'salute']) {
+  const { w, e } = bossSetup(); forceBossAttack(e, atk); e.phaseMs = 321;
+  e.bands = [{ y: 190, h: 16 }, { y: 240, h: 16 }]; e.zonePoints = [{ x: 810, y: 200 }, { x: 880, y: 230 }];
+  const before = JSON.stringify(w), events = bossWarningEvents(w);
+  const expected = atk === 'vstayu' ? 1 : 2;
+  check(`A1.5 восстановление ${atk} без изменения мира`, JSON.stringify(w) === before && events.length === expected && events.every(e => e.t === 'tele' && e.ms === 321));
+  if (atk === 'salute') check('A1.5 салют сохраняет задержку второй точки', events[1].t === 'tele' && events[1].shape !== undefined && events[1].delayMs === 120);
+}
+{
+  const { w, e } = bossSetup(); forceBossAttack(e, 'chorus'); e.phase = 'active'; e.phaseMs = 123;
+  e.bands = [{ y: 200, h: 16 }];
+  const ev = bossWarningEvents(w);
+  check('A1.5 действующая полоса восстанавливается с остатком', ev.length === 1 && ev[0].t === 'bossFx' && ev[0].ms === 123 && ev[0].h === 16);
+  e.hp = 0; check('A1.5 мёртвый босс не восстанавливает предупреждения', bossWarningEvents(w).length === 0);
 }
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');

@@ -39,7 +39,7 @@ export class GameScene extends Phaser.Scene {
   session!: GameSession;
   private bossShow?: BossShow;
   private impact!: Impact;
-  private attackBands: { x: number; y: number; h: number; until: number; grid: boolean }[] = [];
+  private attackBands: { id: string; x: number; y: number; h: number; until: number; grid: boolean }[] = [];
   private stageView?: StageView;
   private locationKey = '';
   private worldWidth = 1920;
@@ -211,7 +211,8 @@ export class GameScene extends Phaser.Scene {
           shake(this.cameras.main,180,0.007);
         }
         else if (e.h) {
-          this.attackBands.push({x:e.x,y:e.y,h:e.h,until:this.time.now+e.ms,grid:e.attack==='grid'});
+          this.attackBands = this.attackBands.filter(b => b.id !== e.id || b.y !== e.y || b.h !== e.h);
+          this.attackBands.push({id:e.id,x:e.x,y:e.y,h:e.h,until:this.time.now+e.ms,grid:e.attack==='grid'});
           if(e.attack==='chorus') this.bossWord(e.x+160,e.y-80,'Я РУССКИЙ!');
         }
       }
@@ -288,7 +289,10 @@ export class GameScene extends Phaser.Scene {
         try { this.game.renderer.snapshot(saveKrisFrame); } catch { /* снимок необязателен */ }
       }
       if (e.t === 'victory' && this.session.snapshots.at(-1)?.level === 'old') void showFinale(() => this.replay());
-      if (e.t === 'tele' && e.shape !== undefined) this.telegraphs.push({ ev: e, until: this.time.now + e.ms + (e.delayMs ?? 0) });
+      if (e.t === 'tele' && e.shape !== undefined) {
+        this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id || t.ev.shape !== e.shape || t.ev.x !== e.x || t.ev.y !== e.y);
+        this.telegraphs.push({ ev: e, until: this.time.now + e.ms + (e.delayMs ?? 0) });
+      }
       if (e.t === 'phase') { this.phaseUntil = this.time.now + 1000; this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id); }
       if (e.t === 'bossDown') this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id);
       if (e.t === 'restart' || e.t === 'stage') { this.telegraphs = []; this.attackBands = []; this.bossShow?.destroy(); this.bossShow = undefined; }
@@ -823,7 +827,7 @@ export class GameScene extends Phaser.Scene {
       if (me && !sameStage) this.follow(me.x);
       if (!first && !sameStage) this.cameras.main.fadeIn(350);
     }
-    const pace = latestStage.storyScene || latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
+    const pace = this.session.isPaused() || latestStage.storyScene || latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
     if (b.level === 'route' && b.stage === 4) {
       this.bossShow ??= new BossShow(this, b);
       this.bossShow.update(latestStage, delta * pace);

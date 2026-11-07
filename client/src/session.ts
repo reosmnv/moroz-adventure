@@ -97,15 +97,15 @@ export class LocalSession implements GameSession {
 
   private tick() {
     if (document.hidden) return; // офлайн-пауза в фоне и по кнопке
-    if (this.world.players[this.me] && startStoryForWorld(this.story, this.world)) this.resetControls();
+    if (!this.paused && this.world.players[this.me] && startStoryForWorld(this.story, this.world)) this.resetControls();
     const wasStory = !!this.story.scene;
-    if (wasStory) {
+    if (wasStory && !this.paused) {
       const key = `${this.story.scene}:${this.story.index}`;
       tickStory(this.story, this.world, TICK_MS);
       if (key !== `${this.story.scene}:${this.story.index}`) this.resetControls();
     }
     const evs = wasStory || this.intro || this.paused || !!this.story.scene ? [] : step(this.world, { [this.me]: this.input });
-    if (this.world.players[this.me] && startStoryForWorld(this.story, this.world)) this.resetControls();
+    if (!this.paused && this.world.players[this.me] && startStoryForWorld(this.story, this.world)) this.resetControls();
     this.input.attack = this.input.heavy = this.input.taunt = this.input.ult = this.input.skip = false;
     if (this.world.players[this.me]?.char !== 'ramil') this.input.ult2 = false;
     const players = new Map<string, EntitySnap>();
@@ -136,7 +136,7 @@ export class LocalSession implements GameSession {
     if (this.story.scene || !switchHero(this.world, this.me, char)) this.onPickError('Персонаж занят');
   }
   pick(char: string) { addPlayer(this.world, this.me, char); if (this.world.level === 'route' && this.world.stage === 0) { startStory(this.story, 'start', this.world); this.resetControls(); } }
-  advanceStory(key: string) { if (advanceStory(this.story, key, this.world)) this.resetControls(); }
+  advanceStory(key: string) { if (!this.paused && !document.hidden && advanceStory(this.story, key, this.world)) this.resetControls(); }
   setPaused(on: boolean) { this.resetControls(); this.paused = on; }
   isPaused() { return this.paused; }
   pausedByMe() { return true; }
@@ -178,7 +178,13 @@ export class OnlineSession implements GameSession {
   roomId = '';
   status = 'подключение…';
   snapshots: Snapshot[] = [];
-  onEvents: (evs: SimEvent[]) => void = () => {};
+  private eventHandler: (evs: SimEvent[]) => void = () => {};
+  get onEvents() { return this.eventHandler; }
+  set onEvents(handler: (evs: SimEvent[]) => void) {
+    this.eventHandler = handler;
+    // Загрузка спрайтов могла закончиться позже первого сообщения комнаты.
+    this.safeSend('warnings', true);
+  }
   onPickError: (msg: string) => void = () => {};
   private room!: Room;
   private client: Client;
@@ -238,8 +244,15 @@ export class OnlineSession implements GameSession {
       state.enemies.forEach((e: any, id: string) => enemies.set(id, { meteorX: e.meteorX, meteorY: e.meteorY, meteorMs: e.meteorMs, ultStopMs: e.ultStopMs, carryBy: e.carryBy, thrown: e.thrown, carried: e.carried, carryAngle: e.carryAngle, carryHeight: e.carryHeight, burnMs: e.burnMs, markedBy: e.markedBy, enterMs: e.enterMs, boss: e.boss, bossPhase: e.bossPhase, atk: e.atk, kind: e.kind, phase: e.phase, x: e.x, y: e.y, hp: e.hp, maxHp: e.maxHp, dummy: e.dummy, air: e.air, height: e.height, frozen: e.frozen, slow: e.slow, stun: e.stun, charm: e.charm, facing: e.facing, anim: e.anim }));
       pushSnap(this.snapshots, { actors: new Map(Array.from(state.actors, ([id, a]: [string, any]) => [id, { id: a.id, look: a.look, x: a.x, y: a.y, tx: a.tx, ty: a.ty, facing: a.facing, anim: a.anim, speed: a.speed, keep: a.keep }])), pendingStoryX: state.pendingStoryX < 0 ? undefined : state.pendingStoryX, storyCamX: state.hasStoryCam ? state.storyCamX : undefined, recording: state.recording, finaleReady: state.finaleReady, wantedStars: state.wantedStars, wantedReward: state.wantedReward, storyScene: state.storyScene, storyIndex: state.storyIndex, storyHost: state.storyHost, storyTime: state.storyTime, storyPushes: JSON.parse(state.storyPushes || '[]'), pausedBy: state.pausedBy, pauseMs: state.pauseMs, slowmoMs: state.slowmoMs, halt: state.halt, cineId: state.cineId, cineKind: state.cineKind, cineMs: state.cineMs, shots: Array.from(state.shots, (s: any) => ({ x: s.x, y: s.y, dir: s.dir })), zones: Array.from(state.zones, (z: any) => ({ x: z.x, y: z.y, r: z.r, ms: z.ms })), t: performance.now(), players, enemies, lockX0: state.lockX0, lockX1: state.lockX1, encDone: state.encDone, encTotal: state.encTotal, won: state.won, level: state.level, stage: state.stage, trans: state.trans, wave: state.wave, tick: state.tick });
       if (this.testMode && this.intro && players.has(this.me)) this.finishIntro();
+      const storyKey = state.storyScene ? `${state.storyScene}:${state.storyIndex}` : '';
+      const controlsChanged = this.paused !== state.paused || this.storyKey !== storyKey || this.intro !== this.controlsIntro;
       this.paused = state.paused;
       this.pausedBy = state.pausedBy;
+      this.storyKey = storyKey; this.controlsIntro = this.intro;
+      if (controlsChanged) {
+        this.lastMove = '';
+        if (!this.paused && !this.storyKey && !this.intro) this.move(...this.heldMove);
+      }
       this.saveToken();
     });
     room.onMessage('ev', (evs: SimEvent[]) => this.onEvents(evs));
@@ -282,7 +295,12 @@ export class OnlineSession implements GameSession {
   }
 
   private lastMove = '';
+  private storyKey = '';
+  private controlsIntro = false;
+  private heldMove: [number, number, boolean] = [0, 0, false];
   move(mx: number, my: number, run: boolean) {
+    this.heldMove = [mx, my, run];
+    if (this.paused || this.storyKey || this.intro) return;
     const key = mx.toFixed(1) + ',' + my.toFixed(1) + (run ? 'r' : '');
     if (key === this.lastMove) return;
     if (!this.room?.connection?.isOpen) return;
@@ -306,6 +324,7 @@ export class OnlineSession implements GameSession {
     this.safeSend('fire', next);
   }
   resetControls() {
+    this.heldMove = [0, 0, false];
     this.fireHeld = false;
     this.lastMove = this.lastView = '';
     this.safeSend('clear', true);

@@ -54,7 +54,7 @@ export function wantedStatus(world: { level: string; stage: number; enc: { clear
   return { stars, reward };
 }
 
-type StoryWorld = { level: string; stage: number; won: boolean; enc: { cleared: number }; enemies: Record<string, { boss?: string; hp: number }>; players: Record<string, { x: number; hp: number }>; storyStrict?: boolean };
+type StoryWorld = { level: string; stage: number; won: boolean; enc: { cleared: number }; enemies: Record<string, { boss?: string; hp: number }>; players: Record<string, { x: number; hp: number; connected: boolean; away: boolean }>; storyStrict?: boolean };
 export function pendingStory(story: StoryProgress, world: StoryWorld) {
   if (world.level !== 'route' || story.scene) return undefined;
   const triggers = [`stage:${world.stage}`, ...Array.from({ length: world.enc.cleared + 1 }, (_, n) => `clear:${world.stage}:${n}`)];
@@ -93,9 +93,10 @@ function prepareScene(world: World, scene: NonNullable<ReturnType<typeof storySc
 export function startStoryForWorld(story: StoryProgress, world: StoryWorld): boolean {
   const scene = pendingStory(story, world);
   if (!scene) return false;
+  const alive = Object.values(world.players).filter(p => p.hp > 0 && p.connected && !p.away);
+  if (!alive.length) return false;
   const full = 'pending' in world ? world as World : undefined;
   if (full) prepareScene(full, scene);
-  const alive = Object.values(world.players).filter(p => p.hp > 0);
   const boss = scene.trigger.startsWith('boss:') ? Object.values(world.enemies).find(e => e.boss === scene.trigger.slice(5) && e.hp > 0) : undefined;
   const x = scene.x ?? (boss && 'x' in boss ? Number(boss.x) : undefined);
   const fight = SCENE_FIGHTS[scene.id];

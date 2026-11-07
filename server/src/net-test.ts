@@ -18,6 +18,14 @@ async function testStoryFlow() {
   a.send('pick', 'anastasia'); await sleep(350);
   const first = a.state as any;
   check('TZ21 титры стартуют без команды', first.storyScene === 'prologue' && first.storyIndex === 0);
+  a.send('pause', true); await sleep(200);
+  await sleep(2600);
+  check('A1.6 пауза останавливает титр', first.paused && first.storyIndex === 0);
+  a.send('pause', false); a.send('away', true); await sleep(200);
+  await sleep(2600);
+  check('A1.6 без активных сюжет не тикает', first.storyIndex === 0 && first.storyHost === '');
+  a.send('away', false); await sleep(150);
+  check('A1.1 вернувшийся берёт свободное ведение', first.storyHost === a.sessionId);
   a.send('storyNext', 'prologue:0'); await sleep(100);
   check('TZ21 тап не пропускает титр', first.storyIndex === 0);
   await sleep(Math.max(2200, 55 * STORY_CONTENT['title.1'].length) + Math.max(2200, 55 * STORY_CONTENT['title.2'].length));
@@ -28,7 +36,19 @@ async function testStoryFlow() {
   b.send('pick', 'nadezhda'); await sleep(300);
   b.send('storyNext', `prologue:${indices[0]}`); await sleep(150);
   check('V3 гость не продолжает за ведущего', (a.state as any).storyIndex === indices[0]);
-  a.send('storyNext', `prologue:${indices[0]}`); a.send('storyNext', `prologue:${indices[0]}`); await sleep(250);
+  a.send('pause', true); await sleep(150);
+  a.send('storyNext', `prologue:${indices[0]}`); await sleep(150);
+  check('A1.6 ведущий не продвигает реплику на паузе', first.storyIndex === indices[0]);
+  a.send('pause', false); a.send('away', true); await sleep(200);
+  check('A1.1 away передаёт ведение активному гостю', first.storyHost === b.sessionId);
+  a.send('storyNext', `prologue:${indices[0]}`); await sleep(150);
+  check('A1.1 away-ведущий не продвигает реплику', first.storyIndex === indices[0]);
+  b.send('storyNext', `prologue:${indices[0]}`); b.send('storyNext', `prologue:${indices[0]}`); await sleep(250);
+  check('A1.1 второй продвигает реплику после away ведущего', first.storyIndex === indices[1]);
+  a.send('away', false); await sleep(150);
+  check('A1.1 возврат не отбирает ведение у активного', first.storyHost === b.sessionId);
+  b.send('away', true); await sleep(150); b.send('away', false); await sleep(150);
+  check('A1.1 неактивный ведущий уступает вернувшемуся', first.storyHost === a.sessionId);
   check('V3 повторный пакет не перескакивает шаг', (b.state as any).storyIndex === indices[1]);
   const token = a.reconnectionToken;
   a.connection.close(4999, 'story host drop'); await sleep(550);
@@ -42,6 +62,52 @@ async function testStoryFlow() {
   a2.send('storyNext', `prologue:${indices[2]}`); await sleep(200);
   check('V3 продолжение после смены ведущего', (a2.state as any).storyIndex === indices[3]);
   await a2.leave(true);
+}
+
+// Держим замах общей паузой, чтобы время подключения не делало тест случайным.
+async function testWarningReconnect() {
+  const a = await new Client(URL).create('game', { level: 'route', stage: 4, testMode: true });
+  a.reconnection.enabled = false;
+  let warning = false;
+  a.onMessage('ev', (events: any[]) => {
+    if (!warning && events.some(e => e.t === 'tele' && e.shape && e.attack === 'vstayu')) {
+      warning = true; a.send('pause', true);
+    }
+  });
+  a.send('pick', 'anastasia'); await sleep(150);
+  const b = await new Client(URL).joinById(a.roomId);
+  b.reconnection.enabled = false; b.onMessage('ev', () => {});
+  b.send('pick', 'nadezhda'); await sleep(150);
+  a.send('testScene', { id: 'shaman', strict: false }); await sleep(200);
+  a.send('god', true); b.send('god', true);
+  for (let n = 0; n < 300 && !warning; n++) {
+    const state = a.state as any;
+    if (state.storyScene) a.send('storyNext', `${state.storyScene}:${state.storyIndex}`);
+    await sleep(100);
+  }
+  check('A1.5 дождались замаха Шамана', warning);
+  let b2: Room | undefined, c: Room | undefined;
+  try {
+    if (!warning) return;
+    await sleep(150);
+    const token = b.reconnectionToken;
+    b.connection.close(4999, 'warning reconnect'); await sleep(250);
+    b2 = await new Client(URL).reconnect(token); b2.reconnection.enabled = false;
+    let restored: any[] = [];
+    b2.onMessage('ev', (events: any[]) => { restored.push(...events); });
+    await sleep(200);
+    check('A1.5 reconnect получил tele с остатком времени', restored.some(e => e.t === 'tele' && e.attack === 'vstayu' && e.shape === 'ring' && e.ms > 0 && e.ms <= 900));
+    c = await new Client(URL).joinById(a.roomId); c.reconnection.enabled = false;
+    restored = [];
+    c.onMessage('ev', (events: any[]) => { restored.push(...events); }); await sleep(200);
+    check('A1.5 новый вход получил действующий tele', restored.some(e => e.t === 'tele' && e.attack === 'vstayu' && e.shape === 'ring' && e.ms > 0));
+    restored = []; c.send('warnings', true); await sleep(150);
+    check('A1.5 готовая сцена может повторно запросить tele', restored.some(e => e.t === 'tele' && e.attack === 'vstayu' && e.shape === 'ring' && e.ms > 0));
+  } finally {
+    if (c) await c.leave(true);
+    if (b2) await b2.leave(true); else if (b.connection.isOpen) await b.leave(true);
+    await a.leave(true);
+  }
 }
 
 async function testNormalMode() {
@@ -107,6 +173,7 @@ async function testStageAndTools() {
 
 async function main() {
   await testStoryFlow();
+  await testWarningReconnect();
   await testNormalMode();
   await testStageAndTools();
   // 1. Хост создаёт комнату и выбирает персонажа

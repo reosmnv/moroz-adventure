@@ -2,7 +2,7 @@ import { Room, type Client } from 'colyseus';
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
   encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars, switchHero, testHeal, testGod, testSummon, testKillAll,
-  type Input, type World,
+  type Input, type World, bossWarningEvents,
   tickStory, advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus, pendingStory, testStoryScene, testStoryStrict,
 } from '@bc/shared';
 
@@ -102,6 +102,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     this.world = createWorld(Date.now() & 0xffff, testMode, level, stage);
     this.state.intro = false;
     this.sync();
+    this.onMessage('warnings', (client: Client) => this.sendWarnings(client));
     this.onMessage('next', (client: Client) => {
       if (this.world.testTools && this.world.players[client.sessionId]) nextStage(this.world);
     });
@@ -115,7 +116,7 @@ export class GameRoom extends Room<{ state: GameState }> {
         return;
       }
       const p = addPlayer(this.world, client.sessionId, char);
-      if (!this.storyHost || !this.world.players[this.storyHost]) this.storyHost = client.sessionId;
+      this.updateStoryHost();
       if (level === 'route' && stage === 0 && startStory(this.story, 'start', this.world)) this.clearInputs();
       if (this.state.intro && !this.introReady.has(client.sessionId)) { this.introReaders.add(client.sessionId); p.away = true; }
       this.playerInputs[client.sessionId] = emptyInput();
@@ -161,7 +162,8 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (this.playerInputs[client.sessionId]) this.playerInputs[client.sessionId] = emptyInput();
     });
     this.onMessage('storyNext', (client: Client, key: string) => {
-      if (client.sessionId !== this.storyHost || !this.world.players[client.sessionId]?.connected) return;
+      const p = this.world.players[client.sessionId];
+      if (this.state.paused || client.sessionId !== this.storyHost || !p?.connected || p.away) return;
       if (advanceStory(this.story, key, this.world)) { this.clearInputs(); this.sync(); }
     });
 
@@ -203,6 +205,7 @@ export class GameRoom extends Room<{ state: GameState }> {
       const p = this.world.players[client.sessionId];
       if (p) { p.away = false; this.playerInputs[client.sessionId] = emptyInput(); }
       if (client.sessionId === this.state.introHost) this.state.intro = false;
+      this.updateStoryHost();
     });
 
     // Пауза общая на комнату: поставить и снять может любой из двоих
@@ -218,6 +221,7 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (typeof on !== 'boolean') return;
       const p = this.world.players[client.sessionId];
       if (p) { p.away = on || this.introReaders.has(client.sessionId); this.playerInputs[client.sessionId] = emptyInput(); }
+      this.updateStoryHost();
     });
 
     this.setPatchRate(TICK_MS); // состояние уходит клиентам каждый тик, а не раз в 50 мс
@@ -235,7 +239,21 @@ export class GameRoom extends Room<{ state: GameState }> {
 
   private clearInputs() { for (const id of Object.keys(this.playerInputs)) this.playerInputs[id] = emptyInput(); }
 
+  private updateStoryHost() {
+    const active = (id: string) => this.world.players[id]?.connected && !this.world.players[id].away;
+    if (!active(this.storyHost)) this.storyHost = this.clients.find(c => active(c.sessionId))?.sessionId ?? '';
+  }
+
+  private sendWarnings(client: Client) {
+    const events = bossWarningEvents(this.world);
+    if (events.length) client.send('ev', events);
+  }
+
   tick() {
+    this.updateStoryHost();
+    if (this.state.paused || this.state.intro || !Object.values(this.world.players).some(p => p.connected && !p.away)) {
+      this.sync(); this.flushEvents(); return;
+    }
     if (Object.keys(this.world.players).length && startStoryForWorld(this.story, this.world)) this.clearInputs();
     if (this.story.scene) {
       const key = `${this.story.scene}:${this.story.index}`;
@@ -243,7 +261,6 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (key !== `${this.story.scene}:${this.story.index}`) this.clearInputs();
       this.sync(); this.flushEvents(); return;
     }
-    if (this.state.paused || this.state.intro) { this.sync(); this.flushEvents(); return; }
     const events = step(this.world, this.playerInputs);
     if (Object.keys(this.world.players).length && startStoryForWorld(this.story, this.world)) this.clearInputs();
     for (const [id, inp] of Object.entries(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.skip = false; if (this.world.players[id]?.char !== 'ramil') inp.ult2 = false; }
@@ -302,7 +319,7 @@ export class GameRoom extends Room<{ state: GameState }> {
 
   onJoin(client: Client) {
     if (!this.state.introHost) this.state.introHost = client.sessionId;
-    if (!this.storyHost) this.storyHost = client.sessionId;
+    this.sendWarnings(client);
     console.log(`[${this.roomId}] join ${client.sessionId}`);
   }
 
@@ -311,7 +328,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     this.unpause(client.sessionId);
     const p = this.world.players[client.sessionId];
     if (p) { p.connected = false; this.playerInputs[client.sessionId] = emptyInput(); }
-    if (this.storyHost === client.sessionId) this.storyHost = this.clients.find(c => c.sessionId !== client.sessionId && this.world.players[c.sessionId]?.connected)?.sessionId ?? '';
+    this.updateStoryHost();
     console.log(`[${this.roomId}] drop ${client.sessionId}`);
     this.allowReconnection(client, RECONNECT_SECONDS);
   }
@@ -319,7 +336,8 @@ export class GameRoom extends Room<{ state: GameState }> {
   onReconnect(client: Client) {
     const p = this.world.players[client.sessionId];
     if (p) { p.connected = true; p.away = this.introReaders.has(client.sessionId); this.playerInputs[client.sessionId] = emptyInput(); }
-    if (!this.storyHost) this.storyHost = client.sessionId;
+    this.updateStoryHost();
+    this.sendWarnings(client);
     console.log(`[${this.roomId}] reconnect ${client.sessionId}`);
   }
 
@@ -331,7 +349,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     }
     this.introReaders.delete(client.sessionId); this.introReady.delete(client.sessionId);
     removePlayer(this.world, client.sessionId);
-    if (this.storyHost === client.sessionId) this.storyHost = this.clients.find(c => c.sessionId !== client.sessionId && this.world.players[c.sessionId]?.connected)?.sessionId ?? '';
+    this.updateStoryHost();
     delete this.playerInputs[client.sessionId];
     console.log(`[${this.roomId}] leave ${client.sessionId}`);
   }

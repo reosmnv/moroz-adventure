@@ -78,6 +78,21 @@ check('павший герой не задерживает сцену', startSto
 gate.scene = ''; gateWorld.players.b.hp = 150;
 testStoryStrict(gateWorld, false);
 check('тестовый выключатель снимает проверку x', startStoryForWorld(gate, gateWorld));
+
+for (const absent of ['disconnected', 'away', 'active'] as const) {
+  const w = createWorld(23, false, 'route'), story = createStoryProgress(); story.completed.push('prologue');
+  const a = addPlayer(w, 'a', 'anastasia'), b = addPlayer(w, 'b', 'ramil');
+  a.x = 480; b.x = 10; b.connected = absent !== 'disconnected'; b.away = absent === 'away';
+  check(`A1.2 отстающий ${absent}`, startStoryForWorld(story, w) === (absent !== 'active'));
+}
+for (const strict of [false, true]) {
+  const w = createWorld(23, false, 'route'), story = createStoryProgress(); story.completed.push('prologue');
+  const p = addPlayer(w, 'a', 'anastasia'); p.x = 480; p.away = true; w.storyStrict = strict;
+  check(`A1.2 без активных живых нет старта, strict=${strict}`, !startStoryForWorld(story, w));
+  p.away = false; p.hp = 0;
+  check(`A1.2 все пали: нет старта, strict=${strict}`, !startStoryForWorld(story, w));
+}
+
 const protectedWorld = createWorld(42, false);
 check('тестовые сцены запрещены вне testMode', !testStoryScene(createStoryProgress(), protectedWorld, 'arch', false));
 check('портреты всех сюжетных героев', ['portrait-prime.png', 'nadya/portrait.png', 'kris/portrait.png', 'ramil/portrait.png'].every(file => existsSync(publicDir + 'ui/' + file)));
@@ -114,7 +129,7 @@ function finish(progress: ReturnType<typeof createStoryProgress>) {
 finish(story);
 check('пройденная сцена не повторяется', !startStory(story, 'start'));
 check('запись доступна без выбранной Kris', story.flags.recording === 'on');
-const world = { level: 'route', stage: 0, won: false, enc: { cleared: 0 }, enemies: {}, players: { a: { x: 4000, hp: 150 } } };
+const world = { level: 'route', stage: 0, won: false, enc: { cleared: 0 }, enemies: {}, players: { a: { x: 4000, hp: 150, connected: true, away: false } } };
 check('следующая сцена запускается по маршруту', startStoryForWorld(story, world) && story.scene === 'street_vat');
 const status = wantedStatus({ ...world, stage: 2, enc: { cleared: 1 } }, story);
 check('150 тысяч и три звезды в вестибюле', status.stars === 3 && status.reward === 150000);
@@ -127,7 +142,7 @@ check('розыск снят после Милонова', wantedStatus({ ...wor
 
 // Местный МФЦ должен предшествовать Сити, а Милонов ждать конца второй арены.
 const route = createStoryProgress();
-const routeWorld = { level: 'route', stage: 4, won: false, enc: { cleared: 0 }, enemies: {} as Record<string, { boss?: string; hp: number }>, players: { a: { x: 4000, hp: 150 } } };
+const routeWorld = { level: 'route', stage: 4, won: false, enc: { cleared: 0 }, enemies: {} as Record<string, { boss?: string; hp: number }>, players: { a: { x: 4000, hp: 150, connected: true, away: false } } };
 const finishScene = () => finish(route);
 check('сцена Маяковской начинается при входе', startStoryForWorld(route, routeWorld) && route.scene === 'mayak');
 finishScene();
