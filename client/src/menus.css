@@ -125,3 +125,16 @@ button[aria-pressed="true"], button.selected { outline: 2px solid var(--gold); c
 
 #storySceneSelect, #testPanel label { grid-column: 1 / -1; min-width: 0; font: inherit; font-size: 10px; }
 #storySceneSelect { width: 100%; padding: 6px; }
+/* Настройки и каталог прокручиваются на небольшом горизонтальном экране. */
+#settingsBox, #soundTest { overflow-y: auto; justify-content: flex-start; }
+#settingsRows { gap: 4px; }
+.setting { min-height: 44px; height: 44px; }
+.setting input[type="range"] { flex: 0 0 auto; width: 200px; margin-left: auto; accent-color: var(--gold); }
+.setting output { margin-left: 12px; }
+.setting output { width: 3ch; text-align: right; }
+#soundTest { z-index: 16; background: var(--deep); }
+#soundTest input { min-height: 44px; font-size: 16px; }
+.sound-list { width: min(100%, 750px); }
+.sound-row { display: grid; grid-template-columns: minmax(0, 1fr) 54px 90px; gap: 8px; align-items: center; margin: 4px 0; text-align: left; }
+.sound-row span { font-size: 10px; overflow-wrap: anywhere; }
+.sound-row[hidden] { display: none; }

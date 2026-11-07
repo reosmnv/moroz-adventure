@@ -1,3 +1,4 @@
+import { play, playMusic } from './audio.ts';
 import { CHARACTERS, HERO_ID, NADYA_ID, KRIS_ID } from '@bc/shared';
 import { STORY_CONTENT, storyScene } from '@bc/shared';
 import type { Snapshot, GameSession } from './session.ts';
@@ -74,10 +75,11 @@ function button(parent: HTMLElement, label: string) {
 }
 export async function showFinale(replay: () => void = () => location.replace(location.pathname)) {
   if (finaleShowing) return; finaleShowing = true;
+  playMusic('music_finale');
   await wait(1500);
   const { root, card } = overlay(); root.style.opacity = '0'; root.style.transition = 'opacity 600ms';
   requestAnimationFrame(() => { root.style.opacity = '1'; }); await wait(600);
-  card.classList.add('final-page');
+  card.classList.add('final-page'); play('story_stamp'); play('story_confetti');
   const stamp = text(card, 'div', STORY.finale.restored); stamp.className = 'story-stamp';
   card.animate([{ translate: '-3px' }, { translate: '3px' }, { translate: '0' }], { duration: 220 });
   text(card, 'p', STORY.finale.status);
@@ -105,6 +107,7 @@ export function syncStoryView(session: GameSession) {
   const key = snap?.storyScene && session.hasMe() ? `${snap.storyScene}:${snap.storyIndex}` : '';
   const viewKey = key ? `${key}:${snap?.storyHost}` : '';
   if (viewKey === activeStoryKey) return;
+  if (activeStoryRoot?.dataset.soundCard === 'true') play('story_card_out');
   if (activeStoryRoot?.classList.contains('story-caption')) {
     const old = activeStoryRoot; old.style.opacity = '0'; window.setTimeout(() => old.remove(), 250);
   } else activeStoryRoot?.remove(); activeStoryRoot = undefined; revealStory = undefined; dialogue = undefined; comicPanel = undefined; activeStoryKey = viewKey;
@@ -113,6 +116,10 @@ export function syncStoryView(session: GameSession) {
   if (!step || step.kind === 'state' || step.kind === 'act') return;
   session.resetControls();
   const { root, card } = overlay(); activeStoryRoot = root;
+  play(({ line: 'story_line', caption: 'story_caption', phone: 'story_phone', card: 'story_card_in', composition: 'story_composition' } as const)[step.kind]);
+  if (step.kind === 'card') root.dataset.soundCard = 'true';
+  if (step.kind === 'phone' && step.ids.some(id => id.startsWith('push.') || id === 'intro.body')) play('story_push');
+  if (step.kind === 'phone' && step.ids.includes('kat.withdraw')) play('story_stamp');
   if (step.kind === 'caption') {
     root.classList.add('story-caption'); card.remove();
     root.style.cssText = 'background:transparent;pointer-events:none;opacity:0;transition:opacity 250ms;display:flex;flex-direction:row;align-items:flex-end;justify-content:center;padding:0 8% 6vh;box-sizing:border-box';
@@ -130,6 +137,7 @@ export function syncStoryView(session: GameSession) {
       hint: snap.storyHost === session.me ? '▶' : `ждём ${host}` };
     const timer = window.setInterval(() => {
       if (activeStoryKey !== viewKey) { clearInterval(timer); return; }
+      play('story_type');
       model.count = Math.min(model.value.length, model.count + 2);
       if (model.count === model.value.length) clearInterval(timer);
     }, TYPE_MS);
@@ -173,6 +181,7 @@ export function syncStoryView(session: GameSession) {
   let count = 0; let touched = false;
   const timer = window.setInterval(() => {
     if (activeStoryKey !== viewKey) { clearInterval(timer); return; }
+    play('story_type');
     count = Math.min(value.length, count + 2); body.textContent = value.slice(0, count);
     if (count === value.length) clearInterval(timer);
   }, TYPE_MS);

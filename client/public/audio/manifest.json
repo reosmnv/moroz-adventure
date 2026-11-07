@@ -1,0 +1,1875 @@
+{
+ "ui_click": {
+  "files": [
+   "ui/ui_click_01.mp3",
+   "ui/ui_click_02.mp3",
+   "ui/ui_click_03.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.7,
+  "gap": 50,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_confirm": {
+  "files": [
+   "ui/ui_confirm_01.mp3",
+   "ui/ui_confirm_02.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_back": {
+  "files": [
+   "ui/ui_back_01.mp3",
+   "ui/ui_back_02.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_start": {
+  "files": [
+   "ui/ui_start_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_pick_anastasia": {
+  "files": [
+   "ui/ui_pick_anastasia_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_pick_nadezhda": {
+  "files": [
+   "ui/ui_pick_nadezhda_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_pick_kris": {
+  "files": [
+   "ui/ui_pick_kris_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_pick_ramil": {
+  "files": [
+   "ui/ui_pick_ramil_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_error": {
+  "files": [
+   "ui/ui_error_01.mp3",
+   "ui/ui_error_02.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_toggle": {
+  "files": [
+   "ui/ui_toggle_01.mp3",
+   "ui/ui_toggle_02.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.6,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_pause": {
+  "files": [
+   "ui/ui_pause_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_resume": {
+  "files": [
+   "ui/ui_resume_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_room_created": {
+  "files": [
+   "ui/ui_room_created_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_player_join": {
+  "files": [
+   "ui/ui_player_join_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_player_leave": {
+  "files": [
+   "ui/ui_player_leave_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_connection_lost": {
+  "files": [
+   "ui/ui_connection_lost_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_reconnected": {
+  "files": [
+   "ui/ui_reconnected_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_ult_ready": {
+  "files": [
+   "ui/ui_ult_ready_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 500,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "ui_charge_step": {
+  "files": [
+   "ui/ui_charge_step_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_line": {
+  "files": [
+   "ui/story_line_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.5,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_type": {
+  "files": [
+   "ui/story_type_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.25,
+  "gap": 70,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_phone": {
+  "files": [
+   "ui/story_phone_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_push": {
+  "files": [
+   "ui/story_push_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_caption": {
+  "files": [
+   "ui/story_caption_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_card_in": {
+  "files": [
+   "ui/story_card_in_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_card_out": {
+  "files": [
+   "ui/story_card_out_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.6,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_composition": {
+  "files": [
+   "ui/story_composition_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_rec": {
+  "files": [
+   "ui/story_rec_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.6,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_stamp": {
+  "files": [
+   "ui/story_stamp_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "story_confetti": {
+  "files": [
+   "ui/story_confetti_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.9,
+  "gap": 300,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "milonov_enter": {
+  "files": [
+   "ui/milonov_enter_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "milonov_exit": {
+  "files": [
+   "ui/milonov_exit_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "enemy_enter_door": {
+  "files": [
+   "sfx/enemy_enter_door_01.mp3",
+   "sfx/enemy_enter_door_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 300,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "turnstile_reject": {
+  "files": [
+   "sfx/turnstile_reject_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "wagon_brake": {
+  "files": [
+   "sfx/wagon_brake_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "wagon_stop": {
+  "files": [
+   "sfx/wagon_stop_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "wagon_doors": {
+  "files": [
+   "sfx/wagon_doors_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "mayak_train": {
+  "files": [
+   "sfx/mayak_train_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.3,
+  "gap": 20000,
+  "loop": false,
+  "pitch": 0
+ },
+ "mfc_queue_ping": {
+  "files": [
+   "sfx/mfc_queue_ping_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.35,
+  "gap": 10000,
+  "loop": false,
+  "pitch": 0
+ },
+ "stage_exit": {
+  "files": [
+   "sfx/stage_exit_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "whoosh_light": {
+  "files": [
+   "sfx/whoosh_light_01.mp3",
+   "sfx/whoosh_light_02.mp3",
+   "sfx/whoosh_light_03.mp3",
+   "sfx/whoosh_light_04.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.55,
+  "gap": 35,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "whoosh_heavy": {
+  "files": [
+   "sfx/whoosh_heavy_01.mp3",
+   "sfx/whoosh_heavy_02.mp3",
+   "sfx/whoosh_heavy_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 60,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "impact_light": {
+  "files": [
+   "sfx/impact_light_01.mp3",
+   "sfx/impact_light_02.mp3",
+   "sfx/impact_light_03.mp3",
+   "sfx/impact_light_04.mp3",
+   "sfx/impact_light_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 30,
+  "loop": false,
+  "pitch": 0.04,
+  "max": 4
+ },
+ "impact_heavy": {
+  "files": [
+   "sfx/impact_heavy_01.mp3",
+   "sfx/impact_heavy_02.mp3",
+   "sfx/impact_heavy_03.mp3",
+   "sfx/impact_heavy_04.mp3",
+   "sfx/impact_heavy_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04,
+  "max": 3
+ },
+ "impact_finisher": {
+  "files": [
+   "sfx/impact_finisher_01.mp3",
+   "sfx/impact_finisher_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 80,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "impact_air": {
+  "files": [
+   "sfx/impact_air_01.mp3",
+   "sfx/impact_air_02.mp3",
+   "sfx/impact_air_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "body_launch": {
+  "files": [
+   "sfx/body_launch_01.mp3",
+   "sfx/body_launch_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "body_fall": {
+  "files": [
+   "sfx/body_fall_01.mp3",
+   "sfx/body_fall_02.mp3",
+   "sfx/body_fall_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.75,
+  "gap": 60,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "hero_hurt": {
+  "files": [
+   "sfx/hero_hurt_01.mp3",
+   "sfx/hero_hurt_02.mp3",
+   "sfx/hero_hurt_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 120,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "hero_down": {
+  "files": [
+   "sfx/hero_down_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "hero_getup": {
+  "files": [
+   "sfx/hero_getup_01.mp3",
+   "sfx/hero_getup_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "guard_block": {
+  "files": [
+   "sfx/guard_block_01.mp3",
+   "sfx/guard_block_02.mp3",
+   "sfx/guard_block_03.mp3",
+   "sfx/guard_block_04.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 60,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "freeze_apply": {
+  "files": [
+   "sfx/freeze_apply_01.mp3",
+   "sfx/freeze_apply_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "freeze_break": {
+  "files": [
+   "sfx/freeze_break_01.mp3",
+   "sfx/freeze_break_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "heal": {
+  "files": [
+   "sfx/heal_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "arena_lock": {
+  "files": [
+   "sfx/arena_lock_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "wave_start": {
+  "files": [
+   "sfx/wave_start_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "arena_clear": {
+  "files": [
+   "sfx/arena_clear_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "team_restart": {
+  "files": [
+   "sfx/team_restart_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "victory_boss": {
+  "files": [
+   "sfx/victory_boss_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "step_asphalt": {
+  "files": [
+   "sfx/step_asphalt_01.mp3",
+   "sfx/step_asphalt_02.mp3",
+   "sfx/step_asphalt_03.mp3",
+   "sfx/step_asphalt_04.mp3",
+   "sfx/step_asphalt_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.35,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.06
+ },
+ "step_tile": {
+  "files": [
+   "sfx/step_tile_01.mp3",
+   "sfx/step_tile_02.mp3",
+   "sfx/step_tile_03.mp3",
+   "sfx/step_tile_04.mp3",
+   "sfx/step_tile_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.35,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.06
+ },
+ "step_wagon": {
+  "files": [
+   "sfx/step_wagon_01.mp3",
+   "sfx/step_wagon_02.mp3",
+   "sfx/step_wagon_03.mp3",
+   "sfx/step_wagon_04.mp3",
+   "sfx/step_wagon_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.4,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.06
+ },
+ "nastya_dash": {
+  "files": [
+   "sfx/nastya_dash_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_highkick": {
+  "files": [
+   "sfx/nastya_highkick_01.mp3",
+   "sfx/nastya_highkick_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_teep": {
+  "files": [
+   "sfx/nastya_teep_01.mp3",
+   "sfx/nastya_teep_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_uppercut": {
+  "files": [
+   "sfx/nastya_uppercut_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_cross": {
+  "files": [
+   "sfx/nastya_cross_01.mp3",
+   "sfx/nastya_cross_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_slam": {
+  "files": [
+   "sfx/nastya_slam_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_transform": {
+  "files": [
+   "sfx/nastya_transform_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_knee": {
+  "files": [
+   "sfx/nastya_knee_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_elbow": {
+  "files": [
+   "sfx/nastya_elbow_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_hurricane": {
+  "files": [
+   "sfx/nastya_hurricane_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": true,
+  "pitch": 0
+ },
+ "nastya_storm_cast": {
+  "files": [
+   "sfx/nastya_storm_cast_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nastya_storm_loop": {
+  "files": [
+   "sfx/nastya_storm_loop_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.5,
+  "gap": 40,
+  "loop": true,
+  "pitch": 0
+ },
+ "nastya_storm_hit": {
+  "files": [
+   "sfx/nastya_storm_hit_01.mp3",
+   "sfx/nastya_storm_hit_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.5,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nadya_swing": {
+  "files": [
+   "sfx/nadya_swing_01.mp3",
+   "sfx/nadya_swing_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.55,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nadya_slap": {
+  "files": [
+   "sfx/nadya_slap_01.mp3",
+   "sfx/nadya_slap_02.mp3",
+   "sfx/nadya_slap_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nadya_stun": {
+  "files": [
+   "sfx/nadya_stun_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nadya_blade_draw": {
+  "files": [
+   "sfx/nadya_blade_draw_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nadya_dash": {
+  "files": [
+   "sfx/nadya_dash_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nadya_dash_hit": {
+  "files": [
+   "sfx/nadya_dash_hit_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nadya_kiss": {
+  "files": [
+   "sfx/nadya_kiss_01.mp3",
+   "sfx/nadya_kiss_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "nadya_charm": {
+  "files": [
+   "sfx/nadya_charm_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 120,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "kris_tripod_swing": {
+  "files": [
+   "sfx/kris_tripod_swing_01.mp3",
+   "sfx/kris_tripod_swing_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "kris_tripod_hit": {
+  "files": [
+   "sfx/kris_tripod_hit_01.mp3",
+   "sfx/kris_tripod_hit_02.mp3",
+   "sfx/kris_tripod_hit_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "kris_hop": {
+  "files": [
+   "sfx/kris_hop_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "kris_shutter": {
+  "files": [
+   "sfx/kris_shutter_01.mp3",
+   "sfx/kris_shutter_02.mp3",
+   "sfx/kris_shutter_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 60,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "kris_flash_hit": {
+  "files": [
+   "sfx/kris_flash_hit_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 60,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "kris_ball_throw": {
+  "files": [
+   "sfx/kris_ball_throw_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "kris_ball_boom": {
+  "files": [
+   "sfx/kris_ball_boom_01.mp3",
+   "sfx/kris_ball_boom_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "kris_aim": {
+  "files": [
+   "sfx/kris_aim_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "kris_beam": {
+  "files": [
+   "sfx/kris_beam_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_dash": {
+  "files": [
+   "sfx/ramil_dash_01.mp3",
+   "sfx/ramil_dash_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_kick": {
+  "files": [
+   "sfx/ramil_kick_01.mp3",
+   "sfx/ramil_kick_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_grab": {
+  "files": [
+   "sfx/ramil_grab_01.mp3",
+   "sfx/ramil_grab_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_spin": {
+  "files": [
+   "sfx/ramil_spin_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": true,
+  "pitch": 0
+ },
+ "ramil_spin_hit": {
+  "files": [
+   "sfx/ramil_spin_hit_01.mp3",
+   "sfx/ramil_spin_hit_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 90,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_meteor_up": {
+  "files": [
+   "sfx/ramil_meteor_up_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_meteor_land": {
+  "files": [
+   "sfx/ramil_meteor_land_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_roundhouse": {
+  "files": [
+   "sfx/ramil_roundhouse_01.mp3",
+   "sfx/ramil_roundhouse_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_fire": {
+  "files": [
+   "sfx/ramil_fire_01.mp3",
+   "sfx/ramil_fire_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_burn_tick": {
+  "files": [
+   "sfx/ramil_burn_tick_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.4,
+  "gap": 400,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_smoke": {
+  "files": [
+   "sfx/ramil_smoke_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 1500,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_flurry_start": {
+  "files": [
+   "sfx/ramil_flurry_start_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_flurry_hit": {
+  "files": [
+   "sfx/ramil_flurry_hit_01.mp3",
+   "sfx/ramil_flurry_hit_02.mp3",
+   "sfx/ramil_flurry_hit_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 70,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_flurry_roll": {
+  "files": [
+   "sfx/ramil_flurry_roll_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 350,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "ramil_flurry_finish": {
+  "files": [
+   "sfx/ramil_flurry_finish_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "omon_step": {
+  "files": [
+   "sfx/omon_step_01.mp3",
+   "sfx/omon_step_02.mp3",
+   "sfx/omon_step_03.mp3",
+   "sfx/omon_step_04.mp3",
+   "sfx/omon_step_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.3,
+  "gap": 250,
+  "loop": false,
+  "pitch": 0.05
+ },
+ "vatnik_step": {
+  "files": [
+   "sfx/vatnik_step_01.mp3",
+   "sfx/vatnik_step_02.mp3",
+   "sfx/vatnik_step_03.mp3",
+   "sfx/vatnik_step_04.mp3",
+   "sfx/vatnik_step_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.3,
+  "gap": 250,
+  "loop": false,
+  "pitch": 0.05
+ },
+ "zek_step": {
+  "files": [
+   "sfx/zek_step_01.mp3",
+   "sfx/zek_step_02.mp3",
+   "sfx/zek_step_03.mp3",
+   "sfx/zek_step_04.mp3",
+   "sfx/zek_step_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.25,
+  "gap": 250,
+  "loop": false,
+  "pitch": 0.05
+ },
+ "clerk_step": {
+  "files": [
+   "sfx/clerk_step_01.mp3",
+   "sfx/clerk_step_02.mp3",
+   "sfx/clerk_step_03.mp3",
+   "sfx/clerk_step_04.mp3",
+   "sfx/clerk_step_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.3,
+  "gap": 250,
+  "loop": false,
+  "pitch": 0.05
+ },
+ "info_step": {
+  "files": [
+   "sfx/info_step_01.mp3",
+   "sfx/info_step_02.mp3",
+   "sfx/info_step_03.mp3",
+   "sfx/info_step_04.mp3",
+   "sfx/info_step_05.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.25,
+  "gap": 250,
+  "loop": false,
+  "pitch": 0.05
+ },
+ "omon_windup": {
+  "files": [
+   "sfx/omon_windup_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.5,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "vatnik_windup": {
+  "files": [
+   "sfx/vatnik_windup_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.5,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "zek_windup": {
+  "files": [
+   "sfx/zek_windup_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.5,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "clerk_windup": {
+  "files": [
+   "sfx/clerk_windup_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "info_windup": {
+  "files": [
+   "sfx/info_windup_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.5,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "omon_strike": {
+  "files": [
+   "sfx/omon_strike_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 100,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shield_bash": {
+  "files": [
+   "sfx/shield_bash_01.mp3",
+   "sfx/shield_bash_02.mp3",
+   "sfx/shield_bash_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 100,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "vatnik_strike": {
+  "files": [
+   "sfx/vatnik_strike_01.mp3",
+   "sfx/vatnik_strike_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 100,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "zek_dash": {
+  "files": [
+   "sfx/zek_dash_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 100,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "clerk_strike": {
+  "files": [
+   "sfx/clerk_strike_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 100,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "info_m_dash": {
+  "files": [
+   "sfx/info_m_dash_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 100,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "info_f_strike": {
+  "files": [
+   "sfx/info_f_strike_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 100,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "enemy_hurt_light": {
+  "files": [
+   "sfx/enemy_hurt_light_01.mp3",
+   "sfx/enemy_hurt_light_02.mp3",
+   "sfx/enemy_hurt_light_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.5,
+  "gap": 60,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "enemy_hurt_heavy": {
+  "files": [
+   "sfx/enemy_hurt_heavy_01.mp3",
+   "sfx/enemy_hurt_heavy_02.mp3",
+   "sfx/enemy_hurt_heavy_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 60,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "enemy_intro_sting": {
+  "files": [
+   "ui/enemy_intro_sting_01.mp3"
+  ],
+  "bus": "ui",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.0
+ },
+ "boss_tele": {
+  "files": [
+   "sfx/boss_tele_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 200,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_intro": {
+  "files": [
+   "sfx/shaman_intro_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_mic_windup": {
+  "files": [
+   "sfx/shaman_mic_windup_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_mic_hit": {
+  "files": [
+   "sfx/shaman_mic_hit_01.mp3",
+   "sfx/shaman_mic_hit_02.mp3",
+   "sfx/shaman_mic_hit_03.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_vstayu_tele": {
+  "files": [
+   "sfx/shaman_vstayu_tele_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_vstayu": {
+  "files": [
+   "sfx/shaman_vstayu_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_chorus_tele": {
+  "files": [
+   "sfx/shaman_chorus_tele_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.6,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_chorus": {
+  "files": [
+   "sfx/shaman_chorus_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_pyro_tele": {
+  "files": [
+   "sfx/shaman_pyro_tele_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_pyro": {
+  "files": [
+   "sfx/shaman_pyro_01.mp3",
+   "sfx/shaman_pyro_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 120,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_salute": {
+  "files": [
+   "sfx/shaman_salute_01.mp3",
+   "sfx/shaman_salute_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 120,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_cross": {
+  "files": [
+   "sfx/shaman_cross_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_fans": {
+  "files": [
+   "sfx/shaman_fans_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_phase2": {
+  "files": [
+   "sfx/shaman_phase2_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "shaman_down": {
+  "files": [
+   "sfx/shaman_down_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_intro": {
+  "files": [
+   "sfx/pizdulina_intro_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_slap": {
+  "files": [
+   "sfx/pizdulina_slap_01.mp3",
+   "sfx/pizdulina_slap_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_ban_tele": {
+  "files": [
+   "sfx/pizdulina_ban_tele_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_ban": {
+  "files": [
+   "sfx/pizdulina_ban_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_shots": {
+  "files": [
+   "sfx/pizdulina_shots_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 100,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_grid_tele": {
+  "files": [
+   "sfx/pizdulina_grid_tele_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.7,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_grid": {
+  "files": [
+   "sfx/pizdulina_grid_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_zone": {
+  "files": [
+   "sfx/pizdulina_zone_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 150,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_cross": {
+  "files": [
+   "sfx/pizdulina_cross_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_omon": {
+  "files": [
+   "sfx/pizdulina_omon_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_phase2": {
+  "files": [
+   "sfx/pizdulina_phase2_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.9,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "pizdulina_down": {
+  "files": [
+   "sfx/pizdulina_down_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "katya_intro": {
+  "files": [
+   "sfx/katya_intro_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "katya_heavy": {
+  "files": [
+   "sfx/katya_heavy_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "katya_ground": {
+  "files": [
+   "sfx/katya_ground_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "katya_rush": {
+  "files": [
+   "sfx/katya_rush_01.mp3",
+   "sfx/katya_rush_02.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "katya_phase2": {
+  "files": [
+   "sfx/katya_phase2_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "katya_down": {
+  "files": [
+   "sfx/katya_down_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 1.0,
+  "gap": 40,
+  "loop": false,
+  "pitch": 0.04
+ },
+ "amb_street": {
+  "files": [
+   "amb/amb_street_01.mp3"
+  ],
+  "bus": "amb",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "amb_yard": {
+  "files": [
+   "amb/amb_yard_01.mp3"
+  ],
+  "bus": "amb",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "amb_vestibule": {
+  "files": [
+   "amb/amb_vestibule_01.mp3"
+  ],
+  "bus": "amb",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "amb_wagon": {
+  "files": [
+   "amb/amb_wagon_01.mp3"
+  ],
+  "bus": "amb",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "amb_mayak": {
+  "files": [
+   "amb/amb_mayak_01.mp3"
+  ],
+  "bus": "amb",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "amb_city": {
+  "files": [
+   "amb/amb_city_01.mp3"
+  ],
+  "bus": "amb",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "amb_mfc": {
+  "files": [
+   "amb/amb_mfc_01.mp3"
+  ],
+  "bus": "amb",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "music_menu": {
+  "files": [
+   "music/music_menu_01.mp3"
+  ],
+  "bus": "music",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "music_route1": {
+  "files": [
+   "music/music_route1_01.mp3"
+  ],
+  "bus": "music",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "music_route2": {
+  "files": [
+   "music/music_route2_01.mp3"
+  ],
+  "bus": "music",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "music_shaman": {
+  "files": [
+   "music/music_shaman_01.mp3"
+  ],
+  "bus": "music",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "music_pizdulina": {
+  "files": [
+   "music/music_pizdulina_01.mp3"
+  ],
+  "bus": "music",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "music_katya": {
+  "files": [
+   "music/music_katya_01.mp3"
+  ],
+  "bus": "music",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "music_finale": {
+  "files": [
+   "music/music_finale_01.mp3"
+  ],
+  "bus": "music",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "amb_vokzal": {
+  "files": [
+   "amb/amb_vokzal_01.mp3"
+  ],
+  "bus": "amb",
+  "vol": 1.0,
+  "gap": 0,
+  "loop": true,
+  "pitch": 0.0
+ },
+ "enemy_down_heavy": {
+  "files": [
+   "sfx/enemy_down_heavy_01.mp3"
+  ],
+  "bus": "sfx",
+  "vol": 0.8,
+  "gap": 80,
+  "loop": false,
+  "pitch": 0.04
+ }
+}

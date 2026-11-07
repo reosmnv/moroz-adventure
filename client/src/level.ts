@@ -1,3 +1,4 @@
+import { play } from './audio.ts';
 import * as Phaser from 'phaser';
 import { VIEW_H } from '@bc/shared';
 import { FONT } from './ui.ts';
@@ -38,6 +39,8 @@ export function buildLevel(scene: Phaser.Scene) {
 
 // Карточка уровня на старте: картинка дома и название, через 3 с уходит
 export function showCard(scene: Phaser.Scene) {
+  play('story_card_in');
+  scene.time.delayedCall(2600, () => play('story_card_out'));
   const w = scene.scale.width;
   const box = scene.add.container(0, 0).setScrollFactor(0).setDepth(5000);
   box.add(scene.add.rectangle(w / 2, VIEW_H / 2, w, VIEW_H, 0x120c19, 0.85));

@@ -2,7 +2,7 @@ import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, LEVELS, TEST_TOOLS, STORY_SCENE
 import { LocalSession, OnlineSession, clearReconnect, returnToMenu, savedReconnect, type GameSession } from './session.ts';
 import { GAME_TITLE, STORY, syncStoryView } from './story.ts';
 import type { startGame } from './scene.ts';
-import { audioState, unlockAudio } from './audio.ts';
+import { audioState, unlockAudio, play, playMusic, preloadBank, soundManifest, stopSound, setAudioPreview, setAudioMenu } from './audio.ts';
 import { settings, updateSettings } from './settings.ts';
 import { DEBUG } from './debug.ts';
 
@@ -26,6 +26,22 @@ let changingHero = false;
 let pendingHero = '';
 let pickerSignature = '';
 let settingsFromPause = false;
+
+// Один UI-звук на кнопку, специальные действия заменяют обычный щелчок.
+const BUTTON_SOUND: Record<string, string> = {
+  start: 'ui_confirm', openJoin: 'ui_confirm', joinBtn: 'ui_confirm', linkJoin: 'ui_confirm', continueBtn: 'ui_confirm', newOnline: 'ui_confirm', newLocal: 'ui_confirm',
+  pickBack: 'ui_back', settingsBack: 'ui_back', closeShareBtn: 'ui_back', exitNo: 'ui_back',
+  pauseBtn: '', resumeBtn: '', testOnline: 'ui_toggle', testLocal: 'ui_toggle',
+};
+document.addEventListener('click', event => {
+  const b = (event.target as Element)?.closest<HTMLButtonElement>('button');
+  if (!b || b.disabled) return;
+  const id = b.dataset.sound ?? BUTTON_SOUND[b.id] ?? (b.classList.contains('menuBack') ? 'ui_back' : 'ui_click');
+  if (id) play(id);
+}, true);
+playMusic('music_menu'); void preloadBank('ui');
+let lostSound = false;
+let soundPlayers: Set<string> | undefined;
 
 const showErr = (msg: string) => { visible('err', true); $('err').textContent += msg + '\n'; };
 window.addEventListener('error', e => showErr(String(e.message)));
@@ -70,7 +86,7 @@ $('newLocal').onclick = () => void begin(false);
 $('joinScreen').onsubmit = e => {
   e.preventDefault();
   const code = ($('codeInput') as HTMLInputElement).value.trim().toUpperCase();
-  if (!/^[A-Z0-9]{5}$/.test(code)) { $('menuNote').textContent = 'Код из 5 символов'; return; }
+  if (!/^[A-Z0-9]{5}$/.test(code)) { play('ui_error'); $('menuNote').textContent = 'Код из 5 символов'; return; }
   void begin(true, code);
 };
 function renderTest() {
@@ -106,15 +122,17 @@ async function begin(online: boolean, code?: string, stage = 0, testMode = false
     const { startGame } = await import('./scene.ts');
     session = online ? await OnlineSession.open(SERVER_URL, code, level, stage, testMode, resume) : new LocalSession(level, stage, testMode);
     ($('storyStrict') as HTMLInputElement).checked = true;
-    session.onPickError = message => { pendingHero = ''; $('pickNote').textContent = message; };
+    soundPlayers = undefined; lostSound = false;
+    session.onPickError = message => { play('ui_error'); pendingHero = ''; $('pickNote').textContent = message; };
     if (session.roomId) history.replaceState(null, '', location.pathname + '#' + session.roomId);
     else history.replaceState(null, '', location.pathname);
     visible('share', online);
     await Promise.race([document.fonts.load('12px "Press Start 2P"', 'АБВабвЁё09:').catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
     game = startGame('game', session);
-    visible('menu', false); visible('topbar', true);
-    if (online && !code && !resume) { createdOpen = true; openShare(true); }
+    visible('menu', false); visible('topbar', true); void preloadBank('game');
+    if (online && !code && !resume) { play('ui_room_created'); createdOpen = true; openShare(true); }
   } catch (e: unknown) {
+    play('ui_error'); playMusic('music_menu');
     const failedSession = session, failedGame = game;
     session = null; game = null;
     // Одна ошибка очистки не должна помешать освободить второй ресурс.
@@ -159,7 +177,7 @@ $('reconnectBtn').onclick = async () => {
   if (!session) return;
   const b = $('reconnectBtn') as HTMLButtonElement; b.disabled = true;
   $('lostNote').textContent = 'Переподключаюсь…';
-  try { await session.reconnect(); } finally { b.disabled = false; $('lostNote').textContent = session.connectionLost ? 'Не удалось вернуться в комнату' : ''; }
+  try { await session.reconnect(); if (session.connectionLost) play('ui_error'); } finally { b.disabled = false; $('lostNote').textContent = session.connectionLost ? 'Не удалось вернуться в комнату' : ''; }
 };
 
 function showPicker(change = false) {
@@ -168,9 +186,10 @@ function showPicker(change = false) {
   $('pickNote').textContent = ''; visible('picker', true);
   if (change) pausePanel = 'picker';
   closeTest();
+  setAudioMenu(true);
   renderPicker();
 }
-function hidePicker() { picking = false; visible('picker', false); pausePanel = ''; }
+function hidePicker() { setAudioMenu(false); picking = false; visible('picker', false); pausePanel = ''; }
 function renderPicker() {
   if (!session || !picking) return;
   const current = session.snapshots.at(-1)?.players.get(session.me)?.char;
@@ -185,6 +204,7 @@ function renderPicker() {
     const note = document.createElement('span'); note.textContent = c.id === current ? 'сейчас' : taken.includes(c.id) ? 'занят' : '';
     b.append(note); b.disabled = c.id === current || taken.includes(c.id);
     b.classList.toggle('current', c.id === current);
+    b.dataset.sound = 'ui_pick_' + c.id;
     b.onclick = () => { if (pendingHero) return; unlockAudio(); pendingHero = c.id; $('pickNote').textContent = ''; if (changingHero) session!.switchHero(c.id); else session!.pick(c.id); };
     $('chars').append(b);
   }
@@ -208,10 +228,18 @@ function renderSettings() {
   for (const row of rows) {
     const wrap = document.createElement('div'); wrap.className = 'setting';
     const label = document.createElement('span'); label.textContent = row.label;
-    const b = document.createElement('button'); b.className = 'secondary'; b.textContent = row.value; b.setAttribute('aria-label', `${row.label}: ${row.value}`);
+    const b = document.createElement('button'); b.className = 'secondary'; b.dataset.sound = 'ui_toggle'; b.textContent = row.value; b.setAttribute('aria-label', `${row.label}: ${row.value}`);
     b.classList.toggle('selected', row.value !== 'выкл');
     b.onclick = () => { row.toggle(); renderSettings(); };
     wrap.append(label, b); $('settingsRows').append(wrap);
+  }
+  for (const [key, name] of [['music', 'Музыка'], ['sounds', 'Звуки'], ['ambience', 'Окружение']] as const) {
+    const wrap = document.createElement('label'); wrap.className = 'setting';
+    const label = document.createElement('span'); label.textContent = name;
+    const input = document.createElement('input'); input.type = 'range'; input.min = '0'; input.max = '100'; input.step = '10'; input.value = String(settings[key]); input.setAttribute('aria-label', name);
+    const value = document.createElement('output'); value.textContent = input.value;
+    input.oninput = () => { updateSettings({ [key]: Number(input.value) }); value.textContent = input.value; play('ui_toggle'); };
+    wrap.append(label, input, value); $('settingsRows').append(wrap);
   }
 }
 $('menuSettings').onclick = () => openSettings(false);
@@ -247,6 +275,13 @@ setInterval(() => {
   const char = snap?.players.get(snap.pausedBy)?.char;
   $('pauseNote').textContent = STORY.service.pause.replace('{герой}', CHARACTERS.find(c => c.id === char)?.name ?? '');
   visible('lostBox', session.connectionLost);
+  const playerIds = new Set([...(snap?.players ?? [])].filter(([id, p]) => id !== session!.me && p.connected !== false).map(([id]) => id));
+  if (soundPlayers && snap && !session.connectionLost) {
+    if ([...playerIds].some(id => !soundPlayers!.has(id))) play('ui_player_join');
+    if ([...soundPlayers].some(id => !playerIds.has(id))) play('ui_player_leave');
+  }
+  if (snap && !session.connectionLost) soundPlayers = playerIds;
+  if (session.connectionLost !== lostSound) { lostSound = session.connectionLost; play(lostSound ? 'ui_connection_lost' : 'ui_reconnected'); }
   if (session.snapshots.length && !session.hasMe() && !picking && !createdOpen) showPicker();
   renderPicker(); syncStoryView(session);
   if (DEBUG) {
@@ -259,3 +294,39 @@ setInterval(() => {
       + `\nme x${(me?.x ?? 0) | 0} ${me?.anim ?? '-'} away ${me?.away} paused ${session.isPaused()} story ${last?.storyScene || '-'}`;
   }
 }, 100);
+
+// Прослушка доступна только в тестовом режиме, со своим стопом для каждого ID.
+if (TEST_TOOLS) {
+  const opener = document.createElement('button'); opener.textContent = 'Звуки'; $('testPanel').append(opener);
+  const root = document.createElement('div'); root.className = 'overlay hidden'; root.id = 'soundTest';
+  const title = document.createElement('h2'); title.textContent = 'Звуки';
+  const filter = document.createElement('input'); filter.type = 'search'; filter.placeholder = 'Найти ID'; filter.setAttribute('aria-label', 'Найти звук');
+  const list = document.createElement('div'); list.className = 'sound-list';
+  const back = document.createElement('button'); back.textContent = 'Назад'; back.dataset.sound = 'ui_back';
+  root.append(title, filter, list, back); document.body.append(root);
+  const playing = new Map<string, () => void>();
+  let beforePause = false;
+  opener.onclick = async () => {
+    if (!session?.testMode) return;
+    beforePause = session.isPaused(); session.setPaused(true); setAudioPreview(true); closeTest();
+    root.classList.remove('hidden'); filter.value = ''; list.replaceChildren();
+    const manifest = await soundManifest();
+    for (const id of Object.keys(manifest)) {
+      const row = document.createElement('div'); row.className = 'sound-row'; row.dataset.id = id;
+      const name = document.createElement('span'); name.textContent = id;
+      const button = document.createElement('button'); button.textContent = '▶'; button.dataset.sound = ''; button.setAttribute('aria-label', 'Проиграть ' + id);
+      button.onclick = () => {
+        unlockAudio(); playing.get(id)?.();
+        playing.set(id, play(id));
+      };
+      const stop = document.createElement('button'); stop.textContent = 'Стоп'; stop.dataset.sound = ''; stop.setAttribute('aria-label', 'Остановить ' + id);
+      stop.onclick = () => { playing.get(id)?.(); playing.delete(id); stopSound(id); };
+      row.append(name, button, stop); list.append(row);
+    }
+  };
+  filter.oninput = () => { for (const row of list.children) (row as HTMLElement).hidden = !(row as HTMLElement).dataset.id!.includes(filter.value.trim().toLowerCase()); };
+  back.onclick = () => {
+    for (const [id, stop] of playing) { stop(); stopSound(id); } playing.clear();
+    setAudioPreview(false); root.classList.add('hidden'); if (!beforePause) session?.setPaused(false);
+  };
+}

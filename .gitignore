@@ -5,3 +5,6 @@ dist/
 assets/source/
 __pycache__/
 assets/level1/raw/card/
+assets/audio-lib/
+assets/audio-src/
+.genex/

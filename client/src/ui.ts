@@ -1,3 +1,4 @@
+import { play } from './audio.ts';
 import { STORY } from './story.ts';
 import * as Phaser from 'phaser';
 import { NADYA_MOVE_NAMES, RAMIL_ID, RAMIL_MOVE_NAMES, CHAIN, CHARACTERS, HEAVY, HALT_MS, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, ULT_MS, VIEW_H } from '@bc/shared';
@@ -427,6 +428,7 @@ export class UIScene extends Phaser.Scene {
       }
       const push = this.storyPush;
       if (push.dataset.push !== String(active)) {
+        play('story_push');
         push.dataset.push = String(active); push.replaceChildren();
         const icon = document.createElement('span'); icon.className = 'push-icon'; icon.textContent = 'Г';
         const content = document.createElement('div'); content.className = 'push-content';
