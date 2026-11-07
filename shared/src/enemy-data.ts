@@ -12,9 +12,9 @@ export interface RoleStats {
   dash?: { dist: number; speed: number }; // быстрый: удар = рывок по x
 }
 export const ROLE: Record<EnemyRole, RoleStats> = {
-  grunt: { hp: 48, speed: 60, dmg: 6, windupMs: 400, activeMs: 100, recoverMs: 250, reach: 40, depth: 14, cdMs: 550 },
-  tank:  { hp: 100, speed: 42, dmg: 11, windupMs: 650, activeMs: 120, recoverMs: 400, reach: 46, depth: 16, cdMs: 900, armor: true },
-  fast:  { hp: 34, speed: 95, dmg: 5, windupMs: 450, activeMs: 340, recoverMs: 300, reach: 0, depth: 14, cdMs: 650, dash: { dist: 130, speed: 380 } },
+  grunt: { hp: 120, speed: 60, dmg: 12, windupMs: 200, activeMs: 100, recoverMs: 125, reach: 40, depth: 14, cdMs: 275 },
+  tank:  { hp: 250, speed: 42, dmg: 22, windupMs: 325, activeMs: 120, recoverMs: 200, reach: 46, depth: 16, cdMs: 450, armor: true },
+  fast:  { hp: 85, speed: 95, dmg: 10, windupMs: 225, activeMs: 340, recoverMs: 150, reach: 0, depth: 14, cdMs: 325, dash: { dist: 130, speed: 380 } },
 };
 export interface KindInfo { role: EnemyRole; hpMult?: number; guard?: boolean; name: string }
 export const KIND: Record<EnemyKind, KindInfo> = {
