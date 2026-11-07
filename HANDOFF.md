@@ -2,6 +2,14 @@
 
 Одна страница текущего состояния. История и детали: `HANDOFF-archive.md` (в конце полный снимок прежнего HANDOFF). План и журнал решений: `PLAN.md`. PixelLab: `../PIXELLAB.md`. Ресерч жанра: `research/beatemup-research-astra.md`.
 
+
+## 07.11: TZ-26 Киевский вокзал (ветка tz-26, worktree ../birthday-coop-tz26, НЕ слита, НЕ выложена)
+- tz-26 = main (tz-25 звук) + tz-24 + вокзал. Сливать в main вместо отдельного мержа tz-24.
+- Новая 8-я стадия `vokzal` после МФЦ: фон `client/public/route/vokzal.png` (PixelLab, 5 экранов + 2 зеркала: зал ожидания с табло, турникеты, перрон с часами, поезд, конец перрона с часовой башней), сборка `python3 tools/route_build.py vokzal`, спека `tools/specs/loc-kievsky.json`, фото-референсы `assets/source/kievsky/` (Wikimedia, вне git).
+- Катя убрана из МФЦ; на вокзале один бой у конца перрона: 2 волны (9 и 10), в каждой все 7 видов, затем Катя. Тексты hck.5/hck.7/fin.4 про вокзал. Отчёт `tasks/TZ-26-report.md`.
+- Проверено: tsc, тесты, net-test, story-actors, браузер (волны и Катя). НЕ проверено: переход МФЦ → вокзал и финал глазами, онлайн, iPhone, звук.
+- Следующий шаг: отзыв mr.R; по желанию табло «ОТПРАВЛЕНИЕ» текстом на доске в зале, пропсы перрона.
+
 ## Где мы
 - Кооп-битэмап на двоих для iPhone: Phaser 4 + Colyseus + общая sim. Вручение 07.11.2026.
 - Тесты mr.R по ссылке Pages: https://reosmnv.github.io/moroz-adventure/ (пуш в main → Pages; затем `sudo systemctl restart birthday-coop` и test:net на боевом `SERVER_URL=http://127.0.0.1:2567`).
