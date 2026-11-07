@@ -69,6 +69,7 @@ export class UIScene extends Phaser.Scene {
   session!: GameSession;
   private storyPush?: HTMLDivElement;
   private wantedText!: Phaser.GameObjects.Text;
+  private wantedY?: number;
   private recText!: Phaser.GameObjects.Text;
   private pushSeen = new Set<number>();
   private tips = new Map<string, Phaser.GameObjects.Text>();
@@ -151,7 +152,26 @@ export class UIScene extends Phaser.Scene {
     this.combatControls = this.add.container(0, 0, [this.joyBase, this.joyKnob, this.ultRing,
       this.pips, this.ultNext, this.bHint, this.hitText, ...[...this.btns.values()].flatMap(v => [v.base, v.icon])]);
     this.layout();
-    this.scale.on('resize', () => this.layout());
+    const invalidate = () => { this.wantedY = undefined; };
+    const relayout = () => { this.layout(); invalidate(); };
+    this.scale.on('resize', relayout);
+    const viewport = window.visualViewport;
+    window.addEventListener('resize', invalidate);
+    window.addEventListener('orientationchange', invalidate);
+    viewport?.addEventListener('resize', invalidate);
+    const observer = new ResizeObserver(invalidate);
+    observer.observe(this.game.canvas);
+    const topbar = document.getElementById('topbar');
+    if (topbar) observer.observe(topbar);
+    const cleanup = () => {
+      this.events.off('shutdown', cleanup); this.events.off('destroy', cleanup);
+      this.scale.off('resize', relayout);
+      window.removeEventListener('resize', invalidate);
+      window.removeEventListener('orientationchange', invalidate);
+      viewport?.removeEventListener('resize', invalidate);
+      observer.disconnect();
+    };
+    this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
 
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.onDown(p));
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.onMove(p));
@@ -236,7 +256,6 @@ export class UIScene extends Phaser.Scene {
 
   // Плавающий стик в левой части экрана, кнопки справа; каждый палец сам по себе
   private onDown(p: Phaser.Input.Pointer) {
-    if (this.session.snapshots.at(-1)?.cineId) { this.session.press('skip'); return; }
     const panel = this.panels[0];
     if (this.session.hasMe() && panel.root.visible &&
         p.x >= panel.root.x - PORTRAIT_PAD && p.x <= panel.root.x + panel.frame.width + PORTRAIT_PAD &&
@@ -391,9 +410,10 @@ export class UIScene extends Phaser.Scene {
   }
 
   private wantedTop() {
+    if (this.wantedY !== undefined) return this.wantedY;
     const canvas = this.game.canvas.getBoundingClientRect();
     const bar = document.getElementById('topbar')?.getBoundingClientRect();
-    return Math.max(6, ((bar?.bottom ?? canvas.top) - canvas.top + 6) * this.scale.height / canvas.height);
+    return this.wantedY = Math.max(6, ((bar?.bottom ?? canvas.top) - canvas.top + 6) * this.scale.height / canvas.height);
   }
 
   private updateStory(last: import('./session.ts').Snapshot) {
@@ -420,7 +440,7 @@ export class UIScene extends Phaser.Scene {
     } else if (this.storyPush) { this.storyPush.classList.remove('visible'); delete this.storyPush.dataset.push; }
     const p = last.players.get(this.session.me);
     if (!p) return;
-    if (this.session.testMode || this.session.introOpen || this.session.needsIntro()) return;
+    if (this.session.testMode) return;
     if (this.tipTick !== last.tick) {
       const dt = this.tipTick < 0 ? 0 : Math.max(0, last.storyTime - this.tipTime);
       if (this.readMove().slice(0, 2).some(v => v !== 0)) this.movedMs += dt;
@@ -445,7 +465,7 @@ export class UIScene extends Phaser.Scene {
     if (s.hasMe()) s.move(...this.readMove());
     const last = s.snapshots[s.snapshots.length - 1];
     if (!last) return;
-    const inputBlockedByDom = s.isPaused() || s.connectionLost || s.introOpen || s.needsIntro() || !!last.storyScene;
+    const inputBlockedByDom = s.isPaused() || s.connectionLost || !!last.storyScene;
     // DOM-экраны получают касания через window-listener Phaser. Если Safari потерял
     // touchend при замене overlay, очищаем застрявшие Pointer перед возвратом в бой.
     if (this.inputBlockedByDom && !inputBlockedByDom) this.input.resetPointers();

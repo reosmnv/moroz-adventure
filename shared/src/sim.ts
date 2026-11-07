@@ -17,9 +17,6 @@ import {
 export const TICK_MS = 17; // ~60 Гц: нажатие ждёт тик не дольше 17 мс
 export const VIEW_W = 480;
 export const VIEW_H = 270;
-export const LANE_TOP = 168; // линия стены на фоне уровня 1
-export const LANE_BOTTOM = 255;
-export const LEVEL_W = 1920; // длина уровня: 4 экрана по 480
 
 // Доступность тест-режима в меню. Режим игры хранится в world.testTools
 export const TEST_TOOLS = true;
@@ -35,7 +32,6 @@ export const ENTER_OFF = 340;
 export const ENTER_SPEED = 150;
 const ENTER_MARGIN = 40;
 export const HALT_MS = 2500;
-export const CINE_MS = 2800;
 
 export type Anim = 'enter' | 'idle' | 'walk' | 'run' | 'attack' | 'heavy' | 'hurt' | 'down' | 'taunt' | 'ult' | 'windup' | 'strike' | 'dash' | 'recover';
 
@@ -179,7 +175,7 @@ export interface World {
   storyLast?: { id: string; line: string; at: number }[]; storyKiss?: boolean;
 
   pauseMs?: number; slowmoMs?: number;
-  halt: number; introduced: string[]; cine?: { id: string; kind: string; ms: number };
+  halt: number; introduced: string[];
   shots: BossShot[]; zones: BossZone[];
   timeMs: number;
   tokenReleased: Record<string, number>;
@@ -206,7 +202,6 @@ export interface Pending { ms: number; kind: 'hits' | 'aoe' | 'beam' | 'kiss'; o
 
 export interface Input {
   viewX?: number; viewW?: number;
-  skip?: boolean;
   mx: number; // -1..1
   my: number; // -1..1
   attack: boolean;
@@ -229,7 +224,6 @@ export type SimEvent =
   | { t: 'rfinish'; id: string; x: number; y: number; line: string }
   | { t: 'flurry'; id: string; level: number; k: number; x: number; y: number }
   | { t: 'tele'; id: string; fromX: number; fromY: number; toX: number; toY: number; shape?: never; ms?: never }
-  | { t: 'cine'; id: string; kind: string }
   | { t: 'boss' | 'phase' | 'bossDown'; id: string }
   | { t: 'bossFx'; id: string; attack: string; x: number; y: number; h?: number; ms: number; tint?: number }
   | { t: 'tele'; id: string; shape: 'ring' | 'line' | 'column' | 'zone' | 'ban' | 'grid'; attack?: string; delayMs?: number; x: number; y: number; r?: number; h?: number; dir?: number; ms: number }
@@ -307,7 +301,7 @@ export function switchHero(w: World, id: string, char: string): boolean {
   const p = w.players[id];
   if (!p || p.char === char || !CHARACTERS.some(c => c.id === char)
     || Object.values(w.players).some(o => o.id !== id && o.char === char)
-    || w.trans || w.cine || w.pauseMs || w.won) return false;
+    || w.trans || w.pauseMs || w.won) return false;
 
   for (const e of Object.values(w.enemies)) {
     if (e.held?.by === id || e.thrown?.by === id) {
@@ -333,6 +327,7 @@ export function switchHero(w: World, id: string, char: string): boolean {
   w.pending = w.pending.filter(d => d.owner !== id);
   w.players[id] = { ...freshPlayer(id, char, p.x, p.y),
     facing: p.facing, connected: p.connected, away: p.away, hp: p.hp, ult: p.ult, god: p.god,
+    ...(p.hp <= 0 ? { downMs: p.downMs, anim: 'down' as const, animMs: p.animMs, move: 'fall', moveT: p.moveT } : {}),
     viewX: p.viewX, viewW: p.viewW };
   (w.events ??= []).push({ t: 'switch', id, char });
   return true;
@@ -547,7 +542,9 @@ function switchHeroReset(w: World, p: Player) {
   for (const e of Object.values(w.enemies)) if (e.held?.by === p.id || e.thrown?.by === p.id) {
     e.held = e.thrown = undefined; clearCarry(e); cancelAttack(w, e); e.anim = 'idle';
   }
-  heroReset(p); p.anim = 'idle'; p.animMs = p.cdMs = p.hitstopMs = 0;
+  const fallen = p.hp <= 0, moveT = p.moveT, animMs = p.animMs;
+  heroReset(p); p.anim = fallen ? 'down' : 'idle'; p.animMs = fallen ? animMs : 0; p.cdMs = p.hitstopMs = 0;
+  if (fallen) { p.move = 'fall'; p.moveT = moveT; }
   p.approach = p.hop = undefined;
 }
 
@@ -594,7 +591,7 @@ function special(w: World, p: Player, s: Strike, ev: SimEvent[]) {
   if (s.kind === 'flash') {
     // Летит до первого врага на дорожке перед Kris, урон, когда долетела
     const sx = p.x + p.facing * 20, sy = p.y - 70;
-    const front = Object.values(w.enemies).filter(e => combatReady(w, e) && Math.sign(e.x - p.x) === p.facing && Math.abs(e.x - p.x) < s.range && Math.abs(e.y - p.y) < LANE_TOLERANCE);
+    const front = Object.values(w.enemies).filter(e => e.hp > 0 && combatReady(w, e) && Math.sign(e.x - p.x) === p.facing && Math.abs(e.x - p.x) < s.range && Math.abs(e.y - p.y) < LANE_TOLERANCE);
     const t = front.length ? front.reduce((a, b) => (Math.abs(a.x - p.x) < Math.abs(b.x - p.x) ? a : b)) : undefined;
     const tx = t ? t.x : sx + p.facing * s.range;
     ev.push({ t: 'shot', id: p.id, x: sx, y: sy, tx, ty: t ? t.y - 60 : sy });
@@ -743,11 +740,6 @@ function startRamilUltDash(w: World, p: Player, u: NonNullable<NonNullable<Playe
   p.fDashMs = RAMIL.ULT_DASH_MS; startMove(p, 'dash');
   ev.push({ t: 'rdash', id: p.id, fromX: p.x, fromY: p.y, toX: to.x, toY: to.y });
   return true;
-}
-function ramilTele(w: World, p: Player, x: number, y: number, ev: SimEvent[]) {
-  const to = clampToLane(w, clamp(x, ...walkBounds(w)), y);
-  ev.push({ t: 'tele', id: p.id, fromX: p.x, fromY: p.y, toX: to.x, toY: to.y });
-  p.x = to.x; p.y = to.y; p.heavySmokeMs = RAMIL.HEAVY_SMOKE_MS;
 }
 function ramilStrike(w: World, p: Player, ev: SimEvent[]) {
   const r = p.ramil!, s = STRIKES.ramil[p.move];
@@ -1459,8 +1451,8 @@ function prepareTokens(w: World, dtMs: number) {
   }
 }
 
-function enemyHit(w: World, p: Player, dmg: number, ev: SimEvent[], immunityMs?: number) {
-  if (p.hp <= 0 || !p.connected || p.away || !damagePlayer(p, dmg)) return;
+function enemyHit(w: World, p: Player, dmg: number, ev: SimEvent[], immunityMs?: number): boolean {
+  if (p.hp <= 0 || !p.connected || p.away || !damagePlayer(p, dmg)) return false;
   if (immunityMs !== undefined) p.invulnMs = Math.min(p.invulnMs, immunityMs);
   releaseGrab(w, p);
   ev.push({ t: 'hit', target: p.id, dmg, x: p.x, y: p.y });
@@ -1470,6 +1462,7 @@ function enemyHit(w: World, p: Player, dmg: number, ev: SimEvent[], immunityMs?:
     ev.push({ t: 'down', id: p.id });
     for (const e of Object.values(w.enemies)) if (e.token === p.id) cancelAttack(w, e);
   }
+  return true;
 }
 
 function stepEnemyAttack(w: World, e: Enemy, targets: Player[], speed: number, dtMs: number, ev: SimEvent[]) {
@@ -1556,9 +1549,6 @@ function stepBossHazards(w: World, dtMs: number, ev: SimEvent[]) {
 // Геометрия фиксируется при замахе; клиент получает те же фигуры.
 function planBossAttack(w: World, e: Enemy, targets: Player[], ev: SimEvent[]) {
   const a = BOSS_ATTACK[e.atk!], bounds = w.enc.lock ?? [0, levelW(w)];
-  const tele = (shape: Extract<SimEvent, { t: 'tele'; shape: string }>['shape'], x: number, y: number, r?: number, h?: number, delayMs = 0) =>
-    ev.push({ t: 'tele', id: e.id, attack: a.id, shape, x, y, r, h, ms: a.windupMs, delayMs });
-  if (a.kind === 'ring') tele('ring', e.x, e.y, a.radius);
   if (a.kind === 'line' || a.kind === 'grid') {
     const top = laneTop(w, (bounds[0] + bounds[1]) / 2), bottom = laneBottom(w);
     if (a.kind === 'grid') {
@@ -1569,13 +1559,10 @@ function planBossAttack(w: World, e: Enemy, targets: Player[], ev: SimEvent[]) {
       const second = y + (y < (top + bottom) / 2 ? 1 : -1) * 56;
       e.bands = [{ y, h: 16 }, { y: second, h: 16 }];
     }
-    for (const b of e.bands) tele(a.kind === 'grid' ? 'grid' : 'line', bounds[0], b.y, undefined, b.h);
   }
   if (a.kind === 'cross') {
     const target = targets.reduce((near, p) => Math.hypot(p.x-e.x,p.y-e.y) < Math.hypot(near.x-e.x,near.y-e.y) ? p : near);
     e.atkX = target.x; e.atkY = target.y;
-    tele('line', bounds[0], target.y, undefined, a.depth);
-    tele('column', target.x, laneTop(w, target.x), undefined, a.reach);
   }
   if (['zones', 'pyro', 'salute', 'banStrike'].includes(a.kind)) {
     e.zonePoints = Array.from({ length: a.kind === 'banStrike' ? targets.length : a.count! }, (_, i) => {
@@ -1583,8 +1570,38 @@ function planBossAttack(w: World, e: Enemy, targets: Player[], ev: SimEvent[]) {
       const x = bounds[0] + rand(w) * (bounds[1] - bounds[0]);
       return { x, y: laneTop(w, x) + rand(w) * (laneBottom(w) - laneTop(w, x)) };
     });
-    e.zonePoints.forEach((p, i) => tele(a.kind === 'banStrike' ? 'ban' : 'zone', p.x, p.y, a.zoneR, undefined, a.kind === 'salute' ? i * 120 : 0));
+    // Точки сохраняются до конца атаки.
   }
+  ev.push(...bossWarningEvents(w, e));
+}
+
+// Только чтение: возвращаем геометрию с оставшимся временем, без нового броска RNG.
+export function bossWarningEvents(w: World, enemy?: Enemy): SimEvent[] {
+  const ev: SimEvent[] = [], left = w.enc.lock?.[0] ?? 0;
+  for (const e of enemy ? [enemy] : Object.values(w.enemies)) {
+    const a = e.atk ? BOSS_ATTACK[e.atk] : undefined;
+    if (!e.boss || e.hp <= 0 || !a || e.phaseMs <= 0) continue;
+    const tele = (shape: Extract<SimEvent, { t: 'tele'; shape: string }>['shape'], x: number, y: number, r?: number, h?: number, delayMs = 0) =>
+      ev.push({ t: 'tele', id: e.id, attack: a.id, shape, x, y, r, h, ms: e.phaseMs, delayMs });
+    if (e.phase === 'windup') {
+      if (a.kind === 'ring') tele('ring', e.atkX!, e.atkY!, a.radius);
+      if (a.kind === 'line' || a.kind === 'grid') for (const b of e.bands ?? []) tele(a.kind === 'grid' ? 'grid' : 'line', left, b.y, undefined, b.h);
+      if (a.kind === 'cross') {
+        tele('line', left, e.atkY!, undefined, a.depth);
+        tele('column', e.atkX!, laneTop(w, e.atkX!), undefined, a.reach);
+      }
+      if (['zones', 'pyro', 'salute', 'banStrike'].includes(a.kind)) (e.zonePoints ?? []).forEach((p, i) =>
+        tele(a.kind === 'banStrike' ? 'ban' : 'zone', p.x, p.y, a.zoneR, undefined, a.kind === 'salute' ? i * 120 : 0));
+    } else if (e.phase === 'active') {
+      if (a.kind === 'line' || a.kind === 'grid') for (const b of e.bands ?? [])
+        ev.push({ t: 'bossFx', id: e.id, attack: a.id, x: left, y: b.y, h: b.h, ms: e.phaseMs });
+      if (a.kind === 'salute') (e.zonePoints ?? []).forEach((p, i) => {
+        const ms = i * 120 - (a.activeMs - e.phaseMs);
+        if (i >= (e.shotCount ?? 0) && ms > 0) ev.push({ t: 'tele', id: e.id, attack: a.id, shape: 'zone', ...p, r: a.zoneR, ms });
+      });
+    }
+  }
+  return ev;
 }
 const inEllipse = (p: Player, x: number, y: number, r: number, ratio: number) => ((p.x-x)/r)**2 + ((p.y-y)/(r*ratio))**2 <= 1;
 function resolveBossArea(w: World, e: Enemy, targets: Player[], ev: SimEvent[], point?: number) {
@@ -1593,7 +1610,8 @@ function resolveBossArea(w: World, e: Enemy, targets: Player[], ev: SimEvent[], 
   if (a.kind === 'ring') {
     fx(e.atkX!, e.atkY!);
     for (const p of targets) if (inEllipse(p, e.atkX!, e.atkY!, a.radius!, 0.35)) {
-      enemyHit(w, p, a.dmg, ev); p.x += (p.x < e.atkX! ? -1 : 1) * 90;
+      const controlImmune = p.form === 'ultimate', push = (p.x < e.atkX! ? -1 : 1) * 90;
+      if (enemyHit(w, p, a.dmg, ev) && !controlImmune) p.x += push;
     }
   }
   if (a.kind === 'line' || a.kind === 'grid') for (const b of e.bands ?? []) {
@@ -1692,7 +1710,7 @@ export function nextStage(w: World) {
 
 function finishTransition(w: World, ev: SimEvent[]) {
   w.pauseMs = 0; w.slowmoMs = 0;
-  w.stage = w.trans!.to; w.halt = -1; w.cine = undefined;
+  w.stage = w.trans!.to; w.halt = -1;
   w.enc = { stage: w.stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 };
   w.tokenReleased = {}; w.won = false;
   w.trans = undefined;
@@ -1703,6 +1721,11 @@ function finishTransition(w: World, ev: SimEvent[]) {
     Object.assign(p, clampToLane(w, x - i * 30, y + i * 20));
     p.approach = undefined; p.hop = undefined; p.queued = null; p.wantBall = false;
     p.stormMs = 0; p.hitstopMs = 0;
+    p.ramil = undefined; p.ultLevel = p.ultWindow = 0;
+    p.fDashMs = p.hiddenMs = p.heavySmokeMs = p.fireMs = 0;
+    p.combo = p.comboMs = p.bCombo = p.bComboMs = 0; p.bChainActive = false;
+    p.shooting = false; p.fireFacing = undefined; p.fireNeedsRelease = true;
+    p.dashFrom = p.x;
     p.anim = p.hp > 0 ? 'idle' : 'down'; p.animMs = 0;
     p.move = p.hp > 0 ? 'idle' : 'fall'; p.moveT = 0;
   });
@@ -1722,12 +1745,6 @@ function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimE
   if (active.length === 0) return ev;
   if (w.pauseMs) { w.pauseMs = Math.max(0, w.pauseMs - dtMs); return ev; }
   if (w.slowmoMs) { const slowPart = Math.min(dtMs, w.slowmoMs); w.slowmoMs -= slowPart; dtMs -= slowPart * 0.7; dt = dtMs / 1000; }
-  if (w.cine) {
-    const skip = active.some(p => { const i = inputs[p.id]; return i && (i.skip || i.attack || i.heavy || i.ult || i.ult2); });
-    w.cine.ms = Math.max(0, Math.min(w.cine.ms, skip ? 300 : Infinity) - dtMs);
-    if (!w.cine.ms) w.cine = undefined;
-    return ev;
-  }
   for (const e of Object.values(w.enemies)) if (combatReady(w, e) && w.enc.lock && !e.entered) {
     e.entering = e.x > w.enc.lock[1] - 12;
     e.entered = true;
@@ -1965,7 +1982,6 @@ function storyEvent(w: World, ev: SimEvent[], kind: 'won' | 'friend' | 'down' | 
   ev.push({ t: 'taunt', id: p.id, line }); w.storyLineAt = w.timeMs;
 }
 export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimEvent[] {
-  const stage = w.stage;
   for (const i of Object.values(inputs)) if (i.taunt) w.storyManualAt = w.timeMs;
   const ev = stepCore(w, inputs, dtMs);
   const alive = livePlayers(w);

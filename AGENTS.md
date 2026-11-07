@@ -1,10 +1,6 @@
 # AGENTS.md: правила для Codex в birthday-coop
 
-> **С 03.11.2026 Codex ведёт проект сам: сначала прочитай `CODEX-LEAD.md`.** Он заменяет роль Claude и снимает часть запретов ниже (коммит, пуш, рестарт сервиса, test:net, Playwright, PixelLab, ведение HANDOFF/PLAN/tasks). Если mr.R явно вернул схему «Claude пишет ТЗ», действуют правила ниже целиком.
->
-> **Прогон в браузере и механика PixelLab (правило mr.R):** сначала Claude Haiku: `ops/haiku.sh playtester scratchpad/playtest-report.md '<полный сценарий>'` (или агент `anim-producer`). Сам Playwright не гоняй и `npx playwright test` не используй. Только если скрипт вернул код 3 (Claude недоступен), запускай `codex exec -m gpt-6.1-terra --sandbox danger-full-access -o scratchpad/playtest-report.md 'Используй $playtester. ...'`. Подробно: `CODEX-LEAD.md`, раздел «Помощники».
-
-Кооп-битэмап ко дню рождения, вручение 07.11.2026. Ты (Codex) пишешь код по ТЗ из `tasks/TZ-NN-*.md`. ТЗ и приёмку делает Claude, решения принимает mr.R. Полные правила проекта: `CLAUDE.md`, план: `PLAN.md`.
+Кооп-битэмап ко дню рождения. Схема (одна, с 07.11): Claude ведущий, пишет ТЗ (`tasks/TZ-NN-*.md`) и принимает; ты (Codex) исполнитель, тебя запускает Claude-оркестратор через `codex exec`; генерации ассетов делает Claude; решения принимает mr.R. Полные правила проекта: `CLAUDE.md`, план: `PLAN.md`, запуск и окружение Codex: `CODEX-LEAD.md`. Жёсткого срока нет.
 
 ## Как работаем
 - Одно ТЗ = одна ветка `tz-NN`. Работай в текущей ветке, другие не трогай.
@@ -29,9 +25,9 @@
 - Стиль: TypeScript без новых зависимостей, короткие комментарии по-русски, константы в начале файла.
 
 ## Проверки
-Песочница Codex на этом VPS без сети: свой сервер, `test:net` и браузер (Playwright) у тебя не запустятся. Их делает Claude при приёмке, не трать на них попытки.
+Песочница Codex (`workspace-write`) без сети и без listen: свой сервер, `net-test`, `story-actors-net-test` и браузер у тебя не запустятся. Их делает Claude при приёмке (Playwright на VPS работает импортом `/home/agent/node_modules/playwright/index.mjs`), не трать на них попытки.
 Твои проверки:
-- `npx tsc -p tsconfig.json` (весь проект), `npx vite build` в `client/`.
-- После правок `shared/`: `node --import tsx server/src/sim-test.ts` из корня проекта (`npm run test:sim` в песочнице падает).
+- `npx tsc -p tsconfig.json --noEmit` (весь проект), сборка `cd client && node ../node_modules/vite/bin/vite.js build` (`npx vite build` молча выходит с кодом 216).
+- После правок `shared/`/`server/`: `node --import tsx server/src/{sim,story,lane,boss-crowd,enemy-sheets,hero-controls}-test.ts` из корня проекта (`npm run test:sim` в песочнице падает).
 - В отчёте перечисли, что Claude должен проверить в браузере и по сети.
 - Звук и iPhone проверяет только mr.R: не пиши «работает на iPhone».

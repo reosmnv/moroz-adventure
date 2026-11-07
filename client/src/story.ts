@@ -1,5 +1,5 @@
 import { CHARACTERS, HERO_ID, NADYA_ID, KRIS_ID } from '@bc/shared';
-import { STORY_CONTENT, storyScene, type StoryStep } from '@bc/shared';
+import { STORY_CONTENT, storyScene } from '@bc/shared';
 import type { Snapshot, GameSession } from './session.ts';
 export const GAME_TITLE = 'Moroz Birthday Adventures';
 // Тексты завязки и поздравления редактируются отдельно от экранов.
@@ -7,19 +7,6 @@ export const STORY = {
   "menu": {
     "solo": "Играть соло",
     "online": "Создать комнату"
-  },
-  "intro": {
-    "body": STORY_CONTENT['intro.body'],
-    "button": STORY_CONTENT['intro.button'],
-    "go": [
-      "08:40. Подъезд 3.",
-      "Настя: резидентство аннулировано. Злая.",
-      "Надя: накрашена. Готова бить.",
-      "Kris: камера заряжена. Снимает всё.",
-      "Рамиль: докуривает. Говорит, сейчас.",
-      "План: дойти до МФЦ. Вернуть Насте права."
-    ],
-    "goButton": "ПОГНАЛИ"
   },
   "pushes": [STORY_CONTENT['push.1'], STORY_CONTENT['push.2'], STORY_CONTENT['push.3'], STORY_CONTENT['push.4'], STORY_CONTENT['push.5'], STORY_CONTENT['push.6']],
   "tips": {
@@ -66,8 +53,7 @@ const wait = (ms: number) => new Promise<void>(r => window.setTimeout(r, ms));
 export let krisFrame = '';
 export function saveKrisFrame(image: HTMLImageElement | Phaser.Display.Color) { if (image instanceof HTMLImageElement) krisFrame = image.src; }
 export const portrait = (id: string) => id === HERO_ID ? 'ui/portrait-prime.png' : id === NADYA_ID ? 'ui/nadya/portrait.png' : id === KRIS_ID ? 'ui/kris/portrait.png' : 'ui/ramil/portrait.png';
-const storyPortrait: Record<string, string> = { 'Милонов': 'ui/story/milonov-pl.png', 'Катя': 'ui/story/katya-pl.png', 'Шаман': 'ui/story/shaman.png', 'Пиздулина': 'ui/story/pizdulina.png' };
-let introShowing = false, finaleShowing = false;
+let finaleShowing = false;
 function overlay() {
   const root = document.createElement('div');
   root.className = 'overlay story-overlay';
@@ -85,24 +71,6 @@ function button(parent: HTMLElement, label: string) {
     b.style.position = 'relative';
     parent.append(b); b.onclick = () => resolve();
   });
-}
-async function type(parent: HTMLElement, value: string, tap: HTMLElement) {
-  const el = text(parent, 'p', ''); let fast = false;
-  const scroll = () => { el.scrollIntoView({ block: 'nearest' }); };
-  const speedUp = () => { fast = true; }; tap.addEventListener('pointerdown', speedUp);
-  for (let i = 1; i <= value.length; i++) { el.textContent = value.slice(0, i); scroll(); if (!fast) await wait(TYPE_MS); }
-  tap.removeEventListener('pointerdown', speedUp);
-}
-export async function showIntro(done: () => void) {
-  if (introShowing) return; introShowing = true;
-  const { root, card } = overlay();
-  root.style.background = '#100d18';
-  card.classList.add('notification');
-  text(card, 'p', STORY.intro.body);
-  await button(card, STORY.intro.button);
-  card.replaceChildren(); card.classList.remove('notification');
-  for (const line of STORY.intro.go) await type(card, line, root);
-  await button(card, STORY.intro.goButton); done(); root.remove(); introShowing = false;
 }
 export async function showFinale(replay: () => void = () => location.replace(location.pathname)) {
   if (finaleShowing) return; finaleShowing = true;
@@ -128,7 +96,7 @@ export async function showFinale(replay: () => void = () => location.replace(loc
 let activeStoryKey = '';
 let activeStoryRoot: HTMLElement | undefined;
 let revealStory: (() => void) | undefined;
-let comicPanel: { card: HTMLElement; at: string; wide: boolean } | undefined;
+let comicPanel: { card: HTMLElement; at: string; wide: boolean; layout?: { width: number; height: number; left: number; top: number } } | undefined;
 let dialogue: { name: string; speaker: string; at: string; value: string; count: number; hint: string } | undefined;
 
 // Один DOM-интерфейс для телефона, реплик, карточек и композиций.
@@ -194,7 +162,7 @@ export function syncStoryView(session: GameSession) {
   }
   if (step.kind === 'composition') {
     root.style.background = 'transparent'; card.classList.add('comic-polaroid');
-    if (krisFrame) { const frame = document.createElement('img'); frame.src = krisFrame; frame.alt = 'Кадр Kris'; frame.className = 'story-frame'; card.append(frame); }
+    if (krisFrame && step.id !== 'lev.rec') { const frame = document.createElement('img'); frame.src = krisFrame; frame.alt = 'Кадр Kris'; frame.className = 'story-frame'; card.append(frame); }
     else for (const file of step.images) { const img = document.createElement('img'); img.src = file; img.alt = ''; img.className = 'story-portrait'; card.append(img); }
   }
   const lines = step.kind === 'phone' ? step.ids.map(id => STORY_CONTENT[id]) : [STORY_CONTENT[step.id]];
@@ -221,26 +189,61 @@ interface ComicBubble {
   box: Phaser.GameObjects.Container; frame: Phaser.GameObjects.Graphics;
   name: Phaser.GameObjects.Text; body: Phaser.GameObjects.Text; hint: Phaser.GameObjects.Text;
   picture: Phaser.GameObjects.Image;
+  line?: NonNullable<typeof dialogue>; width?: number; height: number; count: number;
 }
 const comicBubbles = new WeakMap<Phaser.Scene, ComicBubble>();
+const canvasLayouts = new WeakMap<Phaser.Scene, { rect?: DOMRect }>();
 const COMIC_FONT = '"Press Start 2P", monospace';
 const COMIC_WIDTH = 170;
 const COMIC_HEAD: Record<string, number> = { katya: 125, pizdulina: 107, shaman: 107 };
+
+function canvasBounds(scene: Phaser.Scene) {
+  let layout = canvasLayouts.get(scene);
+  if (!layout) {
+    const cache: { rect?: DOMRect } = {};
+    layout = cache; canvasLayouts.set(scene, cache);
+    const invalidate = () => { cache.rect = undefined; };
+    const viewport = window.visualViewport;
+    window.addEventListener('resize', invalidate);
+    window.addEventListener('orientationchange', invalidate);
+    viewport?.addEventListener('resize', invalidate);
+    scene.scale.on('resize', invalidate);
+    const observer = new ResizeObserver(invalidate);
+    observer.observe(scene.game.canvas);
+    const cleanup = () => {
+      scene.events.off('shutdown', cleanup); scene.events.off('destroy', cleanup);
+      window.removeEventListener('resize', invalidate);
+      window.removeEventListener('orientationchange', invalidate);
+      viewport?.removeEventListener('resize', invalidate);
+      scene.scale.off('resize', invalidate);
+      observer.disconnect(); canvasLayouts.delete(scene);
+    };
+    scene.events.once('shutdown', cleanup); scene.events.once('destroy', cleanup);
+  }
+  return layout.rect ??= scene.game.canvas.getBoundingClientRect();
+}
 
 // UI-сцена не зависит от камеры боя; координаты головы переводятся в экранные.
 export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snapshot) {
   if (comicPanel) {
     const { card, at, wide } = comicPanel;
     const target = snap.actors.get(at) ?? snap.enemies.get(at) ?? [...snap.enemies].find(([id, e]) => id.endsWith('--' + at) && e.hp > 0)?.[1] ?? [...snap.enemies.values()].find(e => e.boss === at) ?? [...snap.players.values()].find(p => p.char === at);
-    const rect = game.game.canvas.getBoundingClientRect();
+    const rect = canvasBounds(game);
     const cam = game.cameras.main, ratio = rect.width / game.scale.width;
     const anchor = target ? rect.left + (cam.width / 2 + (target.x - cam.midPoint.x) * cam.zoom) * ratio : rect.left + rect.width / 2;
     const width = Math.min(wide ? 340 : 230, rect.width * 0.51), height = rect.height * 0.4;
     const right = anchor + 24, left = anchor - width - 24;
     const x = right + width < rect.right - 8 ? right : left >= rect.left + 8 ? left : rect.left + (rect.width - width) / 2;
-    card.style.width = `${width}px`; card.style.height = `${height}px`;
-    card.style.left = `${Math.max(8, Math.min(innerWidth - width - 8, x))}px`;
-    card.style.top = `${Math.max(8, rect.top + rect.height * 0.19)}px`;
+    const cardLeft = Math.max(8, Math.min(innerWidth - width - 8, x));
+    const cardTop = Math.max(8, rect.top + rect.height * 0.19);
+    const previous = comicPanel.layout;
+    if (!previous || previous.width !== width) card.style.width = `${width}px`;
+    if (!previous || previous.height !== height) card.style.height = `${height}px`;
+    if (!previous || previous.left !== cardLeft) card.style.left = `${cardLeft}px`;
+    if (!previous || previous.top !== cardTop) card.style.top = `${cardTop}px`;
+    if (!previous || previous.width !== width || previous.height !== height || previous.left !== cardLeft || previous.top !== cardTop) {
+      comicPanel.layout = { width, height, left: cardLeft, top: cardTop };
+    }
   }
   let bubble = comicBubbles.get(ui);
   if (!dialogue) { bubble?.box.setVisible(false); return; }
@@ -252,13 +255,19 @@ export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snap
     const hint = ui.add.text(0, 0, '', { ...style, fontSize: '6px', color: '#ffffff', backgroundColor: '#121212', padding: { x: 3, y: 3 }, wordWrap: { width: COMIC_WIDTH - 6 } });
     const picture = ui.add.image(0, 0, 'story-portrait/anastasia').setDisplaySize(30, 30).setOrigin(0, 1);
     const box = ui.add.container(0, 0, [frame, name, body, hint, picture]).setDepth(5000).setScrollFactor(0);
-    bubble = { box, frame, name, body, hint, picture }; comicBubbles.set(ui, bubble);
+    bubble = { box, frame, name, body, hint, picture, height: 0, count: -1 }; comicBubbles.set(ui, bubble);
   }
   const model = dialogue;
   bubble.box.setVisible(true);
-  bubble.name.setText(model.name); bubble.body.setText(model.value);
-  const height = 43 + bubble.body.height;
-  bubble.body.setText(model.value.slice(0, model.count));
+  if (bubble.line !== model || bubble.width !== ui.scale.width) {
+    bubble.name.setText(model.name); bubble.body.setText(model.value);
+    bubble.height = 43 + bubble.body.height;
+    bubble.line = model; bubble.width = ui.scale.width; bubble.count = -1;
+  }
+  const height = bubble.height;
+  if (bubble.count !== model.count) {
+    bubble.body.setText(model.value.slice(0, model.count)); bubble.count = model.count;
+  }
   const player = [...snap.players.values()].find(p => p.char === model.at);
   const actor = snap.actors.get(model.at);
   const target = actor ?? player ?? snap.enemies.get(model.at) ?? [...snap.enemies].find(([id, e]) => id.endsWith('--' + model.at) && e.hp > 0)?.[1] ?? [...snap.enemies.values()].find(e => e.boss === model.at);

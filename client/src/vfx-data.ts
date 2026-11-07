@@ -2,7 +2,6 @@
 export const VFX: Record<string, { w: number; h: number; n: number; fps: number; loop: boolean }> = {
   'nadya-hit': { w: 42, h: 40, n: 7, fps: 16, loop: false },
   'nadya-slap': { w: 42, h: 44, n: 16, fps: 12, loop: true },
-  'nadya-boom': { w: 76, h: 85, n: 4, fps: 12, loop: false },
   'nadya-twinkle': { w: 34, h: 55, n: 6, fps: 12, loop: false },
   'nadya-charm': { w: 35, h: 21, n: 16, fps: 12, loop: true },
   'stun': { w: 33, h: 17, n: 12, fps: 12, loop: true },
@@ -17,8 +16,6 @@ export const VFX: Record<string, { w: number; h: number; n: number; fps: number;
   'ramil-poof': { w: 107, h: 82, n: 9, fps: 12, loop: false },
   'ramil-hit': { w: 52, h: 48, n: 8, fps: 16, loop: false },
   'ramil-crit': { w: 78, h: 77, n: 8, fps: 16, loop: false },
-  'ramil-rise': { w: 53, h: 131, n: 8, fps: 16, loop: false },
-  'ramil-dash': { w: 143, h: 36, n: 8, fps: 16, loop: false },
   'ramil-ring': { w: 110, h: 42, n: 8, fps: 16, loop: false },
   'ramil-dust': { w: 49, h: 21, n: 8, fps: 16, loop: false },
   'ramil-fire': { w: 124, h: 53, n: 12, fps: 12, loop: true },
@@ -41,9 +38,7 @@ export const VFX: Record<string, { w: number; h: number; n: number; fps: number;
   'ramil-smoke': { w: 18, h: 30, n: 16, fps: 10, loop: true },
   'ramil-smoke-heavy': { w: 28, h: 40, n: 16, fps: 10, loop: true },
   'ramil-mark': { w: 20, h: 14, n: 8, fps: 10, loop: true },
-  'ramil-wrap': { w: 34, h: 26, n: 4, fps: 10, loop: true },
-  'ramil-coil': { w: 36, h: 30, n: 4, fps: 10, loop: true },
   'ramil-trigram': { w: 112, h: 40, n: 32, fps: 10, loop: true },
   'ramil-tornado': { w: 72, h: 92, n: 12, fps: 20, loop: true },
 };
-export const VFX_IMAGES = ["heart", "ball", "aim", "beam-start-0", "beam-start-1", "beam-start-2", "beam-mid-0", "beam-mid-1", "beam-mid-2", "beam-end-0", "beam-end-1", "beam-end-2", "ramil-vine-0", "ramil-vine-1", "ramil-vine-2", "ramil-vine-head", "ramil-leaf-up", "ramil-leaf-down"];
+export const VFX_IMAGES = ["heart", "ball", "aim", "beam-start-0", "beam-start-1", "beam-start-2", "beam-mid-0", "beam-mid-1", "beam-mid-2"];

@@ -6,7 +6,6 @@ export const LINES = {
   friend: ['{имя}, вставай!', 'Не лежи, некрасиво', 'Держись, я рядом', 'Подъём, я прикрою. Наверное'],
   down: ['Звук пропал…', 'Ой', 'Камеру держите!', 'Я просто прилёг'],
   stage: ['Ещё не конец света', 'Пошли, пока тушь держится', 'Меняем локацию', 'Дальше без меня? Шучу'],
-  reply: { shaman: 'Ты мне проход загораживаешь.', pizdulina: T['pz.r'] } as Record<string, string>,
   last: { shaman: T['sh.last'], pizdulina: T['pz.last'] } as Record<string, string>,
   kiss: T['sh.tip'],
 };

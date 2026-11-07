@@ -9,7 +9,6 @@ SRC, DST = ROOT / "assets/vfx", ROOT / "client/public/vfx"
 PICK = {
     "nadya-hit": ("nadya", "hits", "hit_star"),
     "nadya-slap": ("nadya", "glint", "flash_burst"),
-    "nadya-boom": ("nadya", "ult", "crackle_burst"),
     "nadya-twinkle": ("nadya", "ult", "twinkles"),
     "nadya-charm": ("nadya", "jealous", "charm_hearts"),
     "stun": ("nadya", "status", "stun_stars"),
@@ -25,8 +24,6 @@ PICK = {
     "ramil-poof": ("ramil", "poof", "smoke_poof"),
     "ramil-hit": ("ramil", "hits", "hit_star"),
     "ramil-crit": ("ramil", "hits", "crit_hit"),
-    "ramil-rise": ("ramil", "hits", "rising_slash"),
-    "ramil-dash": ("ramil", "hits", "dash_slash"),
     "ramil-ring": ("ramil", "hits", "shockwave_ring"),
     "ramil-dust": ("ramil", "hits", "dust_kick"),
     "ramil-fire": ("ramil", "fire", "flamethrower"),
@@ -37,15 +34,11 @@ PICK = {
 STRIPS = {"ramil-smoke": ("ramil/smoke-idle.png", 18, 30, 10, True),
           "ramil-smoke-heavy": ("ramil/smoke-heavy.png", 28, 40, 10, True),
           "ramil-mark": ("ramil/mark.png", 20, 14, 10, True),
-          "ramil-wrap": (None, 34, 26, 10, True),
-          "ramil-coil": ("ramil/vine2/coil.png", 36, 30, 10, True),
           "ramil-trigram": ("ramil/trigram.png", 112, 40, 10, True),
           "ramil-tornado": ("ramil/tornado.png", 72, 92, 20, True)}  # смерч «тасманского дьявола» (tools/ramil_tornado.py)  # круг восьми триграмм под ногами (tools/ramil_trigram.py)
 # одиночные картинки (рисованы скриптом)
 SINGLE = {"heart": "nadya/heart-big.png", "ball": "kris/ball.png", "aim": "kris/aim-mid.png",
-          **{f"beam-{p}-{i}": f"kris/beam-{p}-{i}.png" for p in ("start", "mid", "end") for i in range(3)},
-          **{f"ramil-vine-{i}": f"ramil/vines/seg-{i}.png" for i in range(3)}, "ramil-vine-head": "ramil/vines/head.png",
-          "ramil-leaf-up": "ramil/vine2/leaf-up.png", "ramil-leaf-down": "ramil/vine2/leaf-down.png"}
+          **{f"beam-{p}-{i}": f"kris/beam-{p}-{i}.png" for p in ("start", "mid") for i in range(3)}}
 
 DST.mkdir(parents=True, exist_ok=True)
 rows = []

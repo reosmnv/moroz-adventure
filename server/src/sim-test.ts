@@ -1,6 +1,6 @@
-import { LINES, CALL_NAMES, createStoryProgress, wantedStatus, startStoryForWorld } from '@bc/shared';
+import { bossWarningEvents, stopStoryHeroes, LINES, CALL_NAMES, createStoryProgress, wantedStatus, startStoryForWorld } from '@bc/shared';
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { CHARACTERS, HERO_FORM, PLAYER_HP, switchHero, testHeal, testGod, testKillAll, chargeUlt, nextStage, RAMIL, HERO_ANIMS, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
+import { CHARACTERS, HERO_FORM, PLAYER_HP, switchHero, testHeal, testGod, testKillAll, chargeUlt, nextStage, RAMIL, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -223,7 +223,7 @@ for (const form of ['prime', 'ultimate'] as const) {
   check('буря кончилась, враг оттаял и пошёл', !w.enemies.a.frozenMs && p.stormMs === 0);
 }
 {
-  const { w, p } = setup(); dummy(w, 'e1', 24);
+  const { w } = setup(); dummy(w, 'e1', 24);
   w.enemies.e1.frozenMs = 5000;
   const x0 = w.enemies.e1.x;
   run(w, 600, press([0], 'attack'));
@@ -242,7 +242,7 @@ function strikeAt(w: World, move: string) {
   return run(w, hitTimesMs(p.form, move, p.facing)[0] + TICK_MS * 2);
 }
 {
-  const { w, p } = setup(); dummy(w, 'one', 30); dummy(w, 'two', 40); dummy(w, 'side', 35); dummy(w, 'back', -30);
+  const { w } = setup(); dummy(w, 'one', 30); dummy(w, 'two', 40); dummy(w, 'side', 35); dummy(w, 'back', -30);
   w.enemies.two.y += 40; w.enemies.side.y += 41;
   for (const e of Object.values(w.enemies)) e.stunMs = 10000;
   const r = strikeAt(w, 'cross');
@@ -492,7 +492,7 @@ check('длительности из данных (x1.4)', moveDurMs('prime', 'j
 
 // ТЗ-05: реальные тики общей симуляции, без сервера.
 function arenaSetup(kind: 'omon' | 'clerk' | 'omon_shield' | 'zek' = 'omon') {
-  const w = createWorld(19, true, 'route'); w.introduced = Object.keys(ENEMY_INTRO);
+  const w = createWorld(19, true, 'route');
   const p = addPlayer(w, 'h', HERO_ID); p.x = 200; p.y = 200;
   spawnEnemies(w, 1);
   const e = Object.values(w.enemies)[0];
@@ -580,12 +580,11 @@ for (const front of [true, false]) {
   let ticks = 0, locks = 0, clears = 0, ordered = true, lastStage = 0;
   const bosses: string[] = [];
   const done: number[] = [];
-  let intros = 0;
   while (!w.won && ticks++ < 50000) {
-    for (const e of Object.values(w.enemies)) if (e.entered && !w.cine) e.hp = 0;
+    for (const e of Object.values(w.enemies)) if (e.entered) e.hp = 0;
     p.hp = 150; p.invulnMs = 1000;
     const exit = stageOf(w).exit;
-    let inp = { ...emptyInput(), mx: 1, run: true, skip: true };
+    let inp = { ...emptyInput(), mx: 1, run: true };
     if (w.enc.cleared === encountersOf(w).length && exit) {
       inp.mx = p.x < exit.x0 + 3 ? 1 : p.x > exit.x1 - 3 ? -1 : 0;
       inp.my = p.y > exit.y1 ? -1 : 0;
@@ -596,7 +595,6 @@ for (const front of [true, false]) {
       bosses.push(boss.boss!);
       check(`TZ10: ${boss.boss} появляется внутри арены`, !!w.enc.lock && boss.x >= w.enc.lock[0] && boss.x <= w.enc.lock[1]);
     }
-    intros += ev.filter(e => e.t === 'cine').length;
     locks += ev.filter(e => e.t === 'lock').length; clears += ev.filter(e => e.t === 'clear').length;
     if (w.stage !== lastStage) {
       ordered &&= done[lastStage] === ENCOUNTERS[LEVELS.route.stages[lastStage].id].length;
@@ -606,7 +604,6 @@ for (const front of [true, false]) {
     done[w.stage] = w.enc.cleared;
   }
   check('R2: бот проходит весь маршрут по порядку', w.won && ordered && locks === 12 && clears === 12 && done.join() === '3,1,1,1,1,2,3', `ticks=${ticks} locks=${locks} clears=${clears} done=${done}`);
-  check('TZ21: маршрут без вставок врагов', intros === 0, String(intros));
   check('V3: маршрут включает Катю', bosses.join() === 'shaman,pizdulina,katya');
   const n = w.nextEnemyId; spawnEnemies(w, 3); step(w, {});
   check('R2: после победы нет новых врагов', w.nextEnemyId === n && !w.enc.lock);
@@ -650,7 +647,7 @@ for (const dodge of [false, true]) {
   const w = createWorld(9, true, 'route', 6), p = addPlayer(w, 'h', HERO_ID);
   w.enc.index = 1; w.enc.cleared = 1; p.x = 2060; step(w, {});
   check('R2: solo первая волна входит по одному', Object.values(w.enemies).length === 1 && w.enc.queue.length === 9);
-  const b = addPlayer(w, 'b', NADYA_ID); step(w, {});
+  addPlayer(w, 'b', NADYA_ID); step(w, {});
   check('R2: duo не меняет первую волну', Object.values(w.enemies).length === 1 && w.enc.queue.length === 9);
   check('R1: HP первого врага фиксированы', Object.values(w.enemies).at(-1)!.maxHp === 100);
 }
@@ -673,7 +670,7 @@ function finishMayakWaves(w: ReturnType<typeof createWorld>) {
 }
 {
   const w = createWorld(71, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO); p.x = 800; p.y = 220;
+  p.x = 800; p.y = 220;
   step(w, {});
   check('TZ10: одна встреча, концертные волны без босса', encountersOf(w).length === 1 && !!w.enc.lock && !w.enc.bossStarted && !Object.values(w.enemies).some(e => e.boss));
   w.enemies = {}; step(w, {}); p.hp = 0;
@@ -686,7 +683,7 @@ function finishMayakWaves(w: ReturnType<typeof createWorld>) {
 // TZ-06: настоящая встреча, затем изолированные опасности боссов.
 function bossSetup(boss: BossId = 'shaman') {
   const w = createWorld(71, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO);
+
   p.x = 800; p.y = 220;
   finishMayakWaves(w);
   const e = Object.values(w.enemies).find(e => e.boss)!;
@@ -807,12 +804,12 @@ for (const dodge of [false, true]) {
   dummy(w, 'first', 0); dummy(w, 'second', 0);
   w.enemies.first.kind = 'vatnik'; w.enemies.second.kind = 'omon';
   const x = p.x, clock = w.timeMs;
-  const ev = step(w, { h: { ...emptyInput(), mx: -1 } });
-  check('TZ21: два новых вида без вставки и остановки боя', !w.cine && !ev.some(e => e.t === 'cine') && p.x < x && w.timeMs > clock);
+  step(w, { h: { ...emptyInput(), mx: -1 } });
+  check('C1: появление двух новых видов не останавливает движение и часы', p.x < x && w.timeMs > clock);
 }
 {
   const w = createWorld(37, false), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO);
+
   p.x = 300; step(w, {});
   w.enemies = {}; w.enc.queue = [];
   for (let i = 0; i < 4; i++) dummy(w, `left${i}`, i * 10);
@@ -844,7 +841,7 @@ for (const dodge of [false, true]) {
   w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: { dmg: 100, range: 1000, kb: 0, stun: 0 }, ids: [e.id] });
   step(w, {});
   check('TZ07: враг вне арены не получает урон и разрешение', e.hp === hp && !e.token);
-  e.x = 710; e.y = p.y; w.introduced = Object.keys(ENEMY_INTRO);
+  e.x = 710; e.y = p.y;
   w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: { dmg: 1, range: 1000, kb: 500, stun: 0 }, ids: [e.id] });
   step(w, {});
   check('TZ07: вошедшего нельзя выбить из арены', e.entered === true && e.x <= 708 && e.x >= 252);
@@ -856,13 +853,14 @@ for (const dodge of [false, true]) {
   const w = createWorld(33, false), p = addPlayer(w, 'h', HERO_ID);
   p.x = 300; step(w, {}); run(w, 300);
   const [e, second] = Object.values(w.enemies); e.x = 710;
-  const ev = step(w, {});
-  check('TZ21: первый vatnik без cine', !w.cine && !ev.some(e => e.t === 'cine'));
+  step(w, {});
   const x = p.x, clock = w.timeMs, tick = w.tick;
   step(w, { h: { ...emptyInput(), mx: -1 } }, 100);
   check('TZ21: новый враг не замораживает движение и часы', p.x < x && w.timeMs > clock && w.tick > tick);
   second.x = 700;
-  check('TZ21: второй vatnik без вставки', !step(w, {}).some(e => e.t === 'cine') && !w.cine);
+  const secondX = p.x, secondClock = w.timeMs;
+  step(w, { h: { ...emptyInput(), mx: -1 } });
+  check('C1: второй враг тоже не останавливает движение и часы', p.x < secondX && w.timeMs > secondClock);
 }
 {
   const w = createWorld(34, false), p = addPlayer(w, 'h', HERO_ID);
@@ -874,9 +872,9 @@ for (const dodge of [false, true]) {
   run(w, 320);
   const right = Object.values(w.enemies)[1];
   check('TZ07: fallback появляется справа после интервала', !!right && right.x <= 720 + ENTER_OFF && right.x > 720);
-  check('TZ07: во время enter вставки нет', !w.cine && !door.token);
+  check('TZ07: во время входа враг не атакует', !door.token && door.anim === 'enter');
   run(w, 220);
-  check('TZ21: после enter нет вставки', !w.cine);
+  check('C1: после входа враг готов к бою', door.entered === true && door.anim !== 'enter');
 }
 {
   const w = createWorld(35, false, 'route', 3), p = addPlayer(w, 'h', HERO_ID);
@@ -919,7 +917,7 @@ for (const atk of ['mic','vstayu','pyro','chorus','salute','slap','banStrike','s
 }
 {
   const w=createWorld(81,false,'route',4),p=addPlayer(w,'h',HERO_ID);
-  w.introduced=Object.keys(ENEMY_INTRO); p.x=800;p.y=205;
+  p.x=800;p.y=205;
   finishMayakWaves(w); const e=Object.values(w.enemies).find(e=>e.boss)!;
   check('TZ08 R1/R6: после волн enter у сцены',e.x===stageProp(w, 'stage_b')!.x&&e.y===205&&e.phase==='enter'&&e.enterMs===900);
   w.pending.push({ms:0,kind:'hits',owner:p.id,strike:{range:1000,dmg:100,kb:0,stun:0},ids:[e.id]});
@@ -960,7 +958,7 @@ for (const atk of ['mic','vstayu','pyro','chorus','salute','slap','banStrike','s
 for (const [index, encounter] of ENCOUNTERS.street.entries()) {
   for (const [wave, spawns] of encounter.waves.entries()) {
     const w = createWorld(91, false), p = addPlayer(w, 'h', HERO_ID);
-    w.introduced = Object.keys(ENEMY_INTRO);
+
     w.enc.index = w.enc.cleared = index;
     p.x = encounter.trigger; step(w, {});
     w.enemies = {}; w.enc.wave = encounter.waves.length - 1; w.enc.queue = [...spawns];
@@ -985,7 +983,7 @@ for (const [index, encounter] of ENCOUNTERS.street.entries()) {
 }
 for (const kind of ['vatnik', 'clerk', 'zek', 'omon', 'pizdulina'] as const) {
   const w = createWorld(94, false), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO); p.x = 300; step(w, {});
+  p.x = 300; step(w, {});
   const e = Object.values(w.enemies)[0];
   if (kind === 'pizdulina') { e.boss = kind; w.enc.bossStarted = true; }
   else { e.kind = kind; if (kind === 'omon') w.enc.bossStarted = true; }
@@ -995,7 +993,7 @@ for (const kind of ['vatnik', 'clerk', 'zek', 'omon', 'pizdulina'] as const) {
 // Уязвимость на пороге входа без скачка к внутренней границе.
 for (const offset of [40.1, 40, 20]) {
   const w = createWorld(92, false), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO); p.x = 300; step(w, {});
+  p.x = 300; step(w, {});
   const e = Object.values(w.enemies)[0]; w.enemies = { [e.id]: e };
   p.x = 700; p.y = e.y; p.invulnMs = 10000;
   e.x = 720 + offset; e.cdMs = 10000;
@@ -1012,7 +1010,7 @@ for (const offset of [40.1, 40, 20]) {
 // Fast не выходит из арены ни в замахе, ни в активной части рывка.
 for (const dir of [-1, 1] as const) {
   const w = createWorld(93, false), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO); p.x = 300; step(w, {});
+  p.x = 300; step(w, {});
   const e = Object.values(w.enemies)[0];
   Object.assign(e, { kind: 'zek', entered: true, x: dir > 0 ? 700 : 260, y: 220,
     phase: 'windup', phaseMs: ROLE.fast.windupMs, token: p.id, atkDir: dir, atkY: 220 });
@@ -1127,7 +1125,7 @@ function ramilDummy(w: World, id: string, dx: number) { dummy(w, id, dx); w.enem
 
 // TZ15: новая серия и шестиступенчатая ульта.
 for (const dx of [40, 56, 57, 120, 200, 201, 220]) {
-  const {w,p} = setup(false,'ramil'); ramilDummy(w,'e',dx);
+  const {w} = setup(false,'ramil'); ramilDummy(w,'e',dx);
   const r = run(w,700,press([0],'attack'));
   check(`TZ15 a1 ${dx}: рывок`, r.events.includes('rdash') === (dx > RAMIL.A1_REACH && dx <= RAMIL.A1_DASH_MAX), r.events.join());
   check(`TZ15 a1 ${dx}: попадание`, w.enemies.e.hp === (dx > RAMIL.A1_DASH_MAX ? 1000 : 992));
@@ -1175,7 +1173,7 @@ for (const boss of [false,true]) {
   check('TZ15 бросок сбрасывает серию', p.combo === 0 && events.some(v=>v.t==='rland'));
 }
 {
-  const {w,p,e} = grabSetup(); ramilDummy(w,'near',-50);
+  const {w,e} = grabSetup(); ramilDummy(w,'near',-50);
   const hp = w.enemies.near.hp; const r = run(w,RAMIL.SPIN_MS + 3*TICK_MS,press([0],'attack'));
   check('TZ17 ураган шесть оборотов', r.hits.filter(d=>d===3).length === 6 && e.hp === 978, r.hits.join() + ':' + e.hp);
   check('TZ16 ураган бьёт другого', w.enemies.near.hp === hp-6, String(w.enemies.near.hp));
@@ -1263,7 +1261,7 @@ for (const sign of [-1,1]) {
   check('TZ17 ураган ровно 1000 ± тик '+sign,elapsed>=1000 && elapsed-1000<TICK_MS,String(elapsed));
 }
 {
-  const {w,p,e} = grabSetup();
+  const {w,e} = grabSetup();
   for(let i=0;i<3;i++) ramilDummy(w,'cluster'+i,180+i*10);
   const tx = (w.enemies.cluster0.x+w.enemies.cluster1.x+w.enemies.cluster2.x)/3;
   step(w,{h:{...emptyInput(),attack:true}});
@@ -1284,7 +1282,7 @@ for (const sign of [-1,1]) {
   check('TZ16 брошенный получает 20',e.hp===hp-20);
 }
 {
-  const {w,p,e}=grabSetup(); ramilDummy(w,'near',-28);
+  const {w}=grabSetup(); ramilDummy(w,'near',-28);
   step(w,{h:{...emptyInput(),attack:true}});
   let tangent=false;
   for(let t=0;t<950;t+=TICK_MS) {
@@ -1385,7 +1383,6 @@ for (const char of ['ramil', HERO_ID]) {
   }
   check('TZ18 нет игрока', !switchHero(w, 'missing', KRIS_ID));
   w.trans = { ms: 900, to: 1 }; check('TZ18 переход запрещает смену', !switchHero(w, p.id, KRIS_ID)); w.trans = undefined;
-  w.cine = { id: 'e', kind: 'omon', ms: 100 }; check('TZ18 кинематика запрещает смену', !switchHero(w, p.id, KRIS_ID)); w.cine = undefined;
   w.pauseMs = 400; check('TZ18 смена фазы запрещает смену', !switchHero(w, p.id, KRIS_ID)); w.pauseMs = 0;
   w.won = true; check('TZ18 финал запрещает смену', !switchHero(w, p.id, KRIS_ID));
 }
@@ -1409,7 +1406,7 @@ for (const char of ['ramil', HERO_ID]) {
   check('TZ18 выключение бессмертия возвращает урон', p.god === false && p.hp < hp);
 }
 {
-  const w = createWorld(18, true); w.introduced = Object.keys(ENEMY_INTRO); const p = addPlayer(w, 'h', HERO_ID); p.x = 300;
+  const w = createWorld(18, true); const p = addPlayer(w, 'h', HERO_ID); p.x = 300;
   step(w, {}); const index = w.enc.index; const cleared = w.enc.cleared;
   for (let i = 0; i < 100 && w.enc.cleared === cleared; i++) { testKillAll(w); step(w, {}); }
   check('TZ18 killAll засчитывает встречу обычным путём', w.enc.cleared === cleared + 1 && w.enc.index === index + 1 && !w.enc.lock);
@@ -1436,10 +1433,8 @@ for (const [i, ch] of CHARACTERS.entries()) {
   check('TZ19 шар Kris не считается ультой', !step(w, {}).some(e => e.t === 'taunt'));
 }
 for (const boss of ['shaman', 'pizdulina'] as const) {
-  const { w, p } = setup(); dummy(w, 'e1', 100);
+  const { w } = setup(); dummy(w, 'e1', 100);
   w.enemies.e1.boss = boss; w.introduced.push(boss);
-  w.cine = { id: 'e1', kind: boss, ms: 1 };
-  check(`TZ21 ${boss}: нет ответной реплики вставки`, !step(w, {}).some(e => e.t === 'taunt' && e.line === LINES.reply[boss]));
   w.enemies.e1.hp = 0;
   const down = step(w, {});
   check(`TZ19 ${boss}: bossDown раньше последних слов`, down.some(e => e.t === 'bossDown') && !down.some(e => e.t === 'taunt' && e.line === LINES.last[boss]));
@@ -1502,10 +1497,72 @@ for (const [i, ch] of CHARACTERS.entries()) {
   const marks = JSON.stringify(w.storyPushes); p.hp = 0; step(w, {});
   check('TZ19 рестарт сохраняет пуши', JSON.stringify(w.storyPushes) === marks);
 }
+
+// TZ-23 A1: падение, смена карты, выбор цели и контроль.
 {
-  const { w } = setup(false, KRIS_ID); dummy(w, 'e1', 100);
-  w.introduced.push('shaman'); w.cine = { id: 'e1', kind: 'shaman', ms: 1 };
-  check('TZ21 ответ вставки отсутствует и без Насти', !step(w, {}).some(e => e.t === 'taunt' && e.line === LINES.reply.shaman));
+  const { w, p } = setup(true); dummy(w, 'idle', 800);
+  p.hp = 0; p.anim = 'down'; p.move = 'fall'; p.moveT = 750; p.downMs = 2400;
+  check('A1.9 павший сменил героя', switchHero(w, p.id, KRIS_ID));
+  const q = w.players.h;
+  check('A1.9 сохранены падение и срок подъёма', q.hp === 0 && q.downMs === 2400 && q.anim === 'down' && q.move === 'fall' && q.moveT === 750);
+  run(w, 2300); check('A1.9 раннего подъёма нет', q.hp === 0);
+  run(w, 150); check('A1.9 подъём после исходного срока', q.hp === PLAYER_HP / 2);
+}
+{
+  const { w, p } = setup(true);
+  p.hp = 0; p.anim = 'down'; p.move = 'fall'; p.moveT = 840; p.downMs = 3100;
+  stopStoryHeroes(w);
+  check('A1.11 диалог сохраняет падение', p.anim === 'down' && p.move === 'fall' && p.moveT === 840 && p.downMs === 3100);
+  run(w, TICK_MS);
+  check('A1.11 после диалога павший остаётся лежать', p.hp === 0 && p.move === 'fall');
+}
+{
+  const { w } = setup(false, KRIS_ID);
+  dummy(w, 'dead', 45, 0); dummy(w, 'live', 100); w.enemies.live.dummy = true;
+  w.enemies.dead.boss = 'shaman'; w.enemies.dead.deathMs = 1400;
+  const ev = step(w, { h: { ...emptyInput(), heavy: true } });
+  // Вспышка срабатывает в кадре попадания, мёртвый босс ещё на экране.
+  const shots = [...ev];
+  for (let i = 0; i < 70 && !shots.some(e => e.t === 'shot'); i++) shots.push(...step(w, {}));
+  check('A1.7 вспышка выбирает живого за мёртвым боссом', shots.some(e => e.t === 'shot' && e.tx === w.enemies.live.x) && w.pending.some(d => d.flash && d.ids?.[0] === 'live'));
+}
+{
+  const w = createWorld(23, true, 'route'), p = addPlayer(w, 'h', 'ramil');
+  p.x = 900; p.y = 205; p.ult = 63; p.charge2 = 42; p.bCooldownMs = 1900;
+  p.ramil = { marks: ['old'], markMs: 1000, originX: 920, originY: 210, smokeMs: 900, smokeLine: 1, fireHit: ['old'],
+    grab: 'old', tele: { ms: 100, x: 1600, y: 200, back: true }, dash: { fromX: 800, fromY: 200, x: 1700, y: 205 },
+    ult: { ms: 10, count: 4, target: 'old', level: 2, buffered: false, window: 0, stunned: ['old'] } };
+  p.ultLevel = 2; p.ultWindow = 300; p.fDashMs = 200; p.hiddenMs = 200; p.fireMs = 100;
+  nextStage(w); step(w, {}, 901);
+  check('A1.8 переход очищает действия Рамиля', !p.ramil && !p.ultLevel && !p.ultWindow && !p.fDashMs && !p.hiddenMs && !p.fireMs);
+  check('A1.8 переход сохраняет заряды и кулдаун', p.ult === 63 && p.charge2 === 42 && p.bCooldownMs === 1900);
+  const x = p.x, y = p.y; step(w, {});
+  check('A1.8 старые координаты не срабатывают на следующем тике', p.x === x && p.y === y);
+}
+for (const defense of ['none', 'invuln', 'ultimate', 'god'] as const) {
+  const { w, p, e } = bossSetup(); forceBossAttack(e, 'vstayu'); e.phaseMs = 1;
+  p.x = e.x + 40; const x = p.x;
+  if (defense === 'invuln') p.invulnMs = 500;
+  if (defense === 'ultimate') { p.form = 'ultimate'; p.formMs = 1000; }
+  if (defense === 'god') p.god = true;
+  step(w, {});
+  check(`A1.10 кольцо: ${defense}`, p.x === x + (defense === 'none' ? 90 : 0) && p.hp === (defense === 'none' || defense === 'ultimate' ? 138 : 150));
+}
+// Восстановление предупреждений использует зафиксированные фигуры и остаток времени.
+for (const atk of ['vstayu', 'chorus', 'crossStage', 'pyro', 'salute']) {
+  const { w, e } = bossSetup(); forceBossAttack(e, atk); e.phaseMs = 321;
+  e.bands = [{ y: 190, h: 16 }, { y: 240, h: 16 }]; e.zonePoints = [{ x: 810, y: 200 }, { x: 880, y: 230 }];
+  const before = JSON.stringify(w), events = bossWarningEvents(w);
+  const expected = atk === 'vstayu' ? 1 : 2;
+  check(`A1.5 восстановление ${atk} без изменения мира`, JSON.stringify(w) === before && events.length === expected && events.every(e => e.t === 'tele' && e.ms === 321));
+  if (atk === 'salute') check('A1.5 салют сохраняет задержку второй точки', events[1].t === 'tele' && events[1].shape !== undefined && events[1].delayMs === 120);
+}
+{
+  const { w, e } = bossSetup(); forceBossAttack(e, 'chorus'); e.phase = 'active'; e.phaseMs = 123;
+  e.bands = [{ y: 200, h: 16 }];
+  const ev = bossWarningEvents(w);
+  check('A1.5 действующая полоса восстанавливается с остатком', ev.length === 1 && ev[0].t === 'bossFx' && ev[0].ms === 123 && ev[0].h === 16);
+  e.hp = 0; check('A1.5 мёртвый босс не восстанавливает предупреждения', bossWarningEvents(w).length === 0);
 }
 
 console.log(failed ? `\n${failed} проверок не прошло` : '\nВсе проверки прошли');

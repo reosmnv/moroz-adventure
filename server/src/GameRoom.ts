@@ -2,7 +2,7 @@ import { Room, type Client } from 'colyseus';
 import { schema, t, type SchemaType } from '@colyseus/schema';
 import {
   encountersOf, CHARACTERS, LEVELS, nextStage, TEST_TOOLS, TICK_MS, addPlayer, chargeUlt, createWorld, emptyInput, removePlayer, spawnEnemies, step, takenChars, switchHero, testHeal, testGod, testSummon, testKillAll,
-  type Input, type World,
+  type Input, type World, bossWarningEvents,
   tickStory, advanceStory, createStoryProgress, startStory, startStoryForWorld, wantedStatus, pendingStory, testStoryScene, testStoryStrict,
 } from '@bc/shared';
 
@@ -64,8 +64,7 @@ export const GameState = schema({
   storyScene: t.string(), storyIndex: t.number(), storyHost: t.string(),
   storyTime: t.number(), storyPushes: t.string(),
   pauseMs: t.number(), slowmoMs: t.number(),
-  halt: t.number(), cineId: t.string(), cineKind: t.string(), cineMs: t.number(),
-  intro: t.boolean(), introHost: t.string(),
+  halt: t.number(),
   shots: t.array(ShotState), zones: t.array(ZoneState),
   lockX0: t.number(), lockX1: t.number(),
   encDone: t.number(), encTotal: t.number(), won: t.boolean(),
@@ -92,16 +91,14 @@ export class GameRoom extends Room<{ state: GameState }> {
   playerInputs: Record<string, Input> = {};
   private story = createStoryProgress();
   private storyHost = '';
-  private introReaders = new Set<string>();
-  private introReady = new Set<string>();
 
   onCreate(options: { level?: unknown; stage?: unknown; testMode?: unknown } = {}) {
-    const level = options.level === 'old' ? 'old' : 'route';
     const testMode = TEST_TOOLS && options.testMode === true;
+    const level = testMode && options.level === 'old' ? 'old' : 'route';
     const stage = testMode && typeof options.stage === 'number' && Number.isInteger(options.stage) && options.stage >= 0 && options.stage < LEVELS[level].stages.length ? options.stage : 0;
     this.world = createWorld(Date.now() & 0xffff, testMode, level, stage);
-    this.state.intro = false;
     this.sync();
+    this.onMessage('warnings', (client: Client) => this.sendWarnings(client));
     this.onMessage('next', (client: Client) => {
       if (this.world.testTools && this.world.players[client.sessionId]) nextStage(this.world);
     });
@@ -114,15 +111,14 @@ export class GameRoom extends Room<{ state: GameState }> {
         client.send('pickError', 'Персонаж занят');
         return;
       }
-      const p = addPlayer(this.world, client.sessionId, char);
-      if (!this.storyHost || !this.world.players[this.storyHost]) this.storyHost = client.sessionId;
+      addPlayer(this.world, client.sessionId, char);
+      this.updateStoryHost();
       if (level === 'route' && stage === 0 && startStory(this.story, 'start', this.world)) this.clearInputs();
-      if (this.state.intro && !this.introReady.has(client.sessionId)) { this.introReaders.add(client.sessionId); p.away = true; }
       this.playerInputs[client.sessionId] = emptyInput();
     });
 
     this.onMessage('switch', (client: Client, char: string) => {
-      if (this.state.intro || this.story.scene || !switchHero(this.world, client.sessionId, char)) {
+      if (this.story.scene || !switchHero(this.world, client.sessionId, char)) {
         client.send('pickError', 'Персонаж занят');
         return;
       }
@@ -133,7 +129,7 @@ export class GameRoom extends Room<{ state: GameState }> {
 
     this.onMessage('move', (client: Client, m: { mx: number; my: number; run?: boolean }) => {
       const inp = this.playerInputs[client.sessionId];
-      if (inp && !this.state.paused && !this.state.intro && !this.story.scene && !this.world.players[client.sessionId]?.away &&
+      if (inp && !this.state.paused && !this.story.scene && !this.world.players[client.sessionId]?.away &&
           Number.isFinite(m?.mx) && Number.isFinite(m?.my)) {
         inp.mx = Math.max(-1, Math.min(1, m.mx)); inp.my = Math.max(-1, Math.min(1, m.my)); inp.run = m.run === true;
       }
@@ -142,8 +138,8 @@ export class GameRoom extends Room<{ state: GameState }> {
     // Кнопки копятся до ближайшего тика, чтобы короткое нажатие не терялось
     this.onMessage('btn', (client: Client, b: string) => {
       const inp = this.playerInputs[client.sessionId];
-      if (inp && !this.state.paused && !this.state.intro && !this.story.scene && !this.world.players[client.sessionId]?.away &&
-          (b === 'skip' || b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult' || b === 'ult2')) inp[b] = true;
+      if (inp && !this.state.paused && !this.story.scene && !this.world.players[client.sessionId]?.away &&
+          (b === 'attack' || b === 'heavy' || b === 'taunt' || b === 'ult' || b === 'ult2')) inp[b] = true;
     });
 
     this.onMessage('view', (client: Client, v: { x?: number; width?: number }) => {
@@ -151,17 +147,18 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (inp && Number.isFinite(v?.x) && Number.isFinite(v?.width)) { inp.viewX = Math.max(0, Math.min(10000, v.x!)); inp.viewW = Math.max(480, Math.min(810, v.width!)); }
     });
     this.onMessage('smoke', (client: Client, on: unknown) => {
-      if (this.world.players[client.sessionId]?.char === 'ramil' && this.playerInputs[client.sessionId] && !this.state.paused && !this.state.intro && !this.story.scene) this.playerInputs[client.sessionId].ult2 = on === true;
+      if (this.world.players[client.sessionId]?.char === 'ramil' && this.playerInputs[client.sessionId] && !this.state.paused && !this.story.scene) this.playerInputs[client.sessionId].ult2 = on === true;
     });
     this.onMessage('fire', (client: Client, on: unknown) => {
       const p = this.world.players[client.sessionId], inp = this.playerInputs[client.sessionId];
-      if (p?.char === 'kris' && inp && typeof on === 'boolean') inp.fireHeld = on && !this.state.paused && !this.state.intro && !this.story.scene && !p.away && p.connected;
+      if (p?.char === 'kris' && inp && typeof on === 'boolean') inp.fireHeld = on && !this.state.paused && !this.story.scene && !p.away && p.connected;
     });
     this.onMessage('clear', (client: Client) => {
       if (this.playerInputs[client.sessionId]) this.playerInputs[client.sessionId] = emptyInput();
     });
     this.onMessage('storyNext', (client: Client, key: string) => {
-      if (client.sessionId !== this.storyHost || !this.world.players[client.sessionId]?.connected) return;
+      const p = this.world.players[client.sessionId];
+      if (this.state.paused || client.sessionId !== this.storyHost || !p?.connected || p.away) return;
       if (advanceStory(this.story, key, this.world)) { this.clearInputs(); this.sync(); }
     });
 
@@ -198,13 +195,6 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (this.world.testTools && this.world.players[client.sessionId]) testKillAll(this.world);
     });
 
-    this.onMessage('introDone', (client: Client) => {
-      this.introReaders.delete(client.sessionId); this.introReady.add(client.sessionId);
-      const p = this.world.players[client.sessionId];
-      if (p) { p.away = false; this.playerInputs[client.sessionId] = emptyInput(); }
-      if (client.sessionId === this.state.introHost) this.state.intro = false;
-    });
-
     // Пауза общая на комнату: поставить и снять может любой из двоих
     this.onMessage('pause', (client: Client, on: boolean) => {
       if (typeof on !== 'boolean' || !this.world.players[client.sessionId]) return;
@@ -217,7 +207,8 @@ export class GameRoom extends Room<{ state: GameState }> {
     this.onMessage('away', (client: Client, on: boolean) => {
       if (typeof on !== 'boolean') return;
       const p = this.world.players[client.sessionId];
-      if (p) { p.away = on || this.introReaders.has(client.sessionId); this.playerInputs[client.sessionId] = emptyInput(); }
+      if (p) { p.away = on; this.playerInputs[client.sessionId] = emptyInput(); }
+      this.updateStoryHost();
     });
 
     this.setPatchRate(TICK_MS); // состояние уходит клиентам каждый тик, а не раз в 50 мс
@@ -235,7 +226,21 @@ export class GameRoom extends Room<{ state: GameState }> {
 
   private clearInputs() { for (const id of Object.keys(this.playerInputs)) this.playerInputs[id] = emptyInput(); }
 
+  private updateStoryHost() {
+    const active = (id: string) => this.world.players[id]?.connected && !this.world.players[id].away;
+    if (!active(this.storyHost)) this.storyHost = this.clients.find(c => active(c.sessionId))?.sessionId ?? '';
+  }
+
+  private sendWarnings(client: Client) {
+    const events = bossWarningEvents(this.world);
+    if (events.length) client.send('ev', events);
+  }
+
   tick() {
+    this.updateStoryHost();
+    if (this.state.paused || !Object.values(this.world.players).some(p => p.connected && !p.away)) {
+      this.sync(); this.flushEvents(); return;
+    }
     if (Object.keys(this.world.players).length && startStoryForWorld(this.story, this.world)) this.clearInputs();
     if (this.story.scene) {
       const key = `${this.story.scene}:${this.story.index}`;
@@ -243,10 +248,9 @@ export class GameRoom extends Room<{ state: GameState }> {
       if (key !== `${this.story.scene}:${this.story.index}`) this.clearInputs();
       this.sync(); this.flushEvents(); return;
     }
-    if (this.state.paused || this.state.intro) { this.sync(); this.flushEvents(); return; }
     const events = step(this.world, this.playerInputs);
     if (Object.keys(this.world.players).length && startStoryForWorld(this.story, this.world)) this.clearInputs();
-    for (const [id, inp] of Object.entries(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = inp.skip = false; if (this.world.players[id]?.char !== 'ramil') inp.ult2 = false; }
+    for (const [id, inp] of Object.entries(this.playerInputs)) { inp.attack = inp.heavy = inp.taunt = inp.ult = false; if (this.world.players[id]?.char !== 'ramil') inp.ult2 = false; }
     this.sync();
     if (events.length) this.broadcast('ev', events);
   }
@@ -268,7 +272,7 @@ export class GameRoom extends Room<{ state: GameState }> {
     s.zones.clear(); for (const zone of w.zones) s.zones.push(new ZoneState({ x: zone.x, y: zone.y, r: zone.r, ms: zone.ms }));
     s.storyTime = w.timeMs; s.storyPushes = JSON.stringify(w.storyPushes ?? []);
     s.pauseMs = w.pauseMs ?? 0; s.slowmoMs = w.slowmoMs ?? 0;
-    s.halt = w.halt; s.cineId = w.cine?.id ?? ''; s.cineKind = w.cine?.kind ?? ''; s.cineMs = w.cine?.ms ?? 0;
+    s.halt = w.halt;
     s.testMode = w.testTools;
     s.level = w.level; s.stage = w.stage; s.trans = w.trans?.ms ?? 0;
     s.tick = w.tick;
@@ -301,8 +305,7 @@ export class GameRoom extends Room<{ state: GameState }> {
   }
 
   onJoin(client: Client) {
-    if (!this.state.introHost) this.state.introHost = client.sessionId;
-    if (!this.storyHost) this.storyHost = client.sessionId;
+    this.sendWarnings(client);
     console.log(`[${this.roomId}] join ${client.sessionId}`);
   }
 
@@ -311,27 +314,23 @@ export class GameRoom extends Room<{ state: GameState }> {
     this.unpause(client.sessionId);
     const p = this.world.players[client.sessionId];
     if (p) { p.connected = false; this.playerInputs[client.sessionId] = emptyInput(); }
-    if (this.storyHost === client.sessionId) this.storyHost = this.clients.find(c => c.sessionId !== client.sessionId && this.world.players[c.sessionId]?.connected)?.sessionId ?? '';
+    this.updateStoryHost();
     console.log(`[${this.roomId}] drop ${client.sessionId}`);
     this.allowReconnection(client, RECONNECT_SECONDS);
   }
 
   onReconnect(client: Client) {
     const p = this.world.players[client.sessionId];
-    if (p) { p.connected = true; p.away = this.introReaders.has(client.sessionId); this.playerInputs[client.sessionId] = emptyInput(); }
-    if (!this.storyHost) this.storyHost = client.sessionId;
+    if (p) { p.connected = true; p.away = false; this.playerInputs[client.sessionId] = emptyInput(); }
+    this.updateStoryHost();
+    this.sendWarnings(client);
     console.log(`[${this.roomId}] reconnect ${client.sessionId}`);
   }
 
   onLeave(client: Client) {
     this.unpause(client.sessionId);
-    if (this.state.introHost === client.sessionId) {
-      this.state.introHost = this.clients.find(c => c.sessionId !== client.sessionId)?.sessionId ?? '';
-      if (this.introReady.has(this.state.introHost)) this.state.intro = false;
-    }
-    this.introReaders.delete(client.sessionId); this.introReady.delete(client.sessionId);
     removePlayer(this.world, client.sessionId);
-    if (this.storyHost === client.sessionId) this.storyHost = this.clients.find(c => c.sessionId !== client.sessionId && this.world.players[c.sessionId]?.connected)?.sessionId ?? '';
+    this.updateStoryHost();
     delete this.playerInputs[client.sessionId];
     console.log(`[${this.roomId}] leave ${client.sessionId}`);
   }
