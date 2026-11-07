@@ -40,7 +40,8 @@ export const ENCOUNTERS: Record<string, Encounter[]> = Object.fromEntries(
       : stage === 'street' && index === 0 ? [6, 4, 4]
       : ['mayak', 'city', 'mfc'].includes(stage) ? [10, 8, 6]
       : stage === 'wagon' ? [8, 7, 6] : [8, 6, 5];
-    return { ...encounter, waves: encounter.waves.map((wave, n) => {
+    // Обычные бои: две волны вместо трёх (mr.R 07.11), состав первых двух не меняется.
+    return { ...encounter, waves: encounter.waves.slice(0, 2).map((wave, n) => {
       let heavyCount = 0;
       const base = wave.map(spawn => stage === 'mfc' && heavy(spawn) && heavyCount++ >= 2 ? { kind: 'omon' as const } : { ...spawn });
       const light = base.filter(spawn => !heavy(spawn));
