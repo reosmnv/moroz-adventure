@@ -81,9 +81,9 @@ check('реакция Насти отдельной репликой после 
 const milonov = STORY_SCENES.find(s => s.id === 'milonov')!;
 const milLines = milonov.steps.filter(s => s.kind === 'line');
 const confession = milLines.findIndex(s => s.id === 'mil.3');
-check('B1 Милонов: mil.3 → mil.p2 → mil.p3 → mil.p4', milLines.slice(confession, confession + 4).map(s => s.id).join() === 'mil.3,mil.p2,mil.p3,mil.p4'
-  && milLines.find(s => s.id === 'mil.p2')?.speaker === 'Милонов' && milLines.find(s => s.id === 'mil.p3')?.speaker === 'ramil');
-check('B1 признание и вопрос дословно из V3', content['mil.p2'] === 'Да что вы хотите?! Мне пришёл донос! Я только исполняю!' && content['mil.p3'] === 'И кто донёс?');
+check('B1 Милонов (сокращено 07.11): mil.3 → mil.p3 → mil.p5', milLines.slice(confession, confession + 3).map(s => s.id).join() === 'mil.3,mil.p3,mil.p5'
+  && milLines.find(s => s.id === 'mil.p3')?.speaker === 'ramil');
+check('B1 признание и вопрос (сокращено 07.11)', /донос.*исполняю/i.test(content['mil.3']) && content['mil.p3'] === 'И кто донёс?');
 const city = STORY_SCENES.find(s => s.id === 'city')!;
 const cityOpening = city.steps.find(s => s.kind !== 'act' && s.kind !== 'state');
 check('B3 первая реплика Сити объясняет направление из местного МФЦ', cityOpening?.kind === 'line' && cityOpening.id === 'cty.route'
@@ -92,8 +92,8 @@ const leverage = STORY_SCENES.find(s => s.id === 'leverage')!;
 const recording = leverage.steps.findIndex(s => s.kind === 'composition' && s.id === 'lev.rec');
 const recordingStep = leverage.steps[recording];
 const recordingIds = leverage.steps.slice(recording - 1, recording + 3).map(s => 'id' in s ? s.id : '');
-check('B4 запись между lev.1 и lev.3, до реакции Милонова', recordingStep?.kind === 'composition'
-  && recordingIds.join() === 'lev.1,lev.rec,lev.3,lev.4'
+check('B4 запись между lev.1 и реакцией Милонова', recordingStep?.kind === 'composition'
+  && recordingIds.slice(0, 3).join() === 'lev.1,lev.rec,lev.4'
   && content['lev.rec'].startsWith('● REC') && recordingStep.images.length > 0
   && recordingStep.images.includes('ui/story/milonov-full.png') && recordingStep.images.some(file => file.includes('portrait'))
   && recordingStep.images.every(file => !/katya|pizdulina/.test(file)));
@@ -106,8 +106,8 @@ check('B4 запись между lev.1 и lev.3, до реакции Милон
 {
   const w = createWorld(23, false, 'route', 0);
   const street = encountersOf(w);
-  check('B5 первый бой street: только ватники, число врагов 6/4/4 сохранено', street[0].waves.flat().every(e => e.kind === 'vatnik')
-    && street[0].waves.map(wave => wave.length).join() === '6,4,4');
+  check('B5 первый бой street: только ватники, две волны 6/4 (mr.R 07.11)', street[0].waves.flat().every(e => e.kind === 'vatnik')
+    && street[0].waves.map(wave => wave.length).join() === '6,4');
   const st = createStoryProgress(); st.completed.push('prologue', 'street_vat');
   const p = addPlayer(w, 'a', 'anastasia'); p.x = 1400;
   w.enc.index = w.enc.cleared = 1;

@@ -28,7 +28,7 @@ async function testStoryFlow() {
   check('A1.1 вернувшийся берёт свободное ведение', first.storyHost === a.sessionId);
   a.send('storyNext', 'prologue:0'); await sleep(100);
   check('TZ21 тап не пропускает титр', first.storyIndex === 0);
-  await sleep(Math.max(2200, 55 * STORY_CONTENT['title.1'].length) + Math.max(2200, 55 * STORY_CONTENT['title.2'].length));
+  await sleep(Math.max(2200, 55 * STORY_CONTENT['title.1'].length));
   const indices = STORY_SCENES.find(s => s.id === 'prologue')!.steps.flatMap((step, i) => step.kind === 'card' || step.kind === 'phone' || step.kind === 'line' ? [i] : []);
   check('V3 пролог виден ведущему', first.storyScene === 'prologue' && first.storyIndex === indices[0] && first.storyHost === a.sessionId);
   const b = await new Client(URL).joinById(a.roomId);
