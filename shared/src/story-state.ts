@@ -1,5 +1,7 @@
 import { STORY_CONTENT } from './story-content.ts';
 import { clampToLane } from './levels.ts';
+import { ROUTE } from './route-data.ts';
+import { VOKZAL_ARENA } from './encounters.ts';
 import { CHARACTERS, TEST_TOOLS, VIEW_W, addPlayer, stepActors, createWorld, testSummon, testHeal, encountersOf, prepareStoryEncounter, placeStoryFormation, stopStoryHeroes, step, type World } from './sim.ts';
 import type { EnemyKind } from './enemy-data.ts';
 import { storyScene, STORY_SCENES, type StoryStep } from './story-scenes.ts';
@@ -114,7 +116,8 @@ export function testStoryScene(story: StoryProgress, world: World, id: string, s
   if (!TEST_TOOLS || !world.testTools || typeof strict !== 'boolean') return false;
   const scene = storyScene(id);
   if (!scene) return false;
-  const stages: Record<string, number> = { shaman: 4, pizdulina: 4, katya: 6, withdrawal: 6, prologue: 0 };
+  const vokzal = ROUTE.findIndex(stage => stage.id === 'vokzal');
+  const stages: Record<string, number> = { shaman: 4, pizdulina: 4, katya: vokzal, withdrawal: vokzal, prologue: 0 };
   const stage = /^(stage|clear):/.test(scene.trigger) ? Number(scene.trigger.split(':')[1]) : stages[id] ?? 0;
   const fresh = createWorld(world.seed, true, 'route', stage);
   for (const old of Object.values(world.players)) {
@@ -124,7 +127,7 @@ export function testStoryScene(story: StoryProgress, world: World, id: string, s
   for (const key of Object.keys(world)) if (!(key in fresh)) delete (world as unknown as Record<string, unknown>)[key];
   Object.assign(world, fresh, { storyStrict: strict });
   testSummon(world); testHeal(world);
-  const bossX: Record<string, number> = { shaman: 940, pizdulina: 1100, katya: 2770, withdrawal: 2900 };
+  const bossX: Record<string, number> = { shaman: 940, pizdulina: 1100, katya: VOKZAL_ARENA[1] - 20, withdrawal: VOKZAL_ARENA[1] - 20 };
   const fight = SCENE_FIGHTS[id];
   const anchor = Math.max((scene.x ?? bossX[id] ?? 320) - 150, fight ? encountersOf(world)[fight.index].arena[0] + 74 : 0);
   Object.values(world.players).forEach((p, i) => {

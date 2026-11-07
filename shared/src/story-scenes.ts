@@ -1,4 +1,5 @@
 import type { StoryTextId } from './story-content.ts';
+import { VOKZAL_ARENA } from './encounters.ts';
 export type ActorRef = string;
 export type StoryStep =
   | { kind: 'line'; id: StoryTextId; speaker: string; at?: ActorRef }
@@ -11,7 +12,7 @@ export type StoryStep =
   | { kind: 'state'; id: string; value: string };
 export interface StoryScene { id: string; trigger: string; x?: number; steps: StoryStep[] }
 const spawn = (actor: ActorRef, look: string, x: number, y = 200, keep = false): StoryStep =>
-  ({ kind: 'act', actor, do: 'spawn', look, x, y, facing: -1, keep, rel: true });
+  ({ kind: 'act', actor, do: 'spawn', look, x, y, facing: -1, keep });
 const focus = (x: number, ms = 600): StoryStep => ({ kind: 'act', actor: 'camera', do: 'focus', x, ms });
 const face = (actor: ActorRef, facing: 1 | -1): StoryStep => ({ kind: 'act', actor, do: 'face', facing });
 export const STORY_SCENES: StoryScene[] = [
@@ -99,11 +100,11 @@ export const STORY_SCENES: StoryScene[] = [
     face('milonov', 1), { kind: 'act', actor: 'milonov', do: 'exit', ms: 2200 },
   ] },
   { id: 'katya', trigger: 'boss:katya', steps: [
-    focus(2770),
+    focus((VOKZAL_ARENA[0] + VOKZAL_ARENA[1]) / 2),
     { kind: 'line', id: 'kat.1', speaker: 'Катя', at: 'katya' }, { kind: 'line', id: 'kat.2', speaker: 'anastasia' },
   ] },
   { id: 'withdrawal', trigger: 'victory', steps: [
-    focus(4000), spawn('katya', 'katya', 230, 205),
+    focus((VOKZAL_ARENA[0] + VOKZAL_ARENA[1]) / 2), spawn('katya', 'katya', VOKZAL_ARENA[1] - 20, 205),
     { kind: 'phone', ids: ['kat.withdraw'], at: 'katya' }, { kind: 'phone', ids: ['push.7'], at: 'anastasia' },
     { kind: 'composition', id: 'fin.4', images: ['ui/portrait-prime.png', 'ui/nadya/portrait.png', 'ui/kris/portrait.png', 'ui/ramil/portrait.png', 'ui/story/katya-pl.png'] },
     { kind: 'line', id: 'fin.1', speaker: 'anastasia' }, { kind: 'line', id: 'fin.2', speaker: 'nadezhda' },

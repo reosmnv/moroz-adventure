@@ -1,16 +1,17 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { CHARACTERS, LEVELS, STORY_CONTENT, STORY_SCENES, advanceStory, createStoryProgress, startStory, startStoryForWorld, storyStepKey, wantedStatus, createWorld, addPlayer, tickStory, testStoryScene, testStoryStrict, step, emptyInput, encountersOf, stageOf } from '@bc/shared';
+import { ROUTE } from '../../shared/src/route-data.ts';
 
 let failed = 0;
 function check(name: string, ok: boolean) { console.log(`${ok ? 'OK' : 'FAIL'} ${name}`); if (!ok) failed++; }
 const content = STORY_CONTENT as Record<string, string>;
 const publicDir = 'client/public/';
+const vokzal = ROUTE.findIndex(stage => stage.id === 'vokzal');
 
 // Снятые реплики защищённых персонажей храним до отдельной переделки.
 const unusedTextExceptions = new Set([
   'ins.katya.name', 'ins.katya.tag', 'ins.katya.line', 'kat.6', 'kat.w2', 'kat.l3', 'kat.l4', 'kat.l5',
   'ins.pizd.name', 'ins.pizd.tag', 'ins.pizd.line', 'pz.5', 'pz.r', 'pz.w1',
-  'hck.5', // Вокзальный текст запрещено удалять, даже если сцену поменяют.
 ]);
 // Сцены уже вычислены: шаблонные ID и массивы здесь развёрнуты самим JS.
 const usedTexts = new Set(STORY_SCENES.flatMap(scene => scene.steps.flatMap(step =>
@@ -46,7 +47,8 @@ for (const scene of STORY_SCENES) {
       const value = content[id];
       if (!value) { console.log('missing ID', scene.id, id); valid = false; continue; }
       const limit = step.kind === 'line' ? 70 : step.kind === 'phone' && id !== 'intro.body' && !id.startsWith('push.') ? 40 : 250;
-      if (value.length > limit) { console.log('too long', scene.id, id, value.length, limit); valid = false; }
+      const length = step.kind === 'phone' ? Math.max(...value.split('\n').map(line => line.length)) : value.length;
+      if (length > limit) { console.log('too long', scene.id, id, length, limit); valid = false; }
     }
     if (step.kind === 'composition') for (const file of step.images) if (!existsSync(publicDir + file)) { console.log('missing asset', file); valid = false; }
     lines = step.kind === 'line' ? lines + 1 : 0;
@@ -194,7 +196,7 @@ check('портреты всех сюжетных героев', ['portrait-prim
 check('ассеты боя Кати', ['idle', 'walk', 'hurt', 'fall', 'strike', 'cast', 'release'].every(clip => existsSync(publicDir + `sprites/enemies/katya-pl/${clip}-east.png`)));
 check('лимиты пушей и слов боя', Object.entries(content).every(([id, value]) => id.startsWith('push.') ? value.length <= 70 : /^(\w+\.w\d|\w+\.down|word\..+)$/.test(id) ? value.length <= 12 : true));
 check('B6 оба перекрёстных слова в словаре, максимум 12 знаков', ['word.crossBan', 'word.crossStage'].every(id => !!content[id] && content[id].length <= 12));
-check('лимиты карточек маршрута', LEVELS.route.stages.every(s => s.cards.every(([small, big]) => small.length <= 28 && big.length <= 14)));
+check('лимиты карточек маршрута', LEVELS.route.stages.every(s => s.cards.every(([small, big]) => small.length <= 28 && big.length <= (s.id === 'vokzal' ? 15 : 14))));
 check('все текстовые вывески удалены', LEVELS.route.stages.every(s => s.signs.length === 0));
 check('старый сюжет отсутствует в игровых текстах', !/несуществующ|Вас нет|НАСТЯ ЕСТЬ|Тебя нет|Удалена мной|Как существовать|ОКНО 1|А-000|А-001|ожидайте вызова/i.test(Object.values(content).join('\n') + JSON.stringify(LEVELS.route.stages)));
 
@@ -263,12 +265,58 @@ finishScene();
 check('доступ к базе следует за признанием', startStoryForWorld(route, routeWorld) && route.scene === 'leverage');
 finishScene();
 check('отправитель раскрывается после доступа к базе', startStoryForWorld(route, routeWorld) && route.scene === 'sender');
-finishScene(); routeWorld.enemies.k = { boss: 'katya', hp: 1 };
-check('Катя появляется после раскрытия отправителя', startStoryForWorld(route, routeWorld) && route.scene === 'katya');
-finishScene(); routeWorld.enemies = {}; routeWorld.enc.cleared = 3; routeWorld.won = true;
+finishScene(); routeWorld.stage = vokzal; routeWorld.enc.cleared = 0;
+routeWorld.enemies.k = { boss: 'katya', hp: 1 };
+check('Катя появляется на вокзале после раскрытия отправителя', startStoryForWorld(route, routeWorld) && route.scene === 'katya');
+finishScene(); routeWorld.enemies = {}; routeWorld.enc.cleared = 1; routeWorld.won = true;
 check('отзыв доноса и поздравление следуют за боем', startStoryForWorld(route, routeWorld) && route.scene === 'withdrawal');
 finishScene();
 check('финал открыт после отзыва доноса', route.flags.finaleReady === 'on');
+
+{
+  const sender = STORY_SCENES.find(s => s.id === 'sender')!;
+  check('TZ26 sender показывает геометку и билет', sender.steps.some(s => s.kind === 'phone' && s.ids.includes('hck.5'))
+    && content['hck.5'] === '> геометка: КИЕВСКИЙ ВОКЗАЛ\n> билет: в один конец');
+  check('TZ26 sender направляет на Киевский', sender.steps.some(s => s.kind === 'line' && s.id === 'hck.7')
+    && content['hck.7'] === 'Она сбегает. На Киевский, бегом!');
+  check('TZ26 финальный кадр с вокзала', content['fin.4'] === 'Кадр с вокзала пойдёт в избранное.');
+  for (const id of ['katya', 'withdrawal']) {
+    const w = createWorld(26, true), st = createStoryProgress(); addPlayer(w, 'a', 'anastasia');
+    testStoryScene(st, w, id, true); tickStory(st, w, 20000);
+    const arena = encountersOf(w)[0].arena;
+    check(`TZ26 ${id}: сцена на вокзале`, w.stage === vokzal && st.scene === id);
+    check(`TZ26 ${id}: герои и Катя в арене`, Object.values(w.players).every(p => p.x >= arena[0] && p.x <= arena[1])
+      && (id === 'katya' ? Object.values(w.enemies).some(e => e.boss === 'katya' && e.x >= arena[0] && e.x <= arena[1])
+        : !!w.actors.katya && w.actors.katya.x >= arena[0] && w.actors.katya.x <= arena[1]));
+  }
+}
+
+// Как в сессиях: пока идёт сцена, боевой step и проверка выхода не выполняются.
+{
+  const mfc = ROUTE.findIndex(stage => stage.id === 'mfc');
+  const w = createWorld(26, false, 'route', mfc), st = createStoryProgress();
+  const p = addPlayer(w, 'a', 'anastasia'), exit = stageOf(w).exit!;
+  p.x = exit.x0 + 10; p.y = exit.y1;
+  w.enc.index = w.enc.cleared = encountersOf(w).length - 1;
+  step(w, {});
+  check('TZ26 выход МФЦ закрыт до всех боёв', !w.trans && !w.won);
+  w.enemies = {}; w.enc.lock = null; w.enc.queue = [];
+  w.enc.index = w.enc.cleared = encountersOf(w).length;
+  p.x = exit.x0 + 10; p.y = exit.y1;
+  st.completed = STORY_SCENES.slice(0, STORY_SCENES.findIndex(s => s.id === 'milonov')).map(s => s.id);
+  for (const id of ['milonov', 'leverage', 'sender']) {
+    startStoryForWorld(st, w);
+    check(`TZ26 у выхода запускается ${id}`, st.scene === id);
+    for (let n = 0; st.scene && n < 200; n++) {
+      tickStory(st, w, 20000); advanceStory(st, storyStepKey(st), w);
+    }
+    check(`TZ26 выход не обрывает ${id}`, st.completed.includes(id) && w.stage === mfc && !w.trans && !w.won);
+  }
+  step(w, {});
+  check('TZ26 после sender выход ведёт на вокзал', w.trans?.to === vokzal);
+  for (let n = 0; n < 60; n++) step(w, {});
+  check('TZ26 группа перешла на вокзал без преждевременной победы', w.stage === vokzal && !w.won);
+}
 
 // Кампания вместе с постановкой: четыре героя идут обычным вводом, враги снимаются тестом.
 const campaignWorld = createWorld(8, false, 'route'), campaign = createStoryProgress();

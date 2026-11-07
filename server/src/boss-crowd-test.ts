@@ -1,4 +1,4 @@
-import { BOSS, BOSS_ATTACK, ENCOUNTERS, HERO_ID, MAX_ALIVE, MAX_PEAK_ALIVE, PLAYER_HP, TICK_MS, addPlayer, createWorld, emptyInput, step, type BossId, type Enemy, type SimEvent, type World } from '@bc/shared';
+import { BOSS, BOSS_ATTACK, ENCOUNTERS, LEVELS, HERO_ID, MAX_ALIVE, MAX_PEAK_ALIVE, PLAYER_HP, TICK_MS, addPlayer, createWorld, emptyInput, step, type BossId, type Enemy, type SimEvent, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -93,5 +93,30 @@ function run(w: World, ms: number, before?: (elapsed: number) => void) {
 check('базовое здоровье игрока не изменено', PLAYER_HP === 150);
 check('плотность: 10 обычно и 12 на пике', MAX_ALIVE === 10 && MAX_PEAK_ALIVE === 12 && ENCOUNTERS.mayak[0].waves[0].length === 10);
 check('МФЦ: не больше двух тяжёлых в волне', ENCOUNTERS.mfc.every(enc => enc.waves.every(wave => wave.filter(e => e.kind === 'clerk' || e.kind === 'omon_shield').length <= 2)));
+check('МФЦ: два боя без боссов', ENCOUNTERS.mfc.length === 2 && ENCOUNTERS.mfc.every(enc => !enc.bosses?.length));
+{
+  const encounters = ENCOUNTERS.vokzal, fight = encounters[0];
+  const width = LEVELS.route.stages.find(stage => stage.id === 'vokzal')!.width;
+  const kinds = ['vatnik', 'zek', 'omon', 'omon_shield', 'clerk', 'info_m', 'info_f'];
+  check('вокзал: один бой у конца перрона, арена 480', encounters.length === 1 && fight.arena[1] === width - 310
+    && fight.arena[1] - fight.arena[0] === 480 && fight.trigger === fight.arena[0] + 60);
+  check('вокзал: две волны 9/10', fight.waves.map(wave => wave.length).join() === '9,10');
+  check('вокзал: в каждой волне все семь видов', fight.waves.every(wave => kinds.every(kind => wave.some(e => e.kind === kind))));
+  check('вокзал: не больше двух тяжёлых в волне', fight.waves.every(wave => wave.filter(e => e.kind === 'clerk' || e.kind === 'omon_shield').length <= 2));
+  check('вокзал: после волн только Катя', fight.bosses?.join() === 'katya');
+  check('маршрут: каждый бой по две волны', Object.values(ENCOUNTERS).every(list => list.every(enc => enc.waves.length === 2)));
+  const stage = LEVELS.route.stages.findIndex(s => s.id === 'vokzal');
+  const w = createWorld(26, false, 'route', stage), p = addPlayer(w, 'h', HERO_ID);
+  p.x = fight.trigger; p.god = true;
+  let peak = 0;
+  for (let n = 0; n < 400; n++) {
+    if (w.enc.lock && w.enc.wave === 0 && !w.enc.queue.length) {
+      Object.values(w.enemies).filter(e => e.hp > 0).slice(4).forEach(e => { e.hp = 0; });
+    }
+    step(w, {});
+    peak = Math.max(peak, Object.values(w.enemies).filter(e => e.hp > 0).length);
+  }
+  check('вокзал: живых до пикового лимита 12', peak === MAX_PEAK_ALIVE);
+}
 if (failed) process.exit(1);
 console.log('boss/crowd checks passed');

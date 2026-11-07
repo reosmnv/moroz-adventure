@@ -101,6 +101,7 @@ for (const [i, stage] of LEVELS.route.stages.entries()) {
   // Имена собственные сохраняют регистр карточек маршрута.
   if (stage.id === 'city') b.textContent = 'Москва-Сити';
   if (stage.id === 'mfc') b.textContent = 'Главный МФЦ';
+  if (stage.id === 'vokzal') b.textContent = 'Киевский вокзал';
   if (stage.id === 'vestibule') b.textContent = '«Беговая»';
   if (stage.id === 'mayak') b.textContent = '«Маяковская»';
   b.className = 'secondary'; b.onclick = () => { selectedStage = i; renderTest(); void begin(testOnline, undefined, i, true); };

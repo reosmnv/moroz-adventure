@@ -1385,7 +1385,7 @@ function stepEncounters(w: World, ev: SimEvent[], dtMs: number) {
   }
   enc.spawnMs = alive() === 0 ? 0 : Math.max(0, (enc.spawnMs ?? 0) - dtMs);
   const stage = stageOf(w).id;
-  const cap = stage === 'mayak' || stage === 'mfc' ? MAX_PEAK_ALIVE : MAX_ALIVE;
+  const cap = stage === 'mayak' || stage === 'mfc' || stage === 'vokzal' ? MAX_PEAK_ALIVE : MAX_ALIVE;
   if (enc.queue.length && alive() < cap && !enc.spawnMs) {
     const spawn = enc.queue.shift()!, info = KIND[spawn.kind], stats = ROLE[info.role];
     const door = spawn.door !== undefined && spawn.door >= enc.lock[0] && spawn.door <= enc.lock[1] ? spawn.door : undefined;

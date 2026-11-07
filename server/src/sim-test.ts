@@ -593,6 +593,7 @@ for (const front of [true, false]) {
     for (const event of ev) if (event.t === 'boss') {
       const boss = w.enemies[event.id];
       bosses.push(boss.boss!);
+      if (boss.boss === 'katya') check('TZ26: Катя только после обеих волн вокзала', stageOf(w).id === 'vokzal' && w.enc.wave === 1 && !w.enc.queue.length);
       check(`TZ10: ${boss.boss} появляется внутри арены`, !!w.enc.lock && boss.x >= w.enc.lock[0] && boss.x <= w.enc.lock[1]);
     }
     locks += ev.filter(e => e.t === 'lock').length; clears += ev.filter(e => e.t === 'clear').length;
@@ -603,7 +604,7 @@ for (const front of [true, false]) {
     ordered &&= w.enc.cleared >= (done[w.stage] ?? 0);
     done[w.stage] = w.enc.cleared;
   }
-  check('R2: бот проходит весь маршрут по порядку', w.won && ordered && locks === 12 && clears === 12 && done.join() === '3,1,1,1,1,2,3', `ticks=${ticks} locks=${locks} clears=${clears} done=${done}`);
+  check('R2: бот проходит весь маршрут по порядку', w.won && ordered && locks === 12 && clears === 12 && done.join() === '3,1,1,1,1,2,2,1', `ticks=${ticks} locks=${locks} clears=${clears} done=${done}`);
   check('V3: маршрут включает Катю', bosses.join() === 'shaman,pizdulina,katya');
   const n = w.nextEnemyId; spawnEnemies(w, 3); step(w, {});
   check('R2: после победы нет новых врагов', w.nextEnemyId === n && !w.enc.lock);
@@ -653,7 +654,7 @@ for (const dodge of [false, true]) {
 }
 
 
-// Арены оставляют место под кнопки на самом широком экране.
+// Арены оставляют место под кнопки.
 for (const stage of LEVELS.route.stages) {
   for (const [i, encounter] of (ENCOUNTERS[stage.id] ?? []).entries()) {
     check(`TZ10: ${stage.id} E${i + 1} левее кнопок`, encounter.arena[1] <= stage.width - 0.4 * 760);

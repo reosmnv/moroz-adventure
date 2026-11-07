@@ -1,7 +1,12 @@
 import type { BossId } from './boss-data.ts';
 import type { EnemyKind } from './enemy-data.ts';
+import { ROUTE } from './route-data.ts';
 export interface Spawn { kind: EnemyKind; door?: number }
 export interface Encounter { trigger: number; arena: [number, number]; waves: Spawn[][]; bosses?: BossId[] }
+// Правый край арены левее кнопок (как у всех боёв, TZ10): камера не едет дальше конца локации.
+const vokzalRight = ROUTE.find(stage => stage.id === 'vokzal')!.width - 310;
+export const VOKZAL_ARENA: [number, number] = [vokzalRight - 480, vokzalRight];
+const vokzalKinds: EnemyKind[] = ['vatnik', 'zek', 'omon', 'omon_shield', 'clerk', 'info_m', 'info_f'];
 const BASE_ENCOUNTERS: Record<string, Encounter[]> = {
   street: [
     { trigger: 300, arena: [240, 720], waves: [[{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik', door: 630 }], [{ kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'vatnik' }]] },
@@ -28,7 +33,9 @@ const BASE_ENCOUNTERS: Record<string, Encounter[]> = {
   mfc: [
     { trigger: 440, arena: [380, 860], waves: [[{ kind: 'info_f' }, { kind: 'info_f' }, { kind: 'clerk' }, { kind: 'clerk' }], [{ kind: 'info_m' }, { kind: 'info_m' }, { kind: 'vatnik' }, { kind: 'vatnik' }, { kind: 'clerk' }], [{ kind: 'info_f' }, { kind: 'info_f' }, { kind: 'info_m' }, { kind: 'info_m' }, { kind: 'clerk' }]] },
     { trigger: 1600, arena: [1540, 2020], waves: [[{ kind: 'clerk' }, { kind: 'clerk' }, { kind: 'zek' }, { kind: 'zek' }], [{ kind: 'info_m' }, { kind: 'info_f' }, { kind: 'clerk' }, { kind: 'vatnik' }, { kind: 'vatnik' }], [{ kind: 'clerk' }, { kind: 'clerk' }, { kind: 'clerk' }, { kind: 'zek' }, { kind: 'zek' }]] },
-    { trigger: 2550, arena: [2490, 2970], waves: [[{ kind: 'omon' }, { kind: 'omon' }, { kind: 'omon_shield' }, { kind: 'omon_shield' }]], bosses: ['katya'] },
+  ],
+  vokzal: [
+    { trigger: VOKZAL_ARENA[0] + 60, arena: VOKZAL_ARENA, waves: [vokzalKinds.map(kind => ({ kind })), vokzalKinds.map(kind => ({ kind }))], bosses: ['katya'] },
   ],
 };
 
@@ -36,7 +43,7 @@ const BASE_ENCOUNTERS: Record<string, Encounter[]> = {
 const heavy = (spawn: Spawn) => spawn.kind === 'clerk' || spawn.kind === 'omon_shield';
 export const ENCOUNTERS: Record<string, Encounter[]> = Object.fromEntries(
   Object.entries(BASE_ENCOUNTERS).map(([stage, encounters]) => [stage, encounters.map((encounter, index) => {
-    const sizes = stage === 'mfc' && index === 2 ? [4]
+    const sizes = stage === 'vokzal' ? [9, 10]
       : stage === 'street' && index === 0 ? [6, 4, 4]
       : ['mayak', 'city', 'mfc'].includes(stage) ? [10, 8, 6]
       : stage === 'wagon' ? [8, 7, 6] : [8, 6, 5];

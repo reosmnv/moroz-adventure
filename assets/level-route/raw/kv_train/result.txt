@@ -1,0 +1,11 @@
+status: completed
+id: 2612f373-f409-4c5f-ab65-7b439ff5289c
+job_id: 2612f373-f409-4c5f-ab65-7b439ff5289c
+frames: 1
+transparent: no — every pixel is opaque. If this was create_image_pixflux with no_background, that is by design above 40,000px of area (a flat background colour; a retry at this size won't change it): its submit receipt gives the free pixelart_workbench step that keys the colour out.
+asset_id: 4dde1646-2d2a-583e-90e4-91ca1b61db8d
+asset_type: image
+asset_status: saved
+gallery: saved to your PixelLab gallery (pixellab.ai/create)
+charged: 10 generations
+download: https://api.pixellab.ai/mcp/images/2612f373-f409-4c5f-ab65-7b439ff5289c/download

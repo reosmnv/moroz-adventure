@@ -1,0 +1,133 @@
+[
+ {
+  "name": "kv_hall",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Inside the grand historic waiting hall of Kievsky railway station in Moscow: tall arched windows with white stone frames, cream and pale yellow walls with ornate stucco cornices, a large dark blank electronic departures board high on the wall, bronze chandeliers hanging from the top edge, a row of dark wooden waiting benches against the wall. Floor: polished beige and grey granite tiles. Overcast bright daylight through a glass roof, muted realistic colors matched to the neighbouring screen. Bottom 45% of the image: wide empty walkable floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 901,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring pixel screen of the same game: match its pixel style, light and color palette exactly"
+    }
+   ]
+  }
+ },
+ {
+  "name": "kv_gates",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Exit from Kievsky railway station hall to the platforms: a row of metal ticket turnstiles against the wall, glass doors, a big arched glass end wall of the train shed with thin steel lattice frames, a blank blue platform number sign, steel lattice arch trusses of the Shukhov train shed rising to the top edge. Floor: grey granite platform paving. Overcast bright daylight through a glass roof, muted realistic colors matched to the neighbouring screen. Bottom 45% of the image: wide empty walkable floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 902,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring pixel screen of the same game: match its pixel style, light and color palette exactly"
+    },
+    {
+     "base64": "@assets/source/kievsky/ref-arch.png",
+     "usage": "real photo of Kievsky station: architecture shapes and colors only, redraw as flat side view pixel art"
+    }
+   ]
+  }
+ },
+ {
+  "name": "kv_train",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Platform under the historic glass and steel train shed of Kievsky railway station: the long side of a parked dark green passenger train coach with a row of square windows and a closed door fills the wall, above it slender steel lattice arch trusses and a glass roof with many small panes at the top edge, a hanging round lamp. Floor: grey granite platform with a thin yellow safety line along the wall. Overcast bright daylight through a glass roof, muted realistic colors matched to the neighbouring screen. Bottom 45% of the image: wide empty walkable floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 903,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring pixel screen of the same game: match its pixel style, light and color palette exactly"
+    },
+    {
+     "base64": "@assets/source/kievsky/ref-train.png",
+     "usage": "real photo of Kievsky station: architecture shapes and colors only, redraw as flat side view pixel art"
+    }
+   ]
+  }
+ },
+ {
+  "name": "kv_kiosk",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Platform under the historic glass and steel train shed of Kievsky railway station: the side of the old white and cream station building with tall windows along the platform, steel lattice columns and arched trusses of the Shukhov train shed, glass roof with many small panes at the top edge, an old platform clock on a post, a small blank kiosk with a closed shutter, cast iron lamp posts. Floor: grey granite platform paving. Overcast bright daylight through a glass roof, muted realistic colors matched to the neighbouring screen. Bottom 45% of the image: wide empty walkable floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 904,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring pixel screen of the same game: match its pixel style, light and color palette exactly"
+    },
+    {
+     "base64": "@assets/source/kievsky/ref-shed.png",
+     "usage": "real photo of Kievsky station: architecture shapes and colors only, redraw as flat side view pixel art"
+    }
+   ]
+  }
+ },
+ {
+  "name": "kv_end",
+  "tool": "create_image_pro",
+  "args": {
+   "description": "2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. End of the platform at the open end of the Kievsky railway station train shed: the last steel lattice arch of the glass roof on the left half, open overcast sky on the right half, in the distance the tall stone clock tower of Kievsky station with a round clock and a spire, railway catenary poles and a red-white buffer stop against the wall. Floor: grey granite platform paving. Overcast bright daylight through a glass roof, muted realistic colors matched to the neighbouring screen. Bottom 45% of the image: wide empty walkable floor, the base of the wall meets the floor in one straight horizontal line, nothing standing on the floor.",
+   "width": 320,
+   "height": 180,
+   "no_background": false,
+   "seed": 905,
+   "style_image_base64": "@assets/level1/style-s1.png",
+   "style_copy": [
+    "outline",
+    "detail",
+    "shading"
+   ],
+   "reference_images": [
+    {
+     "base64": "@assets/level-route/raw/mfc_int/0.png",
+     "usage": "neighbouring pixel screen of the same game: match its pixel style, light and color palette exactly"
+    },
+    {
+     "base64": "@assets/source/kievsky/ref-shed.png",
+     "usage": "real photo of Kievsky station: architecture shapes and colors only, redraw as flat side view pixel art"
+    }
+   ]
+  }
+ }
+]

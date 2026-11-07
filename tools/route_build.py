@@ -232,6 +232,28 @@ def base_mfc():
     return img, [WALL] * img.width
 
 
+VOKZAL = [("kv_hall", 20, 0), ("kv_gates", 21, 0), ("kv_kiosk", 18, 0), ("kv_train", 21, 0),
+          ("kv_kiosk", 18, 1), ("kv_train", 21, 1), ("kv_end", 22, 0)]  # (экран, срез сверху, зеркало)
+KV_COLUMN = (52, 66)  # src x фермы Шухова на kv_kiosk: закрывает стыки экранов
+
+
+def base_vokzal():
+    """Киевский вокзал, 7 экранов: зал ожидания, турникеты, перрон с часами, поезд, зеркала перрона и поезда, конец перрона с башней.
+    Пол: зал своей бежевой плиткой, перрон серым гранитом; на стыках колонна фермы."""
+    parts = []
+    for n, dy, f in VOKZAL:
+        c = cut(n, dy)
+        parts.append(c[:, ::-1].copy() if f else c)
+    width = W * len(parts)
+    floor = slabs(width, H - WALL, floor_color("kv_kiosk", (135, 175)), seed=9, sw=44)
+    floor[:, :W] = slabs(W, H - WALL, floor_color("kv_hall", (135, 175)), seed=8, sw=48)
+    img = gloss(walls_with_floor(parts, floor), k=0.12)
+    col = Image.fromarray(cut("kv_kiosk", 18)[:WALL + 1, KV_COLUMN[0]:KV_COLUMN[1]])
+    for k in range(1, len(parts)):
+        img.paste(col, (W * k - (KV_COLUMN[1] - KV_COLUMN[0]) // 2, 0), col)
+    return img, [WALL] * img.width
+
+
 def carpet(floor, cx):
     """Красная дорожка к главному окну: от стены вниз, расширяется к зрителю, кромки темнее."""
     h = floor.shape[0]
@@ -286,7 +308,7 @@ def base_yard2():
     return Image.fromarray(a), [WALL] * a.shape[1]
 
 
-BASES = {"street6": base_street6, "yard2": base_yard2, "street": base_street, "yard": base_yard, "vestibule": base_vestibule, "wagon_tile": base_wagon_tile, "mayak": base_mayak, "city": base_city, "mfc": base_mfc}
+BASES = {"street6": base_street6, "yard2": base_yard2, "street": base_street, "yard": base_yard, "vestibule": base_vestibule, "wagon_tile": base_wagon_tile, "mayak": base_mayak, "city": base_city, "mfc": base_mfc, "vokzal": base_vokzal}
 
 SEAM = "seamless continuation, the two halves join into one continuous flat side view, same light and colors, no text, no people"
 WINDOWS = {
@@ -510,7 +532,7 @@ def final_simple(stage):
     return f
 
 
-FINALS = {"city": final_city, "mfc": final_simple("mfc"), "street": final_street, "yard": final_yard, "vestibule": final_vestibule, "wagon": final_wagon, "mayak": final_mayak}
+FINALS = {"city": final_city, "mfc": final_simple("mfc"), "vokzal": final_simple("vokzal"), "street": final_street, "yard": final_yard, "vestibule": final_vestibule, "wagon": final_wagon, "mayak": final_mayak}
 
 
 def floor_ts(tops):

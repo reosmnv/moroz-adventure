@@ -1,0 +1,27 @@
+{
+ "kv_hall": {
+  "status": "queued",
+  "job_id": "75a19592-c57b-4577-a46b-b5bef1225512",
+  "out": "id: 75a19592-c57b-4577-a46b-b5bef1225512\njob_id: 75a19592-c57b-4577-a46b-b5bef1225512\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Inside the grand historic waiting hall of Kievsky railway station in Moscow: tall arched windows with white stone frames, cream and pale yellow walls with ornate stucco cornices, a large dark blank electronic departures board high on the wall, bronze chand"
+ },
+ "kv_gates": {
+  "status": "queued",
+  "job_id": "e9696d74-65d9-4622-9f56-a85950f5af69",
+  "out": "id: e9696d74-65d9-4622-9f56-a85950f5af69\njob_id: e9696d74-65d9-4622-9f56-a85950f5af69\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Exit from Kievsky railway station hall to the platforms: a row of metal ticket turnstiles against the wall, glass doors, a big arched glass end wall of the train shed with thin steel lattice frames, a blank blue platform number sign, steel lattice arch tru"
+ },
+ "kv_train": {
+  "status": "queued",
+  "job_id": "2612f373-f409-4c5f-ab65-7b439ff5289c",
+  "out": "id: 2612f373-f409-4c5f-ab65-7b439ff5289c\njob_id: 2612f373-f409-4c5f-ab65-7b439ff5289c\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Platform under the historic glass and steel train shed of Kievsky railway station: the long side of a parked dark green passenger train coach with a row of square windows and a closed door fills the wall, above it slender steel lattice arch trusses and a g"
+ },
+ "kv_kiosk": {
+  "status": "queued",
+  "job_id": "f42a1b0a-356e-4b97-906f-4a606a02095d",
+  "out": "id: f42a1b0a-356e-4b97-906f-4a606a02095d\njob_id: f42a1b0a-356e-4b97-906f-4a606a02095d\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. Platform under the historic glass and steel train shed of Kievsky railway station: the side of the old white and cream station building with tall windows along the platform, steel lattice columns and arched trusses of the Shukhov train shed, glass roof wit"
+ },
+ "kv_end": {
+  "status": "queued",
+  "job_id": "23236eae-632e-4482-9ea7-c79175a1b248",
+  "out": "id: 23236eae-632e-4482-9ea7-c79175a1b248\njob_id: 23236eae-632e-4482-9ea7-c79175a1b248\nmodel: pro\ndescription: 2D side-view beat 'em up stage background, Streets of Rage 2 pixel art, strictly flat orthographic side view, the camera looks straight at the wall with NO perspective and no vanishing point, no text, no letters, no logos, no people. End of the platform at the open end of the Kievsky railway station train shed: the last steel lattice arch of the glass roof on the left half, open overcast sky on the right half, in the distance the tall stone clock tower of Kievsky station with a round c"
+ }
+}
