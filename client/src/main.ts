@@ -1,16 +1,16 @@
 import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, LEVELS, TEST_TOOLS, STORY_SCENES } from '@bc/shared';
 import { LocalSession, OnlineSession, clearReconnect, returnToMenu, savedReconnect, type GameSession } from './session.ts';
 import { GAME_TITLE, STORY, showIntro, syncStoryView } from './story.ts';
-import { startGame } from './scene.ts';
+import type { startGame } from './scene.ts';
 import { audioState, unlockAudio } from './audio.ts';
 import { settings, updateSettings } from './settings.ts';
+import { DEBUG } from './debug.ts';
 
 const $ = (id: string) => document.getElementById(id)!;
 const visible = (id: string, on: boolean) => $(id).classList.toggle('hidden', !on);
 const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? `${location.protocol}//${location.hostname}:2567`;
 const params = new URLSearchParams(location.search);
 const roomCode = location.hash.slice(1).toUpperCase() || undefined;
-const DEBUG = params.has('debug');
 let debugTouch = '-';
 if (DEBUG) document.addEventListener('touchstart', e => { const t = e.touches[0]; const el = document.elementFromPoint(t.clientX, t.clientY); debugTouch = `${t.clientX | 0},${t.clientY | 0} ${el?.tagName ?? '?'}${el?.id ? '#' + el.id : ''}${el && typeof el.className === 'string' && el.className ? '.' + el.className.split(' ')[0] : ''}`; }, { capture: true, passive: true });
 const MENU_SCREENS = ['menuHome', 'newScreen', 'joinScreen', 'testScreen'];
@@ -105,10 +105,11 @@ function maybeIntro() {
 async function begin(online: boolean, code?: string, stage = 0, testMode = false, resume = false) {
   if (busy) return;
   busy = true; $('menuNote').textContent = online ? 'Подключаюсь…' : 'Загружаю…';
-  unlockAudio();
   try {
+    unlockAudio();
     if (!resume) clearReconnect();
     introSeen = false;
+    const { startGame } = await import('./scene.ts');
     session = online ? await OnlineSession.open(SERVER_URL, code, 'route', stage, testMode, resume) : new LocalSession('route', stage, testMode);
     ($('storyStrict') as HTMLInputElement).checked = true;
     session.onPickError = message => { pendingHero = ''; $('pickNote').textContent = message; };
@@ -120,6 +121,13 @@ async function begin(online: boolean, code?: string, stage = 0, testMode = false
     visible('menu', false); visible('topbar', true);
     if (online && !code && !resume) { createdOpen = true; openShare(true); }
   } catch (e: unknown) {
+    const failedSession = session, failedGame = game;
+    session = null; game = null;
+    // Одна ошибка очистки не должна помешать освободить второй ресурс.
+    try { failedSession?.leave(); } catch (cleanupError) { console.error(cleanupError); }
+    try { failedGame?.destroy(true); } catch (cleanupError) { console.error(cleanupError); }
+    createdOpen = false; pausePanel = '';
+    visible('shareBox', false); visible('topbar', false); visible('menu', true);
     const error = e as { code?: number; message?: string };
     const msg = error.message ?? String(e);
     $('menuNote').textContent = /full|maxclients|locked/i.test(msg) ? STORY.service.joinFull

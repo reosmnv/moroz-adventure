@@ -9,6 +9,7 @@ window.addEventListener('bc-settings-change', () => {
 });
 
 export function unlockAudio() {
+  if (ctx?.state === 'running') return;
   // Без этого Web Audio молчит при включённом беззвучном режиме iPhone
   const nav = navigator as any;
   if (nav.audioSession) nav.audioSession.type = 'playback';
@@ -17,7 +18,11 @@ export function unlockAudio() {
     output = ctx!.createGain(); output.gain.value = settings.sound ? 1 : 0;
     output.connect(ctx!.destination);
   }
-  if (ctx.state !== 'running') ctx.resume();
+  if (ctx.state !== 'running') void ctx.resume().catch(() => { /* повторим на следующем жесте */ });
+}
+
+for (const gesture of ['pointerdown', 'touchend', 'keydown']) {
+  document.addEventListener(gesture, unlockAudio, { capture: true, passive: true });
 }
 
 export function beep(freq: number, dur: number) {

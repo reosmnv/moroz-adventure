@@ -69,6 +69,7 @@ export class UIScene extends Phaser.Scene {
   session!: GameSession;
   private storyPush?: HTMLDivElement;
   private wantedText!: Phaser.GameObjects.Text;
+  private wantedY?: number;
   private recText!: Phaser.GameObjects.Text;
   private pushSeen = new Set<number>();
   private tips = new Map<string, Phaser.GameObjects.Text>();
@@ -151,7 +152,26 @@ export class UIScene extends Phaser.Scene {
     this.combatControls = this.add.container(0, 0, [this.joyBase, this.joyKnob, this.ultRing,
       this.pips, this.ultNext, this.bHint, this.hitText, ...[...this.btns.values()].flatMap(v => [v.base, v.icon])]);
     this.layout();
-    this.scale.on('resize', () => this.layout());
+    const invalidate = () => { this.wantedY = undefined; };
+    const relayout = () => { this.layout(); invalidate(); };
+    this.scale.on('resize', relayout);
+    const viewport = window.visualViewport;
+    window.addEventListener('resize', invalidate);
+    window.addEventListener('orientationchange', invalidate);
+    viewport?.addEventListener('resize', invalidate);
+    const observer = new ResizeObserver(invalidate);
+    observer.observe(this.game.canvas);
+    const topbar = document.getElementById('topbar');
+    if (topbar) observer.observe(topbar);
+    const cleanup = () => {
+      this.events.off('shutdown', cleanup); this.events.off('destroy', cleanup);
+      this.scale.off('resize', relayout);
+      window.removeEventListener('resize', invalidate);
+      window.removeEventListener('orientationchange', invalidate);
+      viewport?.removeEventListener('resize', invalidate);
+      observer.disconnect();
+    };
+    this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
 
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.onDown(p));
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.onMove(p));
@@ -391,9 +411,10 @@ export class UIScene extends Phaser.Scene {
   }
 
   private wantedTop() {
+    if (this.wantedY !== undefined) return this.wantedY;
     const canvas = this.game.canvas.getBoundingClientRect();
     const bar = document.getElementById('topbar')?.getBoundingClientRect();
-    return Math.max(6, ((bar?.bottom ?? canvas.top) - canvas.top + 6) * this.scale.height / canvas.height);
+    return this.wantedY = Math.max(6, ((bar?.bottom ?? canvas.top) - canvas.top + 6) * this.scale.height / canvas.height);
   }
 
   private updateStory(last: import('./session.ts').Snapshot) {

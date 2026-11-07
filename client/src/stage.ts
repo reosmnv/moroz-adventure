@@ -1,9 +1,9 @@
 import * as Phaser from 'phaser';
 import { HALT_MS, LEVELS, VIEW_H, type Stage } from '@bc/shared';
 import { FONT } from './ui.ts';
+import { DEBUG } from './debug.ts';
 
 const BG_SCALE = 1.5;
-const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
 const key = (file: string) => 'stage:' + file;
 
 export function preloadStages(scene: Phaser.Scene) {

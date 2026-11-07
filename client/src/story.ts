@@ -128,7 +128,7 @@ export async function showFinale(replay: () => void = () => location.replace(loc
 let activeStoryKey = '';
 let activeStoryRoot: HTMLElement | undefined;
 let revealStory: (() => void) | undefined;
-let comicPanel: { card: HTMLElement; at: string; wide: boolean } | undefined;
+let comicPanel: { card: HTMLElement; at: string; wide: boolean; layout?: { width: number; height: number; left: number; top: number } } | undefined;
 let dialogue: { name: string; speaker: string; at: string; value: string; count: number; hint: string } | undefined;
 
 // Один DOM-интерфейс для телефона, реплик, карточек и композиций.
@@ -221,26 +221,61 @@ interface ComicBubble {
   box: Phaser.GameObjects.Container; frame: Phaser.GameObjects.Graphics;
   name: Phaser.GameObjects.Text; body: Phaser.GameObjects.Text; hint: Phaser.GameObjects.Text;
   picture: Phaser.GameObjects.Image;
+  line?: NonNullable<typeof dialogue>; width?: number; height: number; count: number;
 }
 const comicBubbles = new WeakMap<Phaser.Scene, ComicBubble>();
+const canvasLayouts = new WeakMap<Phaser.Scene, { rect?: DOMRect }>();
 const COMIC_FONT = '"Press Start 2P", monospace';
 const COMIC_WIDTH = 170;
 const COMIC_HEAD: Record<string, number> = { katya: 125, pizdulina: 107, shaman: 107 };
+
+function canvasBounds(scene: Phaser.Scene) {
+  let layout = canvasLayouts.get(scene);
+  if (!layout) {
+    const cache: { rect?: DOMRect } = {};
+    layout = cache; canvasLayouts.set(scene, cache);
+    const invalidate = () => { cache.rect = undefined; };
+    const viewport = window.visualViewport;
+    window.addEventListener('resize', invalidate);
+    window.addEventListener('orientationchange', invalidate);
+    viewport?.addEventListener('resize', invalidate);
+    scene.scale.on('resize', invalidate);
+    const observer = new ResizeObserver(invalidate);
+    observer.observe(scene.game.canvas);
+    const cleanup = () => {
+      scene.events.off('shutdown', cleanup); scene.events.off('destroy', cleanup);
+      window.removeEventListener('resize', invalidate);
+      window.removeEventListener('orientationchange', invalidate);
+      viewport?.removeEventListener('resize', invalidate);
+      scene.scale.off('resize', invalidate);
+      observer.disconnect(); canvasLayouts.delete(scene);
+    };
+    scene.events.once('shutdown', cleanup); scene.events.once('destroy', cleanup);
+  }
+  return layout.rect ??= scene.game.canvas.getBoundingClientRect();
+}
 
 // UI-сцена не зависит от камеры боя; координаты головы переводятся в экранные.
 export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snapshot) {
   if (comicPanel) {
     const { card, at, wide } = comicPanel;
     const target = snap.actors.get(at) ?? snap.enemies.get(at) ?? [...snap.enemies].find(([id, e]) => id.endsWith('--' + at) && e.hp > 0)?.[1] ?? [...snap.enemies.values()].find(e => e.boss === at) ?? [...snap.players.values()].find(p => p.char === at);
-    const rect = game.game.canvas.getBoundingClientRect();
+    const rect = canvasBounds(game);
     const cam = game.cameras.main, ratio = rect.width / game.scale.width;
     const anchor = target ? rect.left + (cam.width / 2 + (target.x - cam.midPoint.x) * cam.zoom) * ratio : rect.left + rect.width / 2;
     const width = Math.min(wide ? 340 : 230, rect.width * 0.51), height = rect.height * 0.4;
     const right = anchor + 24, left = anchor - width - 24;
     const x = right + width < rect.right - 8 ? right : left >= rect.left + 8 ? left : rect.left + (rect.width - width) / 2;
-    card.style.width = `${width}px`; card.style.height = `${height}px`;
-    card.style.left = `${Math.max(8, Math.min(innerWidth - width - 8, x))}px`;
-    card.style.top = `${Math.max(8, rect.top + rect.height * 0.19)}px`;
+    const cardLeft = Math.max(8, Math.min(innerWidth - width - 8, x));
+    const cardTop = Math.max(8, rect.top + rect.height * 0.19);
+    const previous = comicPanel.layout;
+    if (!previous || previous.width !== width) card.style.width = `${width}px`;
+    if (!previous || previous.height !== height) card.style.height = `${height}px`;
+    if (!previous || previous.left !== cardLeft) card.style.left = `${cardLeft}px`;
+    if (!previous || previous.top !== cardTop) card.style.top = `${cardTop}px`;
+    if (!previous || previous.width !== width || previous.height !== height || previous.left !== cardLeft || previous.top !== cardTop) {
+      comicPanel.layout = { width, height, left: cardLeft, top: cardTop };
+    }
   }
   let bubble = comicBubbles.get(ui);
   if (!dialogue) { bubble?.box.setVisible(false); return; }
@@ -252,13 +287,19 @@ export function drawStoryBubble(game: Phaser.Scene, ui: Phaser.Scene, snap: Snap
     const hint = ui.add.text(0, 0, '', { ...style, fontSize: '6px', color: '#ffffff', backgroundColor: '#121212', padding: { x: 3, y: 3 }, wordWrap: { width: COMIC_WIDTH - 6 } });
     const picture = ui.add.image(0, 0, 'story-portrait/anastasia').setDisplaySize(30, 30).setOrigin(0, 1);
     const box = ui.add.container(0, 0, [frame, name, body, hint, picture]).setDepth(5000).setScrollFactor(0);
-    bubble = { box, frame, name, body, hint, picture }; comicBubbles.set(ui, bubble);
+    bubble = { box, frame, name, body, hint, picture, height: 0, count: -1 }; comicBubbles.set(ui, bubble);
   }
   const model = dialogue;
   bubble.box.setVisible(true);
-  bubble.name.setText(model.name); bubble.body.setText(model.value);
-  const height = 43 + bubble.body.height;
-  bubble.body.setText(model.value.slice(0, model.count));
+  if (bubble.line !== model || bubble.width !== ui.scale.width) {
+    bubble.name.setText(model.name); bubble.body.setText(model.value);
+    bubble.height = 43 + bubble.body.height;
+    bubble.line = model; bubble.width = ui.scale.width; bubble.count = -1;
+  }
+  const height = bubble.height;
+  if (bubble.count !== model.count) {
+    bubble.body.setText(model.value.slice(0, model.count)); bubble.count = model.count;
+  }
   const player = [...snap.players.values()].find(p => p.char === model.at);
   const actor = snap.actors.get(model.at);
   const target = actor ?? player ?? snap.enemies.get(model.at) ?? [...snap.enemies].find(([id, e]) => id.endsWith('--' + model.at) && e.hp > 0)?.[1] ?? [...snap.enemies.values()].find(e => e.boss === model.at);
