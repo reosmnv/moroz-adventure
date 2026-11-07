@@ -86,7 +86,6 @@ export const STORY_SCENES: StoryScene[] = [
   { id: 'leverage', trigger: 'clear:6:2', x: 2280, steps: [
     focus(2530), face('kris', 1),
     { kind: 'line', id: 'lev.1', speaker: 'kris' },
-    { kind: 'composition', id: 'lev.rec', images: ['ui/portrait-prime.png', 'ui/kris/portrait.png', 'ui/story/milonov-full.png'] },
     { kind: 'line', id: 'lev.4', speaker: 'Милонов', at: 'milonov' }, { kind: 'line', id: 'lev.5', speaker: 'anastasia' },
     { kind: 'phone', ids: ['res.1', 'res.2'], at: 'milonov' }, { kind: 'state', id: 'wanted', value: 'off' },
   ] },

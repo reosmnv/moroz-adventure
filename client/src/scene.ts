@@ -191,7 +191,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private bossWord(x: number, y: number, text: string, size = 16, color = '#ffd34f') {
+    // Длинные слова (тексты mr.R 07.11) мельче и не выходят за край экрана
+    if (text.length > 14) size = Math.round(size * 0.7);
     const t = this.add.text(x,y,text,textStyle(size,color)).setOrigin(0.5).setDepth(y+200);
+    const view = this.cameras.main.worldView, half = t.width / 2 + 4;
+    t.x = Math.min(Math.max(x, view.x + half), view.right - half);
     this.tweens.add({targets:t,y:y-15,alpha:0,delay:700,duration:500,onComplete:()=>t.destroy()});
   }
   private onEvents(evs: SimEvent[]) {
@@ -205,7 +209,7 @@ export class GameScene extends Phaser.Scene {
         else if (e.attack === 'salute') this.fx('boss-firework',e.x,e.y-30,{depth:e.y,scale:1.5,frames:5}).setTint(e.tint ?? 0xffffff);
         else if (e.attack === 'banStrike') {
           this.fx('boss-ban',e.x,e.y-(110-64)*1.5,{depth:e.y,scale:1.5});
-          this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5}); this.bossWord(e.x,e.y-85,'БЛОК!',8,'#ff3030'); shake(this.cameras.main, 120,0.006);
+          this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5}); this.bossWord(e.x,e.y-85,'ЗАБЛОКИРОВАНО',8,'#ff3030'); shake(this.cameras.main, 120,0.006);
         } else if (e.attack === 'zones') this.fx('boss-slam',e.x,e.y,{...floor,scale:1.5});
         else if (e.attack.startsWith('katGround')) { this.fx('katya-ground',e.x,e.y,{...floor,scale:2}); this.bossWord(e.x,e.y-90,STORY_CONTENT['kat.w1']); shake(this.cameras.main, 180,0.008); }
         else if (e.attack === 'crossStage' || e.attack === 'crossBan') {

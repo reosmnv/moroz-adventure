@@ -1093,7 +1093,7 @@ function ramilDummy(w: World, id: string, dx: number) { dummy(w, id, dx); w.enem
   check('Рамиль: hurt не копит заряд', p.ult === after);
   run(w, 1000);
   const done = run(w, 5100, () => ({ ult2: true }));
-  check('Рамиль: полный заряд + реплика', p.ult === 100 && done.events.includes('taunt:Всё, погнали'));
+  check('Рамиль: полный заряд + реплика', p.ult === 100 && done.events.includes('taunt:' + LINES.ready[3]));
   check('Рамиль: реплики перекура', done.events.some(e => e.includes('подождите, докурю')));
 }
 

@@ -170,7 +170,7 @@ export function syncStoryView(session: GameSession) {
   }
   if (step.kind === 'composition') {
     root.style.background = 'transparent'; card.classList.add('comic-polaroid');
-    if (krisFrame && step.id !== 'lev.rec') { const frame = document.createElement('img'); frame.src = krisFrame; frame.alt = 'Кадр Kris'; frame.className = 'story-frame'; card.append(frame); }
+    if (krisFrame) { const frame = document.createElement('img'); frame.src = krisFrame; frame.alt = 'Кадр Kris'; frame.className = 'story-frame'; card.append(frame); }
     else for (const file of step.images) { const img = document.createElement('img'); img.src = file; img.alt = ''; img.className = 'story-portrait'; card.append(img); }
   }
   const lines = step.kind === 'phone' ? step.ids.map(id => STORY_CONTENT[id]) : [STORY_CONTENT[step.id]];
