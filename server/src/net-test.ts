@@ -61,6 +61,13 @@ async function testStoryFlow() {
   check('V3 право вернулось оставшемуся игроку', (a2.state as any).storyHost === a2.sessionId);
   a2.send('storyNext', `prologue:${indices[2]}`); await sleep(200);
   check('V3 продолжение после смены ведущего', (a2.state as any).storyIndex === indices[3]);
+  for (let n = 0; n < 100 && (a2.state as any).storyScene; n++) {
+    const state = a2.state as any;
+    a2.send('storyNext', `${state.storyScene}:${state.storyIndex}`); await sleep(100);
+  }
+  check('C1 пролог заканчивается и возвращает управление', !(a2.state as any).storyScene && !players(a2).get(a2.sessionId)?.away);
+  a2.send('pause', true); a2.send('switch', 'kris'); await sleep(200);
+  check('TZ18 switch доступен в обычной комнате после пролога', players(a2).get(a2.sessionId)?.char === 'kris');
   await a2.leave(true);
 }
 
@@ -117,13 +124,12 @@ async function testNormalMode() {
   await sleep(400);
   const s = () => r.state as any;
   check('TZ18 обычная комната: режим false по умолчанию, stage 0', s().testMode === false && s().stage === 0);
+  check('C1 level old без testMode даёт route', s().level === 'route');
   const before = { enemies: s().enemies.size, ult: players(r).get(r.sessionId)?.ult, hp: players(r).get(r.sessionId)?.hp };
   for (const command of ['spawn', 'next', 'charge', 'heal', 'killall']) r.send(command);
   r.send('god', true); r.send('testScene', { id: 'arch', strict: false }); r.send('storyStrict', false); await sleep(400);
   check('TZ18 обычная комната отклоняет все тестовые команды', s().enemies.size === before.enemies && s().stage === 0 && !s().trans
     && players(r).get(r.sessionId)?.ult === before.ult && players(r).get(r.sessionId)?.hp === before.hp && players(r).get(r.sessionId)?.god === false);
-  r.send('switch', 'kris'); await sleep(200);
-  check('TZ18 switch доступен в обычной комнате', players(r).get(r.sessionId)?.char === 'kris');
   const guest = await new Client(URL).joinById(r.roomId, { testMode: true, stage: 1 });
   guest.reconnection.enabled = false; guest.onMessage('ev', () => {}); await sleep(200);
   check('TZ18 вход по коду не меняет обычный режим', (guest.state as any).testMode === false && (guest.state as any).stage === 0);
@@ -131,7 +137,7 @@ async function testNormalMode() {
   for (const testMode of ['true', 1]) {
     const invalid = await new Client(URL).create('game', { level: 'old', stage: 1, testMode });
     invalid.reconnection.enabled = false; invalid.onMessage('ev', () => {}); await sleep(200);
-    check(`TZ18 testMode=${JSON.stringify(testMode)} не включает тест`, (invalid.state as any).testMode === false && (invalid.state as any).stage === 0);
+    check(`TZ18 testMode=${JSON.stringify(testMode)} не включает тест и old`, (invalid.state as any).testMode === false && (invalid.state as any).stage === 0 && (invalid.state as any).level === 'route');
     await invalid.leave(true);
   }
 }
@@ -184,6 +190,7 @@ async function main() {
   a.send('pick', 'anastasia');
   await sleep(400);
   check('хост в мире', players(a).has(a.sessionId));
+  check('C1 level old доступен с testMode true', (a.state as any).level === 'old' && (a.state as any).testMode === true);
   const tick0 = (a.state as any).tick;
   await sleep(500);
   check('сервер тикает', (a.state as any).tick > tick0, `tick ${(a.state as any).tick}`);

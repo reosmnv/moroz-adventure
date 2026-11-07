@@ -256,7 +256,6 @@ export class UIScene extends Phaser.Scene {
 
   // Плавающий стик в левой части экрана, кнопки справа; каждый палец сам по себе
   private onDown(p: Phaser.Input.Pointer) {
-    if (this.session.snapshots.at(-1)?.cineId) { this.session.press('skip'); return; }
     const panel = this.panels[0];
     if (this.session.hasMe() && panel.root.visible &&
         p.x >= panel.root.x - PORTRAIT_PAD && p.x <= panel.root.x + panel.frame.width + PORTRAIT_PAD &&
@@ -441,7 +440,7 @@ export class UIScene extends Phaser.Scene {
     } else if (this.storyPush) { this.storyPush.classList.remove('visible'); delete this.storyPush.dataset.push; }
     const p = last.players.get(this.session.me);
     if (!p) return;
-    if (this.session.testMode || this.session.introOpen || this.session.needsIntro()) return;
+    if (this.session.testMode) return;
     if (this.tipTick !== last.tick) {
       const dt = this.tipTick < 0 ? 0 : Math.max(0, last.storyTime - this.tipTime);
       if (this.readMove().slice(0, 2).some(v => v !== 0)) this.movedMs += dt;
@@ -466,7 +465,7 @@ export class UIScene extends Phaser.Scene {
     if (s.hasMe()) s.move(...this.readMove());
     const last = s.snapshots[s.snapshots.length - 1];
     if (!last) return;
-    const inputBlockedByDom = s.isPaused() || s.connectionLost || s.introOpen || s.needsIntro() || !!last.storyScene;
+    const inputBlockedByDom = s.isPaused() || s.connectionLost || !!last.storyScene;
     // DOM-экраны получают касания через window-listener Phaser. Если Safari потерял
     // touchend при замене overlay, очищаем застрявшие Pointer перед возвратом в бой.
     if (this.inputBlockedByDom && !inputBlockedByDom) this.input.resetPointers();

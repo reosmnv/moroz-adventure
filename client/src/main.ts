@@ -1,6 +1,6 @@
-import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, LEVELS, TEST_TOOLS, STORY_SCENES } from '@bc/shared';
+import { CHARACTERS, HERO_ID, KRIS_ID, NADYA_ID, LEVELS, TEST_TOOLS, STORY_SCENES, STORY_CONTENT } from '@bc/shared';
 import { LocalSession, OnlineSession, clearReconnect, returnToMenu, savedReconnect, type GameSession } from './session.ts';
-import { GAME_TITLE, STORY, showIntro, syncStoryView } from './story.ts';
+import { GAME_TITLE, STORY, syncStoryView } from './story.ts';
 import type { startGame } from './scene.ts';
 import { audioState, unlockAudio } from './audio.ts';
 import { settings, updateSettings } from './settings.ts';
@@ -17,7 +17,6 @@ const MENU_SCREENS = ['menuHome', 'newScreen', 'joinScreen', 'testScreen'];
 const portrait = (id: string) => id === HERO_ID ? 'ui/portrait-prime.png' : id === NADYA_ID ? 'ui/nadya/portrait.png' : id === KRIS_ID ? 'ui/kris/portrait.png' : 'ui/ramil/portrait.png';
 let session: GameSession | null = null;
 let game: ReturnType<typeof startGame> | null = null;
-let introSeen = false;
 let busy = false;
 let testOnline = localStorage.getItem('bc-online') !== '0';
 let selectedStage = Number(params.get('stage'));
@@ -93,24 +92,19 @@ for (const [i, stage] of LEVELS.route.stages.entries()) {
 }
 $('testOnline').onclick = () => { testOnline = true; localStorage.setItem('bc-online', '1'); renderTest(); };
 $('testLocal').onclick = () => { testOnline = false; localStorage.setItem('bc-online', '0'); renderTest(); };
+$('testOld').textContent = STORY_CONTENT['menu.old'];
+$('testOld').onclick = () => { if (TEST_TOOLS) void begin(testOnline, undefined, 0, true, false, 'old'); };
 renderTest();
 if (TEST_TOOLS && params.has('stage') && Number.isInteger(selectedStage) && selectedStage >= 0 && selectedStage < LEVELS.route.stages.length) menuScreen('testScreen');
 
-function maybeIntro() {
-  if (!introSeen && session?.hasMe() && session.needsIntro()) {
-    const current = session; introSeen = true; current.introOpen = true;
-    void showIntro(() => { current.introOpen = false; current.finishIntro(); });
-  }
-}
-async function begin(online: boolean, code?: string, stage = 0, testMode = false, resume = false) {
+async function begin(online: boolean, code?: string, stage = 0, testMode = false, resume = false, level: 'route' | 'old' = 'route') {
   if (busy) return;
   busy = true; $('menuNote').textContent = online ? 'Подключаюсь…' : 'Загружаю…';
   try {
     unlockAudio();
     if (!resume) clearReconnect();
-    introSeen = false;
     const { startGame } = await import('./scene.ts');
-    session = online ? await OnlineSession.open(SERVER_URL, code, 'route', stage, testMode, resume) : new LocalSession('route', stage, testMode);
+    session = online ? await OnlineSession.open(SERVER_URL, code, level, stage, testMode, resume) : new LocalSession(level, stage, testMode);
     ($('storyStrict') as HTMLInputElement).checked = true;
     session.onPickError = message => { pendingHero = ''; $('pickNote').textContent = message; };
     if (session.roomId) history.replaceState(null, '', location.pathname + '#' + session.roomId);
@@ -180,7 +174,7 @@ function hidePicker() { picking = false; visible('picker', false); pausePanel = 
 function renderPicker() {
   if (!session || !picking) return;
   const current = session.snapshots.at(-1)?.players.get(session.me)?.char;
-  if ((!changingHero && current) || (pendingHero && current === pendingHero)) { hidePicker(); maybeIntro(); return; }
+  if ((!changingHero && current) || (pendingHero && current === pendingHero)) { hidePicker(); return; }
   const taken = session.taken();
   const signature = `${current}:${taken.join(',')}:${changingHero}`;
   if (signature === pickerSignature) return;
@@ -254,7 +248,7 @@ setInterval(() => {
   $('pauseNote').textContent = STORY.service.pause.replace('{герой}', CHARACTERS.find(c => c.id === char)?.name ?? '');
   visible('lostBox', session.connectionLost);
   if (session.snapshots.length && !session.hasMe() && !picking && !createdOpen) showPicker();
-  renderPicker(); maybeIntro(); syncStoryView(session);
+  renderPicker(); syncStoryView(session);
   if (DEBUG) {
     const last = session.snapshots.at(-1);
     const r = game.canvas.getBoundingClientRect(), vv = window.visualViewport, me = last?.players.get(session.me);
@@ -262,6 +256,6 @@ setInterval(() => {
       + `\nwin ${innerWidth}x${innerHeight} vv ${Math.round(vv?.width ?? 0)}x${Math.round(vv?.height ?? 0)}@${Math.round(vv?.offsetLeft ?? 0)},${Math.round(vv?.offsetTop ?? 0)} s${vv?.scale?.toFixed(2)}`
       + `\ncanvas ${Math.round(r.width)}x${Math.round(r.height)}@${Math.round(r.left)},${Math.round(r.top)} game ${game.scale.width}x${game.scale.height}`
       + `\ntouch ${debugTouch} · ptr ${game.input.activePointer.x | 0},${game.input.activePointer.y | 0} down ${game.input.activePointer.isDown}`
-      + `\nme x${(me?.x ?? 0) | 0} ${me?.anim ?? '-'} away ${me?.away} paused ${session.isPaused()} story ${last?.storyScene || '-'} cine ${last?.cineId || '-'}`;
+      + `\nme x${(me?.x ?? 0) | 0} ${me?.anim ?? '-'} away ${me?.away} paused ${session.isPaused()} story ${last?.storyScene || '-'}`;
   }
 }, 100);

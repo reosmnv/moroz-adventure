@@ -8,19 +8,6 @@ export const STORY = {
     "solo": "Играть соло",
     "online": "Создать комнату"
   },
-  "intro": {
-    "body": STORY_CONTENT['intro.body'],
-    "button": STORY_CONTENT['intro.button'],
-    "go": [
-      "08:40. Подъезд 3.",
-      "Настя: резидентство аннулировано. Злая.",
-      "Надя: накрашена. Готова бить.",
-      "Kris: камера заряжена. Снимает всё.",
-      "Рамиль: докуривает. Говорит, сейчас.",
-      "План: дойти до МФЦ. Вернуть Насте права."
-    ],
-    "goButton": "ПОГНАЛИ"
-  },
   "pushes": [STORY_CONTENT['push.1'], STORY_CONTENT['push.2'], STORY_CONTENT['push.3'], STORY_CONTENT['push.4'], STORY_CONTENT['push.5'], STORY_CONTENT['push.6']],
   "tips": {
     "move": "ИДИ",
@@ -67,7 +54,7 @@ export let krisFrame = '';
 export function saveKrisFrame(image: HTMLImageElement | Phaser.Display.Color) { if (image instanceof HTMLImageElement) krisFrame = image.src; }
 export const portrait = (id: string) => id === HERO_ID ? 'ui/portrait-prime.png' : id === NADYA_ID ? 'ui/nadya/portrait.png' : id === KRIS_ID ? 'ui/kris/portrait.png' : 'ui/ramil/portrait.png';
 const storyPortrait: Record<string, string> = { 'Милонов': 'ui/story/milonov-pl.png', 'Катя': 'ui/story/katya-pl.png', 'Шаман': 'ui/story/shaman.png', 'Пиздулина': 'ui/story/pizdulina.png' };
-let introShowing = false, finaleShowing = false;
+let finaleShowing = false;
 function overlay() {
   const root = document.createElement('div');
   root.className = 'overlay story-overlay';
@@ -85,24 +72,6 @@ function button(parent: HTMLElement, label: string) {
     b.style.position = 'relative';
     parent.append(b); b.onclick = () => resolve();
   });
-}
-async function type(parent: HTMLElement, value: string, tap: HTMLElement) {
-  const el = text(parent, 'p', ''); let fast = false;
-  const scroll = () => { el.scrollIntoView({ block: 'nearest' }); };
-  const speedUp = () => { fast = true; }; tap.addEventListener('pointerdown', speedUp);
-  for (let i = 1; i <= value.length; i++) { el.textContent = value.slice(0, i); scroll(); if (!fast) await wait(TYPE_MS); }
-  tap.removeEventListener('pointerdown', speedUp);
-}
-export async function showIntro(done: () => void) {
-  if (introShowing) return; introShowing = true;
-  const { root, card } = overlay();
-  root.style.background = '#100d18';
-  card.classList.add('notification');
-  text(card, 'p', STORY.intro.body);
-  await button(card, STORY.intro.button);
-  card.replaceChildren(); card.classList.remove('notification');
-  for (const line of STORY.intro.go) await type(card, line, root);
-  await button(card, STORY.intro.goButton); done(); root.remove(); introShowing = false;
 }
 export async function showFinale(replay: () => void = () => location.replace(location.pathname)) {
   if (finaleShowing) return; finaleShowing = true;

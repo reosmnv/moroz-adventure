@@ -580,12 +580,11 @@ for (const front of [true, false]) {
   let ticks = 0, locks = 0, clears = 0, ordered = true, lastStage = 0;
   const bosses: string[] = [];
   const done: number[] = [];
-  let intros = 0;
   while (!w.won && ticks++ < 50000) {
-    for (const e of Object.values(w.enemies)) if (e.entered && !w.cine) e.hp = 0;
+    for (const e of Object.values(w.enemies)) if (e.entered) e.hp = 0;
     p.hp = 150; p.invulnMs = 1000;
     const exit = stageOf(w).exit;
-    let inp = { ...emptyInput(), mx: 1, run: true, skip: true };
+    let inp = { ...emptyInput(), mx: 1, run: true };
     if (w.enc.cleared === encountersOf(w).length && exit) {
       inp.mx = p.x < exit.x0 + 3 ? 1 : p.x > exit.x1 - 3 ? -1 : 0;
       inp.my = p.y > exit.y1 ? -1 : 0;
@@ -596,7 +595,6 @@ for (const front of [true, false]) {
       bosses.push(boss.boss!);
       check(`TZ10: ${boss.boss} появляется внутри арены`, !!w.enc.lock && boss.x >= w.enc.lock[0] && boss.x <= w.enc.lock[1]);
     }
-    intros += ev.filter(e => e.t === 'cine').length;
     locks += ev.filter(e => e.t === 'lock').length; clears += ev.filter(e => e.t === 'clear').length;
     if (w.stage !== lastStage) {
       ordered &&= done[lastStage] === ENCOUNTERS[LEVELS.route.stages[lastStage].id].length;
@@ -606,7 +604,6 @@ for (const front of [true, false]) {
     done[w.stage] = w.enc.cleared;
   }
   check('R2: бот проходит весь маршрут по порядку', w.won && ordered && locks === 12 && clears === 12 && done.join() === '3,1,1,1,1,2,3', `ticks=${ticks} locks=${locks} clears=${clears} done=${done}`);
-  check('TZ21: маршрут без вставок врагов', intros === 0, String(intros));
   check('V3: маршрут включает Катю', bosses.join() === 'shaman,pizdulina,katya');
   const n = w.nextEnemyId; spawnEnemies(w, 3); step(w, {});
   check('R2: после победы нет новых врагов', w.nextEnemyId === n && !w.enc.lock);
@@ -807,8 +804,8 @@ for (const dodge of [false, true]) {
   dummy(w, 'first', 0); dummy(w, 'second', 0);
   w.enemies.first.kind = 'vatnik'; w.enemies.second.kind = 'omon';
   const x = p.x, clock = w.timeMs;
-  const ev = step(w, { h: { ...emptyInput(), mx: -1 } });
-  check('TZ21: два новых вида без вставки и остановки боя', !w.cine && !ev.some(e => e.t === 'cine') && p.x < x && w.timeMs > clock);
+  step(w, { h: { ...emptyInput(), mx: -1 } });
+  check('C1: появление двух новых видов не останавливает движение и часы', p.x < x && w.timeMs > clock);
 }
 {
   const w = createWorld(37, false), p = addPlayer(w, 'h', HERO_ID);
@@ -856,13 +853,14 @@ for (const dodge of [false, true]) {
   const w = createWorld(33, false), p = addPlayer(w, 'h', HERO_ID);
   p.x = 300; step(w, {}); run(w, 300);
   const [e, second] = Object.values(w.enemies); e.x = 710;
-  const ev = step(w, {});
-  check('TZ21: первый vatnik без cine', !w.cine && !ev.some(e => e.t === 'cine'));
+  step(w, {});
   const x = p.x, clock = w.timeMs, tick = w.tick;
   step(w, { h: { ...emptyInput(), mx: -1 } }, 100);
   check('TZ21: новый враг не замораживает движение и часы', p.x < x && w.timeMs > clock && w.tick > tick);
   second.x = 700;
-  check('TZ21: второй vatnik без вставки', !step(w, {}).some(e => e.t === 'cine') && !w.cine);
+  const secondX = p.x, secondClock = w.timeMs;
+  step(w, { h: { ...emptyInput(), mx: -1 } });
+  check('C1: второй враг тоже не останавливает движение и часы', p.x < secondX && w.timeMs > secondClock);
 }
 {
   const w = createWorld(34, false), p = addPlayer(w, 'h', HERO_ID);
@@ -874,9 +872,9 @@ for (const dodge of [false, true]) {
   run(w, 320);
   const right = Object.values(w.enemies)[1];
   check('TZ07: fallback появляется справа после интервала', !!right && right.x <= 720 + ENTER_OFF && right.x > 720);
-  check('TZ07: во время enter вставки нет', !w.cine && !door.token);
+  check('TZ07: во время входа враг не атакует', !door.token && door.anim === 'enter');
   run(w, 220);
-  check('TZ21: после enter нет вставки', !w.cine);
+  check('C1: после входа враг готов к бою', door.entered === true && door.anim !== 'enter');
 }
 {
   const w = createWorld(35, false, 'route', 3), p = addPlayer(w, 'h', HERO_ID);
@@ -1385,7 +1383,6 @@ for (const char of ['ramil', HERO_ID]) {
   }
   check('TZ18 нет игрока', !switchHero(w, 'missing', KRIS_ID));
   w.trans = { ms: 900, to: 1 }; check('TZ18 переход запрещает смену', !switchHero(w, p.id, KRIS_ID)); w.trans = undefined;
-  w.cine = { id: 'e', kind: 'omon', ms: 100 }; check('TZ18 кинематика запрещает смену', !switchHero(w, p.id, KRIS_ID)); w.cine = undefined;
   w.pauseMs = 400; check('TZ18 смена фазы запрещает смену', !switchHero(w, p.id, KRIS_ID)); w.pauseMs = 0;
   w.won = true; check('TZ18 финал запрещает смену', !switchHero(w, p.id, KRIS_ID));
 }
@@ -1438,8 +1435,6 @@ for (const [i, ch] of CHARACTERS.entries()) {
 for (const boss of ['shaman', 'pizdulina'] as const) {
   const { w, p } = setup(); dummy(w, 'e1', 100);
   w.enemies.e1.boss = boss; w.introduced.push(boss);
-  w.cine = { id: 'e1', kind: boss, ms: 1 };
-  check(`TZ21 ${boss}: нет ответной реплики вставки`, !step(w, {}).some(e => e.t === 'taunt' && e.line === LINES.reply[boss]));
   w.enemies.e1.hp = 0;
   const down = step(w, {});
   check(`TZ19 ${boss}: bossDown раньше последних слов`, down.some(e => e.t === 'bossDown') && !down.some(e => e.t === 'taunt' && e.line === LINES.last[boss]));
@@ -1501,11 +1496,6 @@ for (const [i, ch] of CHARACTERS.entries()) {
   check('V3 после Милонова розыск снят', wantedStatus(w, story).stars === 0);
   const marks = JSON.stringify(w.storyPushes); p.hp = 0; step(w, {});
   check('TZ19 рестарт сохраняет пуши', JSON.stringify(w.storyPushes) === marks);
-}
-{
-  const { w } = setup(false, KRIS_ID); dummy(w, 'e1', 100);
-  w.introduced.push('shaman'); w.cine = { id: 'e1', kind: 'shaman', ms: 1 };
-  check('TZ21 ответ вставки отсутствует и без Насти', !step(w, {}).some(e => e.t === 'taunt' && e.line === LINES.reply.shaman));
 }
 
 // TZ-23 A1: падение, смена карты, выбор цели и контроль.

@@ -35,7 +35,6 @@ export const ENTER_OFF = 340;
 export const ENTER_SPEED = 150;
 const ENTER_MARGIN = 40;
 export const HALT_MS = 2500;
-export const CINE_MS = 2800;
 
 export type Anim = 'enter' | 'idle' | 'walk' | 'run' | 'attack' | 'heavy' | 'hurt' | 'down' | 'taunt' | 'ult' | 'windup' | 'strike' | 'dash' | 'recover';
 
@@ -179,7 +178,7 @@ export interface World {
   storyLast?: { id: string; line: string; at: number }[]; storyKiss?: boolean;
 
   pauseMs?: number; slowmoMs?: number;
-  halt: number; introduced: string[]; cine?: { id: string; kind: string; ms: number };
+  halt: number; introduced: string[];
   shots: BossShot[]; zones: BossZone[];
   timeMs: number;
   tokenReleased: Record<string, number>;
@@ -206,7 +205,6 @@ export interface Pending { ms: number; kind: 'hits' | 'aoe' | 'beam' | 'kiss'; o
 
 export interface Input {
   viewX?: number; viewW?: number;
-  skip?: boolean;
   mx: number; // -1..1
   my: number; // -1..1
   attack: boolean;
@@ -229,7 +227,6 @@ export type SimEvent =
   | { t: 'rfinish'; id: string; x: number; y: number; line: string }
   | { t: 'flurry'; id: string; level: number; k: number; x: number; y: number }
   | { t: 'tele'; id: string; fromX: number; fromY: number; toX: number; toY: number; shape?: never; ms?: never }
-  | { t: 'cine'; id: string; kind: string }
   | { t: 'boss' | 'phase' | 'bossDown'; id: string }
   | { t: 'bossFx'; id: string; attack: string; x: number; y: number; h?: number; ms: number; tint?: number }
   | { t: 'tele'; id: string; shape: 'ring' | 'line' | 'column' | 'zone' | 'ban' | 'grid'; attack?: string; delayMs?: number; x: number; y: number; r?: number; h?: number; dir?: number; ms: number }
@@ -307,7 +304,7 @@ export function switchHero(w: World, id: string, char: string): boolean {
   const p = w.players[id];
   if (!p || p.char === char || !CHARACTERS.some(c => c.id === char)
     || Object.values(w.players).some(o => o.id !== id && o.char === char)
-    || w.trans || w.cine || w.pauseMs || w.won) return false;
+    || w.trans || w.pauseMs || w.won) return false;
 
   for (const e of Object.values(w.enemies)) {
     if (e.held?.by === id || e.thrown?.by === id) {
@@ -1721,7 +1718,7 @@ export function nextStage(w: World) {
 
 function finishTransition(w: World, ev: SimEvent[]) {
   w.pauseMs = 0; w.slowmoMs = 0;
-  w.stage = w.trans!.to; w.halt = -1; w.cine = undefined;
+  w.stage = w.trans!.to; w.halt = -1;
   w.enc = { stage: w.stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 };
   w.tokenReleased = {}; w.won = false;
   w.trans = undefined;
@@ -1756,12 +1753,6 @@ function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimE
   if (active.length === 0) return ev;
   if (w.pauseMs) { w.pauseMs = Math.max(0, w.pauseMs - dtMs); return ev; }
   if (w.slowmoMs) { const slowPart = Math.min(dtMs, w.slowmoMs); w.slowmoMs -= slowPart; dtMs -= slowPart * 0.7; dt = dtMs / 1000; }
-  if (w.cine) {
-    const skip = active.some(p => { const i = inputs[p.id]; return i && (i.skip || i.attack || i.heavy || i.ult || i.ult2); });
-    w.cine.ms = Math.max(0, Math.min(w.cine.ms, skip ? 300 : Infinity) - dtMs);
-    if (!w.cine.ms) w.cine = undefined;
-    return ev;
-  }
   for (const e of Object.values(w.enemies)) if (combatReady(w, e) && w.enc.lock && !e.entered) {
     e.entering = e.x > w.enc.lock[1] - 12;
     e.entered = true;

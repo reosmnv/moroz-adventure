@@ -42,6 +42,8 @@ export class GameScene extends Phaser.Scene {
   private attackBands: { id: string; x: number; y: number; h: number; until: number; grid: boolean }[] = [];
   private stageView?: StageView;
   private locationKey = '';
+  private oldLevelReady = false;
+  private oldLevelLoading = false;
   private worldWidth = 1920;
   private prompt?: Phaser.GameObjects.Text;
   private lockNoticeUntil = 0;
@@ -69,7 +71,7 @@ export class GameScene extends Phaser.Scene {
       this.load.spritesheet(`enemy/${kind}/${clip}`, `sprites/enemies/${kind}/${clip}-east.png`, { frameWidth: CELL, frameHeight: CELL });
     }
     for (const clip of Object.keys(KATYA_ANIMS)) this.load.spritesheet(`enemy/katya/${clip}`, `sprites/enemies/katya-pl/${clip}-east.png`, { frameWidth: CELL, frameHeight: CELL });
-    preloadLevel(this);
+    if (this.session.snapshots.at(-1)?.level === 'old') preloadLevel(this);
     preloadStages(this);
     for (const [k, v] of Object.entries(VFX)) this.load.spritesheet('fx-' + k, `vfx/${k}.png`, { frameWidth: v.w, frameHeight: v.h });
     for (const k of VFX_IMAGES) this.load.image('fx-' + k, `vfx/${k}.png`);
@@ -85,6 +87,7 @@ export class GameScene extends Phaser.Scene {
   init(data: { session: GameSession }) { this.session = data.session; }
 
   create() {
+    this.oldLevelReady = this.textures.exists('card');
     this.impact = new Impact(this);
     for (const [k, v] of Object.entries(VFX)) {
       this.anims.create({ key: 'fx-' + k, frames: this.anims.generateFrameNumbers('fx-' + k, { start: 0, end: k === 'boss-firework' ? 4 : v.n - 1 }), frameRate: v.fps, repeat: v.loop ? -1 : 0 });
@@ -103,15 +106,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private camX?: number;
-  private follow(x: number, dt = 0, cine = false) {
+  private follow(x: number, dt = 0, centered = false) {
     const cam = this.cameras.main;
     let target = Math.max(0, Math.min(this.worldWidth - this.scale.width, x - this.scale.width * CAM_LEAD));
     const snap = this.session.snapshots[this.session.snapshots.length - 1];
-    if (!cine && snap?.lockX0 >= 0) {
+    if (!centered && snap?.lockX0 >= 0) {
       const lo = snap.lockX0 - 16, hi = snap.lockX1 + UI_RIGHT(this.scale.width) - this.scale.width;
       target = hi < lo ? lo : Math.max(lo, Math.min(hi, x - this.scale.width * CAM_LEAD));
     }
-    if (cine) target = x - this.scale.width / 2;
+    if (centered) target = x - this.scale.width / 2;
     target = Math.max(0, Math.min(Math.max(0, this.worldWidth - this.scale.width), target));
     this.camX = this.camX === undefined ? target : this.camX + (target - this.camX) * (1 - Math.exp(-dt / CAM_TAU));
     cam.setScroll(Math.round(this.camX), 0);
@@ -786,8 +789,8 @@ export class GameScene extends Phaser.Scene {
     const braking = !!stage.tunnel && s.halt >= 0 && s.halt < HALT_MS;
     const goal = waiting ? s.pendingStoryX : ready ? stage.exit?.x0 : s.lockX0 < 0 ? ENCOUNTERS[stage.id]?.[s.encDone]?.trigger : undefined;
     this.prompt ??= this.add.text(0, 120, '', { ...textStyle(10, '#ffe45c'), align: 'center' }).setOrigin(0.5).setScrollFactor(0).setDepth(2100);
-    this.prompt.setPosition(braking ? this.scale.width / 2 : this.scale.width - 52, 120).setText(braking ? STORY.service.halt : waiting || goal !== undefined && goal > cam.scrollX + this.scale.width ? `→\n${ready && !waiting ? 'ВЫХОД' : 'ВПЕРЁД'}` : '').setAlpha(pulse).setVisible(!s.cineId);
-    if (s.lockX0 >= 0 && !s.cineId) for (const e of s.enemies.values()) {
+    this.prompt.setPosition(braking ? this.scale.width / 2 : this.scale.width - 52, 120).setText(braking ? STORY.service.halt : waiting || goal !== undefined && goal > cam.scrollX + this.scale.width ? `→\n${ready && !waiting ? 'ВЫХОД' : 'ВПЕРЁД'}` : '').setAlpha(pulse).setVisible(true);
+    if (s.lockX0 >= 0) for (const e of s.enemies.values()) {
       if (e.hp <= 0 || e.x >= cam.scrollX && e.x <= cam.scrollX + this.scale.width) continue;
       const left = e.x < cam.scrollX, x = cam.scrollX + (left ? 5 : this.scale.width - 5), d = left ? 1 : -1;
       this.guide.fillStyle(0xff3b30).fillTriangle(x, e.y - 6, x, e.y + 6, x - d * 6, e.y);
@@ -805,6 +808,18 @@ export class GameScene extends Phaser.Scene {
     let { a, b, f } = smp;
     const latestStage = this.session.snapshots[this.session.snapshots.length - 1];
     if (latestStage.storyScene || latestStage.stage !== b.stage || latestStage.level !== b.level) { a = b = latestStage; f = 1; }
+    // При входе по коду уровень может стать известен уже после preload.
+    if (b.level === 'old' && !this.oldLevelReady) {
+      if (!this.oldLevelLoading) {
+        this.oldLevelLoading = true;
+        preloadLevel(this);
+        this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+          this.oldLevelReady = true; this.oldLevelLoading = false;
+        });
+        this.load.start();
+      }
+      return;
+    }
     const locationKey = b.level + ':' + b.stage;
     if (locationKey !== this.locationKey) {
       const first = !this.locationKey;
@@ -820,19 +835,19 @@ export class GameScene extends Phaser.Scene {
       const stage = baseStage;
       this.worldWidth = stage.width;
       if (b.level === 'old') { buildLevel(this); showCard(this); debugLane(this, stage); }
-      else this.stageView = new StageView(this, stage, !!latestStage.storyScene || b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen));
+      else this.stageView = new StageView(this, stage, !!latestStage.storyScene || b.stage === 0 && !this.session.hasMe());
       if (!sameStage) this.camX = undefined;
       this.layout();
       const me = b.players.get(this.session.me);
       if (me && !sameStage) this.follow(me.x);
       if (!first && !sameStage) this.cameras.main.fadeIn(350);
     }
-    const pace = this.session.isPaused() || latestStage.storyScene || latestStage.cineId || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
+    const pace = this.session.isPaused() || latestStage.storyScene || latestStage.pauseMs ? 0 : latestStage.slowmoMs ? 0.3 : 1;
     if (b.level === 'route' && b.stage === 4) {
       this.bossShow ??= new BossShow(this, b);
       this.bossShow.update(latestStage, delta * pace);
     } else { this.bossShow?.destroy(); this.bossShow = undefined; }
-    this.stageView?.update(delta * pace, latestStage.halt, !!latestStage.storyScene || b.level === 'route' && b.stage === 0 && (!this.session.hasMe() || this.session.needsIntro() || this.session.introOpen), latestStage.wantedReward);
+    this.stageView?.update(delta * pace, latestStage.halt, !!latestStage.storyScene || b.level === 'route' && b.stage === 0 && !this.session.hasMe(), latestStage.wantedReward);
     const seen = new Set<string>();
     const draw = (key: string, isPlayer: boolean, sa: EntitySnap | undefined, sb: EntitySnap, live = false) => {
       seen.add(key);
@@ -966,10 +981,10 @@ export class GameScene extends Phaser.Scene {
       if (mine) { draw('p:' + id, true, undefined, mine, true); }
       else draw('p:' + id, true, a.players.get(id), sb);
     }
-    const focus = latest.cineId ? latest.enemies.get(latest.cineId) : latest.players.get(this.session.me);
+    const focus = latest.players.get(this.session.me);
     if (latest.storyCamX !== undefined && Math.abs(latest.storyCamX - this.cameras.main.midPoint.x) > this.scale.width / 2) this.camX = undefined;
     if (latest.storyCamX !== undefined) this.follow(latest.storyCamX, delta / 1000, true);
-    else if (focus) this.follow(focus.x, delta / 1000, !!latest.cineId);
+    else if (focus) this.follow(focus.x, delta / 1000);
     this.drawGuides(latest);
     for (const t of this.telegraphs) t.until += delta * (1 - pace);
     for (const b of this.attackBands) b.until += delta * (1 - pace);
