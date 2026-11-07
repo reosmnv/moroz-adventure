@@ -4,7 +4,7 @@ import { shake, settings } from './settings.ts';
 import { returnToMenu } from './session.ts';
 import { Impact } from './impact.ts';
 import { BossShow } from './boss-show.ts';
-import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, HALT_MS, BOSS, BOSS_ATTACK, STORY_CONTENT, type BossId, ENEMY_ANIMS, KATYA_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, HERO_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, moveDurMs, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, HALT_MS, BOSS, BOSS_ATTACK, STORY_CONTENT, type BossId, ENEMY_ANIMS, KATYA_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, HERO_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { RAMIL_TIPS, RAMIL_FISTS, RAMIL_GRIP } from './ramil-tips.ts';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
@@ -46,8 +46,6 @@ export class GameScene extends Phaser.Scene {
   private oldLevelLoading = false;
   private worldWidth = 1920;
   private prompt?: Phaser.GameObjects.Text;
-  private lockNoticeUntil = 0;
-  private forwardFrom?: number;
   private floorFx?: Phaser.GameObjects.Graphics;
   private shotFx?: Phaser.GameObjects.Graphics;
   private bossHp?: Phaser.GameObjects.Rectangle;
@@ -300,11 +298,6 @@ export class GameScene extends Phaser.Scene {
       if (e.t === 'bossDown') this.telegraphs = this.telegraphs.filter(t => t.ev.id !== e.id);
       if (e.t === 'restart' || e.t === 'stage') { this.telegraphs = []; this.attackBands = []; this.bossShow?.destroy(); this.bossShow = undefined; }
 
-      if (e.t === 'lock') { this.lockNoticeUntil = this.time.now + 1200; this.forwardFrom = undefined; }
-      if (e.t === 'clear') {
-        const last = this.session.snapshots[this.session.snapshots.length - 1];
-        this.forwardFrom = last?.players.get(this.session.me)?.x;
-      }
     }
     for (const e of evs) {
       if (e.t === 'exit') {
@@ -827,7 +820,7 @@ export class GameScene extends Phaser.Scene {
       this.bossShow?.destroy(); this.bossShow = undefined;
       this.stageView?.destroy();
       this.tweens.killAll(); this.time.removeAllEvents();
-      this.children.removeAll(true); this.views.clear(); this.prompt = undefined; this.forwardFrom = undefined;
+      this.children.removeAll(true); this.views.clear(); this.prompt = undefined;
       this.floorFx = this.shotFx = this.guide = undefined; this.bossHp = undefined; this.bossName = undefined;
       this.exitLabel = undefined; this.stopped = false;
       this.locationKey = locationKey;
@@ -835,7 +828,7 @@ export class GameScene extends Phaser.Scene {
       const stage = baseStage;
       this.worldWidth = stage.width;
       if (b.level === 'old') { buildLevel(this); showCard(this); debugLane(this, stage); }
-      else this.stageView = new StageView(this, stage, !!latestStage.storyScene || b.stage === 0 && !this.session.hasMe());
+      else this.stageView = new StageView(this, stage);
       if (!sameStage) this.camX = undefined;
       this.layout();
       const me = b.players.get(this.session.me);
@@ -847,7 +840,7 @@ export class GameScene extends Phaser.Scene {
       this.bossShow ??= new BossShow(this, b);
       this.bossShow.update(latestStage, delta * pace);
     } else { this.bossShow?.destroy(); this.bossShow = undefined; }
-    this.stageView?.update(delta * pace, latestStage.halt, !!latestStage.storyScene || b.level === 'route' && b.stage === 0 && !this.session.hasMe(), latestStage.wantedReward);
+    this.stageView?.update(delta * pace, latestStage.halt);
     const seen = new Set<string>();
     const draw = (key: string, isPlayer: boolean, sa: EntitySnap | undefined, sb: EntitySnap, live = false) => {
       seen.add(key);

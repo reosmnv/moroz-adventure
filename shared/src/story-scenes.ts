@@ -12,8 +12,6 @@ export type StoryStep =
 export interface StoryScene { id: string; trigger: string; x?: number; steps: StoryStep[] }
 const spawn = (actor: ActorRef, look: string, x: number, y = 200, keep = false): StoryStep =>
   ({ kind: 'act', actor, do: 'spawn', look, x, y, facing: -1, keep, rel: true });
-const walk = (actor: ActorRef, x: number, y = 200, ms = 700): StoryStep =>
-  ({ kind: 'act', actor, do: 'walk', x, y, ms, rel: true });
 const focus = (x: number, ms = 600): StoryStep => ({ kind: 'act', actor: 'camera', do: 'focus', x, ms });
 const face = (actor: ActorRef, facing: 1 | -1): StoryStep => ({ kind: 'act', actor, do: 'face', facing });
 export const STORY_SCENES: StoryScene[] = [

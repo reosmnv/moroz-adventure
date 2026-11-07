@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { HALT_MS, LEVELS, VIEW_H, type Stage } from '@bc/shared';
+import { HALT_MS, LEVELS, type Stage } from '@bc/shared';
 import { FONT } from './ui.ts';
 import { DEBUG } from './debug.ts';
 
@@ -39,7 +39,7 @@ export class StageView {
   private glintX = 0;
   private elapsed = 0;
 
-  constructor(private scene: Phaser.Scene, private stage: Stage, deferCard = false) {
+  constructor(scene: Phaser.Scene, private stage: Stage) {
     const own = <T extends Phaser.GameObjects.GameObject>(o: T): T => { this.objects.push(o); return o; };
     stage.layers.forEach((layer, i) => {
       const depth = -1000 + i;
@@ -56,10 +56,10 @@ export class StageView {
     });
     for (const p of stage.props) own(scene.add.image(p.x, p.y, key(p.file)).setOrigin(0.5, 1).setScale(p.scale ?? BG_SCALE).setFlipX(!!p.flip).setDepth(p.depth ?? p.y));
     this.objects.push(...debugLane(scene, stage));
-    this.update(0, -1, deferCard);
+    this.update(0);
   }
 
-  update(dt: number, halt = -1, deferCard = false, reward = 150000) {
+  update(dt: number, halt = -1) {
     this.elapsed += dt;
     if (this.tunnel && this.stage.tunnel) {
       const fx = this.stage.tunnel;

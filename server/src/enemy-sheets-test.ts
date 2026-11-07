@@ -1,6 +1,6 @@
 // Проверка формата листов без браузера; заглушки остаются в scratchpad.
 import { readFileSync } from 'node:fs';
-import { ENEMY_ANIMS } from '@bc/shared';
+import { ENEMY_ANIMS, KATYA_ANIMS } from '@bc/shared';
 const CELL = 128;
 let checked = 0;
 function checkSheet(path: string, frames: number) {
@@ -13,3 +13,7 @@ if (!checked) {
   for (const clip of ['idle', 'walk', 'windup', 'strike', 'hurt', 'fall', 'recover', 'cast']) checkSheet(`scratchpad/tz06-enemies/${clip}-east.png`, 4);
   console.log(`OK: ${checked} листов-заглушек; ENEMY_ANIMS пока пуст, реальные листы проверит Claude после генерации`);
 } else console.log(`OK: ${checked} реальных листов ENEMY_ANIMS, кадры 128×128`);
+const enemiesChecked = checked;
+for (const [clip, def] of Object.entries(KATYA_ANIMS)) checkSheet(`client/public/sprites/enemies/katya-pl/${clip}-east.png`, def.frames);
+if (checked === enemiesChecked) throw new Error('KATYA_ANIMS пуст');
+console.log(`OK: ${checked - enemiesChecked} реальных листов KATYA_ANIMS, кадры 128×128; всего ${checked}`);

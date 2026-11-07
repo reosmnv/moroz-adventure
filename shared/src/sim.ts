@@ -17,9 +17,6 @@ import {
 export const TICK_MS = 17; // ~60 Гц: нажатие ждёт тик не дольше 17 мс
 export const VIEW_W = 480;
 export const VIEW_H = 270;
-export const LANE_TOP = 168; // линия стены на фоне уровня 1
-export const LANE_BOTTOM = 255;
-export const LEVEL_W = 1920; // длина уровня: 4 экрана по 480
 
 // Доступность тест-режима в меню. Режим игры хранится в world.testTools
 export const TEST_TOOLS = true;
@@ -743,11 +740,6 @@ function startRamilUltDash(w: World, p: Player, u: NonNullable<NonNullable<Playe
   p.fDashMs = RAMIL.ULT_DASH_MS; startMove(p, 'dash');
   ev.push({ t: 'rdash', id: p.id, fromX: p.x, fromY: p.y, toX: to.x, toY: to.y });
   return true;
-}
-function ramilTele(w: World, p: Player, x: number, y: number, ev: SimEvent[]) {
-  const to = clampToLane(w, clamp(x, ...walkBounds(w)), y);
-  ev.push({ t: 'tele', id: p.id, fromX: p.x, fromY: p.y, toX: to.x, toY: to.y });
-  p.x = to.x; p.y = to.y; p.heavySmokeMs = RAMIL.HEAVY_SMOKE_MS;
 }
 function ramilStrike(w: World, p: Player, ev: SimEvent[]) {
   const r = p.ramil!, s = STRIKES.ramil[p.move];
@@ -1990,7 +1982,6 @@ function storyEvent(w: World, ev: SimEvent[], kind: 'won' | 'friend' | 'down' | 
   ev.push({ t: 'taunt', id: p.id, line }); w.storyLineAt = w.timeMs;
 }
 export function step(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimEvent[] {
-  const stage = w.stage;
   for (const i of Object.values(inputs)) if (i.taunt) w.storyManualAt = w.timeMs;
   const ev = stepCore(w, inputs, dtMs);
   const alive = livePlayers(w);

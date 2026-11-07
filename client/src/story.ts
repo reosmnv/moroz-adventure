@@ -1,5 +1,5 @@
 import { CHARACTERS, HERO_ID, NADYA_ID, KRIS_ID } from '@bc/shared';
-import { STORY_CONTENT, storyScene, type StoryStep } from '@bc/shared';
+import { STORY_CONTENT, storyScene } from '@bc/shared';
 import type { Snapshot, GameSession } from './session.ts';
 export const GAME_TITLE = 'Moroz Birthday Adventures';
 // Тексты завязки и поздравления редактируются отдельно от экранов.
@@ -53,7 +53,6 @@ const wait = (ms: number) => new Promise<void>(r => window.setTimeout(r, ms));
 export let krisFrame = '';
 export function saveKrisFrame(image: HTMLImageElement | Phaser.Display.Color) { if (image instanceof HTMLImageElement) krisFrame = image.src; }
 export const portrait = (id: string) => id === HERO_ID ? 'ui/portrait-prime.png' : id === NADYA_ID ? 'ui/nadya/portrait.png' : id === KRIS_ID ? 'ui/kris/portrait.png' : 'ui/ramil/portrait.png';
-const storyPortrait: Record<string, string> = { 'Милонов': 'ui/story/milonov-pl.png', 'Катя': 'ui/story/katya-pl.png', 'Шаман': 'ui/story/shaman.png', 'Пиздулина': 'ui/story/pizdulina.png' };
 let finaleShowing = false;
 function overlay() {
   const root = document.createElement('div');

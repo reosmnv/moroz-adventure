@@ -7,7 +7,6 @@ export * from './encounters.ts';
 export * from './enemy-anims-data.ts';
 export * from './katya-anims-data.ts';
 export * from './boss-data.ts';
-export * from './intros.ts';
 export * from './lines.ts';
 export * from './story-content.ts';
 export * from './story-scenes.ts';

@@ -1,6 +1,6 @@
 import { bossWarningEvents, stopStoryHeroes, LINES, CALL_NAMES, createStoryProgress, wantedStatus, startStoryForWorld } from '@bc/shared';
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
-import { CHARACTERS, HERO_FORM, PLAYER_HP, switchHero, testHeal, testGod, testKillAll, chargeUlt, nextStage, RAMIL, HERO_ANIMS, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENEMY_INTRO, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
+import { CHARACTERS, HERO_FORM, PLAYER_HP, switchHero, testHeal, testGod, testKillAll, chargeUlt, nextStage, RAMIL, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {
@@ -223,7 +223,7 @@ for (const form of ['prime', 'ultimate'] as const) {
   check('буря кончилась, враг оттаял и пошёл', !w.enemies.a.frozenMs && p.stormMs === 0);
 }
 {
-  const { w, p } = setup(); dummy(w, 'e1', 24);
+  const { w } = setup(); dummy(w, 'e1', 24);
   w.enemies.e1.frozenMs = 5000;
   const x0 = w.enemies.e1.x;
   run(w, 600, press([0], 'attack'));
@@ -242,7 +242,7 @@ function strikeAt(w: World, move: string) {
   return run(w, hitTimesMs(p.form, move, p.facing)[0] + TICK_MS * 2);
 }
 {
-  const { w, p } = setup(); dummy(w, 'one', 30); dummy(w, 'two', 40); dummy(w, 'side', 35); dummy(w, 'back', -30);
+  const { w } = setup(); dummy(w, 'one', 30); dummy(w, 'two', 40); dummy(w, 'side', 35); dummy(w, 'back', -30);
   w.enemies.two.y += 40; w.enemies.side.y += 41;
   for (const e of Object.values(w.enemies)) e.stunMs = 10000;
   const r = strikeAt(w, 'cross');
@@ -492,7 +492,7 @@ check('длительности из данных (x1.4)', moveDurMs('prime', 'j
 
 // ТЗ-05: реальные тики общей симуляции, без сервера.
 function arenaSetup(kind: 'omon' | 'clerk' | 'omon_shield' | 'zek' = 'omon') {
-  const w = createWorld(19, true, 'route'); w.introduced = Object.keys(ENEMY_INTRO);
+  const w = createWorld(19, true, 'route');
   const p = addPlayer(w, 'h', HERO_ID); p.x = 200; p.y = 200;
   spawnEnemies(w, 1);
   const e = Object.values(w.enemies)[0];
@@ -647,7 +647,7 @@ for (const dodge of [false, true]) {
   const w = createWorld(9, true, 'route', 6), p = addPlayer(w, 'h', HERO_ID);
   w.enc.index = 1; w.enc.cleared = 1; p.x = 2060; step(w, {});
   check('R2: solo первая волна входит по одному', Object.values(w.enemies).length === 1 && w.enc.queue.length === 9);
-  const b = addPlayer(w, 'b', NADYA_ID); step(w, {});
+  addPlayer(w, 'b', NADYA_ID); step(w, {});
   check('R2: duo не меняет первую волну', Object.values(w.enemies).length === 1 && w.enc.queue.length === 9);
   check('R1: HP первого врага фиксированы', Object.values(w.enemies).at(-1)!.maxHp === 100);
 }
@@ -670,7 +670,7 @@ function finishMayakWaves(w: ReturnType<typeof createWorld>) {
 }
 {
   const w = createWorld(71, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO); p.x = 800; p.y = 220;
+  p.x = 800; p.y = 220;
   step(w, {});
   check('TZ10: одна встреча, концертные волны без босса', encountersOf(w).length === 1 && !!w.enc.lock && !w.enc.bossStarted && !Object.values(w.enemies).some(e => e.boss));
   w.enemies = {}; step(w, {}); p.hp = 0;
@@ -683,7 +683,7 @@ function finishMayakWaves(w: ReturnType<typeof createWorld>) {
 // TZ-06: настоящая встреча, затем изолированные опасности боссов.
 function bossSetup(boss: BossId = 'shaman') {
   const w = createWorld(71, true, 'route', 4), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO);
+
   p.x = 800; p.y = 220;
   finishMayakWaves(w);
   const e = Object.values(w.enemies).find(e => e.boss)!;
@@ -809,7 +809,7 @@ for (const dodge of [false, true]) {
 }
 {
   const w = createWorld(37, false), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO);
+
   p.x = 300; step(w, {});
   w.enemies = {}; w.enc.queue = [];
   for (let i = 0; i < 4; i++) dummy(w, `left${i}`, i * 10);
@@ -841,7 +841,7 @@ for (const dodge of [false, true]) {
   w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: { dmg: 100, range: 1000, kb: 0, stun: 0 }, ids: [e.id] });
   step(w, {});
   check('TZ07: враг вне арены не получает урон и разрешение', e.hp === hp && !e.token);
-  e.x = 710; e.y = p.y; w.introduced = Object.keys(ENEMY_INTRO);
+  e.x = 710; e.y = p.y;
   w.pending.push({ ms: 0, kind: 'hits', owner: p.id, strike: { dmg: 1, range: 1000, kb: 500, stun: 0 }, ids: [e.id] });
   step(w, {});
   check('TZ07: вошедшего нельзя выбить из арены', e.entered === true && e.x <= 708 && e.x >= 252);
@@ -917,7 +917,7 @@ for (const atk of ['mic','vstayu','pyro','chorus','salute','slap','banStrike','s
 }
 {
   const w=createWorld(81,false,'route',4),p=addPlayer(w,'h',HERO_ID);
-  w.introduced=Object.keys(ENEMY_INTRO); p.x=800;p.y=205;
+  p.x=800;p.y=205;
   finishMayakWaves(w); const e=Object.values(w.enemies).find(e=>e.boss)!;
   check('TZ08 R1/R6: после волн enter у сцены',e.x===stageProp(w, 'stage_b')!.x&&e.y===205&&e.phase==='enter'&&e.enterMs===900);
   w.pending.push({ms:0,kind:'hits',owner:p.id,strike:{range:1000,dmg:100,kb:0,stun:0},ids:[e.id]});
@@ -958,7 +958,7 @@ for (const atk of ['mic','vstayu','pyro','chorus','salute','slap','banStrike','s
 for (const [index, encounter] of ENCOUNTERS.street.entries()) {
   for (const [wave, spawns] of encounter.waves.entries()) {
     const w = createWorld(91, false), p = addPlayer(w, 'h', HERO_ID);
-    w.introduced = Object.keys(ENEMY_INTRO);
+
     w.enc.index = w.enc.cleared = index;
     p.x = encounter.trigger; step(w, {});
     w.enemies = {}; w.enc.wave = encounter.waves.length - 1; w.enc.queue = [...spawns];
@@ -983,7 +983,7 @@ for (const [index, encounter] of ENCOUNTERS.street.entries()) {
 }
 for (const kind of ['vatnik', 'clerk', 'zek', 'omon', 'pizdulina'] as const) {
   const w = createWorld(94, false), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO); p.x = 300; step(w, {});
+  p.x = 300; step(w, {});
   const e = Object.values(w.enemies)[0];
   if (kind === 'pizdulina') { e.boss = kind; w.enc.bossStarted = true; }
   else { e.kind = kind; if (kind === 'omon') w.enc.bossStarted = true; }
@@ -993,7 +993,7 @@ for (const kind of ['vatnik', 'clerk', 'zek', 'omon', 'pizdulina'] as const) {
 // Уязвимость на пороге входа без скачка к внутренней границе.
 for (const offset of [40.1, 40, 20]) {
   const w = createWorld(92, false), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO); p.x = 300; step(w, {});
+  p.x = 300; step(w, {});
   const e = Object.values(w.enemies)[0]; w.enemies = { [e.id]: e };
   p.x = 700; p.y = e.y; p.invulnMs = 10000;
   e.x = 720 + offset; e.cdMs = 10000;
@@ -1010,7 +1010,7 @@ for (const offset of [40.1, 40, 20]) {
 // Fast не выходит из арены ни в замахе, ни в активной части рывка.
 for (const dir of [-1, 1] as const) {
   const w = createWorld(93, false), p = addPlayer(w, 'h', HERO_ID);
-  w.introduced = Object.keys(ENEMY_INTRO); p.x = 300; step(w, {});
+  p.x = 300; step(w, {});
   const e = Object.values(w.enemies)[0];
   Object.assign(e, { kind: 'zek', entered: true, x: dir > 0 ? 700 : 260, y: 220,
     phase: 'windup', phaseMs: ROLE.fast.windupMs, token: p.id, atkDir: dir, atkY: 220 });
@@ -1125,7 +1125,7 @@ function ramilDummy(w: World, id: string, dx: number) { dummy(w, id, dx); w.enem
 
 // TZ15: новая серия и шестиступенчатая ульта.
 for (const dx of [40, 56, 57, 120, 200, 201, 220]) {
-  const {w,p} = setup(false,'ramil'); ramilDummy(w,'e',dx);
+  const {w} = setup(false,'ramil'); ramilDummy(w,'e',dx);
   const r = run(w,700,press([0],'attack'));
   check(`TZ15 a1 ${dx}: рывок`, r.events.includes('rdash') === (dx > RAMIL.A1_REACH && dx <= RAMIL.A1_DASH_MAX), r.events.join());
   check(`TZ15 a1 ${dx}: попадание`, w.enemies.e.hp === (dx > RAMIL.A1_DASH_MAX ? 1000 : 992));
@@ -1173,7 +1173,7 @@ for (const boss of [false,true]) {
   check('TZ15 бросок сбрасывает серию', p.combo === 0 && events.some(v=>v.t==='rland'));
 }
 {
-  const {w,p,e} = grabSetup(); ramilDummy(w,'near',-50);
+  const {w,e} = grabSetup(); ramilDummy(w,'near',-50);
   const hp = w.enemies.near.hp; const r = run(w,RAMIL.SPIN_MS + 3*TICK_MS,press([0],'attack'));
   check('TZ17 ураган шесть оборотов', r.hits.filter(d=>d===3).length === 6 && e.hp === 978, r.hits.join() + ':' + e.hp);
   check('TZ16 ураган бьёт другого', w.enemies.near.hp === hp-6, String(w.enemies.near.hp));
@@ -1261,7 +1261,7 @@ for (const sign of [-1,1]) {
   check('TZ17 ураган ровно 1000 ± тик '+sign,elapsed>=1000 && elapsed-1000<TICK_MS,String(elapsed));
 }
 {
-  const {w,p,e} = grabSetup();
+  const {w,e} = grabSetup();
   for(let i=0;i<3;i++) ramilDummy(w,'cluster'+i,180+i*10);
   const tx = (w.enemies.cluster0.x+w.enemies.cluster1.x+w.enemies.cluster2.x)/3;
   step(w,{h:{...emptyInput(),attack:true}});
@@ -1282,7 +1282,7 @@ for (const sign of [-1,1]) {
   check('TZ16 брошенный получает 20',e.hp===hp-20);
 }
 {
-  const {w,p,e}=grabSetup(); ramilDummy(w,'near',-28);
+  const {w}=grabSetup(); ramilDummy(w,'near',-28);
   step(w,{h:{...emptyInput(),attack:true}});
   let tangent=false;
   for(let t=0;t<950;t+=TICK_MS) {
@@ -1406,7 +1406,7 @@ for (const char of ['ramil', HERO_ID]) {
   check('TZ18 выключение бессмертия возвращает урон', p.god === false && p.hp < hp);
 }
 {
-  const w = createWorld(18, true); w.introduced = Object.keys(ENEMY_INTRO); const p = addPlayer(w, 'h', HERO_ID); p.x = 300;
+  const w = createWorld(18, true); const p = addPlayer(w, 'h', HERO_ID); p.x = 300;
   step(w, {}); const index = w.enc.index; const cleared = w.enc.cleared;
   for (let i = 0; i < 100 && w.enc.cleared === cleared; i++) { testKillAll(w); step(w, {}); }
   check('TZ18 killAll засчитывает встречу обычным путём', w.enc.cleared === cleared + 1 && w.enc.index === index + 1 && !w.enc.lock);
@@ -1433,7 +1433,7 @@ for (const [i, ch] of CHARACTERS.entries()) {
   check('TZ19 шар Kris не считается ультой', !step(w, {}).some(e => e.t === 'taunt'));
 }
 for (const boss of ['shaman', 'pizdulina'] as const) {
-  const { w, p } = setup(); dummy(w, 'e1', 100);
+  const { w } = setup(); dummy(w, 'e1', 100);
   w.enemies.e1.boss = boss; w.introduced.push(boss);
   w.enemies.e1.hp = 0;
   const down = step(w, {});
@@ -1517,7 +1517,7 @@ for (const [i, ch] of CHARACTERS.entries()) {
   check('A1.11 после диалога павший остаётся лежать', p.hp === 0 && p.move === 'fall');
 }
 {
-  const { w, p } = setup(false, KRIS_ID);
+  const { w } = setup(false, KRIS_ID);
   dummy(w, 'dead', 45, 0); dummy(w, 'live', 100); w.enemies.live.dummy = true;
   w.enemies.dead.boss = 'shaman'; w.enemies.dead.deathMs = 1400;
   const ev = step(w, { h: { ...emptyInput(), heavy: true } });

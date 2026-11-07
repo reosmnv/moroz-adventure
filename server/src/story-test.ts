@@ -1,10 +1,40 @@
-import { existsSync } from 'node:fs';
-import { CHARACTERS, ENEMY_INTRO, LEVELS, STORY_CONTENT, STORY_SCENES, advanceStory, createStoryProgress, startStory, startStoryForWorld, storyStepKey, wantedStatus, createWorld, addPlayer, tickStory, testStoryScene, testStoryStrict, step, emptyInput, encountersOf, stageOf } from '@bc/shared';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { CHARACTERS, LEVELS, STORY_CONTENT, STORY_SCENES, advanceStory, createStoryProgress, startStory, startStoryForWorld, storyStepKey, wantedStatus, createWorld, addPlayer, tickStory, testStoryScene, testStoryStrict, step, emptyInput, encountersOf, stageOf } from '@bc/shared';
 
 let failed = 0;
 function check(name: string, ok: boolean) { console.log(`${ok ? 'OK' : 'FAIL'} ${name}`); if (!ok) failed++; }
 const content = STORY_CONTENT as Record<string, string>;
 const publicDir = 'client/public/';
+
+// Снятые реплики защищённых персонажей храним до отдельной переделки.
+const unusedTextExceptions = new Set([
+  'ins.katya.name', 'ins.katya.tag', 'ins.katya.line', 'kat.6', 'kat.w2', 'kat.l3', 'kat.l4', 'kat.l5',
+  'ins.pizd.name', 'ins.pizd.tag', 'ins.pizd.line', 'pz.5', 'pz.r', 'pz.w1',
+  'hck.5', // Вокзальный текст запрещено удалять, даже если сцену поменяют.
+]);
+// Сцены уже вычислены: шаблонные ID и массивы здесь развёрнуты самим JS.
+const usedTexts = new Set(STORY_SCENES.flatMap(scene => scene.steps.flatMap(step =>
+  step.kind === 'act' || step.kind === 'state' ? [] : step.kind === 'phone' ? step.ids : [step.id])) as string[]);
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function scanTextUses(dir: string) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const file = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) { scanTextUses(file); continue; }
+    if (!file.endsWith('.ts') || entry.name === 'story-content.ts') continue;
+    const source = readFileSync(file, 'utf8');
+    // Пропускаем комментарии и содержимое шаблонов; обычные ID читаем целиком.
+    const tokens = source.matchAll(/\/\/[^\n]*|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/g);
+    for (const [token] of tokens) if (token[0] === '"' || token[0] === "'") usedTexts.add(token.slice(1, -1));
+    // Прямые обращения вида T[`push.${n}`]: разворачиваем семейство по словарю.
+    for (const match of source.matchAll(/\b(?:STORY_CONTENT|T)\s*\[\s*`([^`]+)`\s*\]/g)) {
+      const pattern = match[1].split(/\$\{[^}]+\}/).map(escapeRegex).join('[^.]+');
+      for (const id of Object.keys(content)) if (new RegExp(`^${pattern}$`).test(id)) usedTexts.add(id);
+    }
+  }
+}
+scanTextUses('shared/src'); scanTextUses('client/src');
+for (const id of Object.keys(content)) check(`текст ${id}: используется или защищён`, usedTexts.has(id) || unusedTextExceptions.has(id));
+check('исключения текстов существуют в словаре', [...unusedTextExceptions].every(id => id in content));
 
 let valid = true, longest = 0;
 for (const scene of STORY_SCENES) {
@@ -162,7 +192,6 @@ const protectedWorld = createWorld(42, false);
 check('тестовые сцены запрещены вне testMode', !testStoryScene(createStoryProgress(), protectedWorld, 'arch', false));
 check('портреты всех сюжетных героев', ['portrait-prime.png', 'nadya/portrait.png', 'kris/portrait.png', 'ramil/portrait.png'].every(file => existsSync(publicDir + 'ui/' + file)));
 check('ассеты боя Кати', ['idle', 'walk', 'hurt', 'fall', 'strike', 'cast', 'release'].every(clip => existsSync(publicDir + `sprites/enemies/katya-pl/${clip}-east.png`)));
-check('лимиты вставок врагов', Object.values(ENEMY_INTRO).every(e => e.name.length <= 16 && e.tag.length <= 40 && e.line.length <= 60));
 check('лимиты пушей и слов боя', Object.entries(content).every(([id, value]) => id.startsWith('push.') ? value.length <= 70 : /^(\w+\.w\d|\w+\.down|word\..+)$/.test(id) ? value.length <= 12 : true));
 check('B6 оба перекрёстных слова в словаре, максимум 12 знаков', ['word.crossBan', 'word.crossStage'].every(id => !!content[id] && content[id].length <= 12));
 check('лимиты карточек маршрута', LEVELS.route.stages.every(s => s.cards.every(([small, big]) => small.length <= 28 && big.length <= 14)));
