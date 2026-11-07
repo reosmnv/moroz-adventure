@@ -25,6 +25,9 @@ export const TEST_TOOLS = false;
 const PLAYER_SPEED = 90; // единиц в секунду
 const ENEMY_DMG = 7;
 export const PLAYER_HP = 150;
+// Здоровье по героям (mr.R 07.11): Настя 100, остальные 75. PLAYER_HP остаётся базой для старых проверок.
+export const HERO_HP: Record<string, number> = { anastasia: 100, nadezhda: 75, kris: 75, ramil: 75 };
+export const maxHpOf = (char?: string) => HERO_HP[char ?? ''] ?? PLAYER_HP;
 const REVIVE_MS = 5000;
 const TAUNT_CD_MS = 3000;
 const LANE_TOLERANCE = 24;
@@ -292,7 +295,7 @@ export function addPlayer(w: World, id: string, char: string): Player {
 function freshPlayer(id: string, char: string, x: number, y: number): Player {
   return {
     id, char, x, y,
-    hp: PLAYER_HP, facing: 1, anim: 'idle', animMs: 0, cdMs: 0, bCooldownMs: 0, tauntCdMs: 0, ult: 0, downMs: 0,
+    hp: maxHpOf(char), facing: 1, anim: 'idle', animMs: 0, cdMs: 0, bCooldownMs: 0, tauntCdMs: 0, ult: 0, downMs: 0,
     connected: true, away: false,
     form: HERO_FORM[char] ?? 'prime', move: 'idle', moveT: 0, combo: 0, comboMs: 0, queued: null, formMs: 0, invulnMs: 0, hitstopMs: 0, stormMs: 0, stormTickMs: 0,
     hitCount: 0, hitCountMs: 0, ultimateExtraMs: 0, bCombo: 0, bComboMs: 0, charge2: 0, dashFrom: 0, charmSaid: false, wantBall: false,
@@ -328,7 +331,7 @@ export function switchHero(w: World, id: string, char: string): boolean {
   }
   w.pending = w.pending.filter(d => d.owner !== id);
   w.players[id] = { ...freshPlayer(id, char, p.x, p.y),
-    facing: p.facing, connected: p.connected, away: p.away, hp: p.hp, ult: p.ult, god: p.god,
+    facing: p.facing, connected: p.connected, away: p.away, hp: p.hp > 0 ? Math.max(1, Math.round(p.hp / maxHpOf(p.char) * maxHpOf(char))) : p.hp, ult: p.ult, god: p.god,
     ...(p.hp <= 0 ? { downMs: p.downMs, anim: 'down' as const, animMs: p.animMs, move: 'fall', moveT: p.moveT } : {}),
     viewX: p.viewX, viewW: p.viewW };
   (w.events ??= []).push({ t: 'switch', id, char });
@@ -338,12 +341,12 @@ export function switchHero(w: World, id: string, char: string): boolean {
 export function testHeal(w: World): void {
   if (!w.testTools) return;
   for (const p of Object.values(w.players)) {
-    const amount = PLAYER_HP - p.hp;
+    const amount = maxHpOf(p.char) - p.hp;
     if (p.hp <= 0) {
       heroReset(p); p.anim = 'idle'; p.animMs = p.cdMs = p.hitstopMs = 0;
       p.approach = p.hop = undefined;
     }
-    p.hp = PLAYER_HP; p.downMs = 0;
+    p.hp = maxHpOf(p.char); p.downMs = 0;
     if (amount > 0) (w.events ??= []).push({ t: 'heal', id: p.id, amount });
   }
 }
@@ -1188,7 +1191,7 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
         // Ultimate: сколько нанесла, столько и вылечила
         if (p.form === 'ultimate') {
           const damage = ev.slice(eventStart).reduce((sum, e) => sum + (e.t === 'hit' ? e.dmg : 0), 0);
-          const heal = Math.min(PLAYER_HP - p.hp, damage);
+          const heal = Math.min(maxHpOf(p.char) - p.hp, damage);
           if (heal > 0) { p.hp += heal; ev.push({ t: 'heal', id: p.id, amount: heal }); }
         }
       }
@@ -1778,7 +1781,7 @@ function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimE
       if (isHero(p)) p.moveT += dtMs;
       const buddyAlive = active.some(o => o !== p && o.hp > 0);
       if (buddyAlive && p.downMs <= 0) {
-        p.hp = PLAYER_HP / 2; p.anim = 'idle';
+        p.hp = maxHpOf(p.char) / 2; p.anim = 'idle';
         if (isHero(p)) { startMove(p, 'getup'); p.invulnMs = 1200; }
       }
       continue;
@@ -1949,7 +1952,7 @@ function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimE
         w.enc.queue = [...(encountersOf(w)[w.enc.index].waves[0] ?? [])];
       }
     }
-    for (const [i, p] of players.entries()) { p.hp = PLAYER_HP; p.anim = 'idle'; p.animMs = 0; p.ult = 0; p.charge2 = 0; Object.assign(p, clampToLane(w, (w.enc.lock ? w.enc.lock[0] + 60 + i * 30 : stageOf(w).spawn[0]), p.y)); heroReset(p); }
+    for (const [i, p] of players.entries()) { p.hp = maxHpOf(p.char); p.anim = 'idle'; p.animMs = 0; p.ult = 0; p.charge2 = 0; Object.assign(p, clampToLane(w, (w.enc.lock ? w.enc.lock[0] + 60 + i * 30 : stageOf(w).spawn[0]), p.y)); heroReset(p); }
     ev.push({ t: 'restart' });
   }
 

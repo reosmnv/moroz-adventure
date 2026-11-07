@@ -4,7 +4,7 @@ import { shake, settings } from './settings.ts';
 import { returnToMenu } from './session.ts';
 import { Impact } from './impact.ts';
 import { BossShow } from './boss-show.ts';
-import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, HALT_MS, BOSS, BOSS_ATTACK, STORY_CONTENT, type BossId, ENEMY_ANIMS, KATYA_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, HERO_ID, PLAYER_HP, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
+import { ramilSpin, flurryTiming, flurryPose, RAMIL_ID, RAMIL, ENCOUNTERS, HALT_MS, BOSS, BOSS_ATTACK, STORY_CONTENT, type BossId, ENEMY_ANIMS, KATYA_ANIMS, HOP_MS, HOP_HEIGHT, AIM_MS, moveAnim, BALL_FLIGHT_MS, BEAM_MS, FLASH_SPEED, KISS_SPEED, HERO_FORM, KRIS_ID, NADYA_ID, HERO_ID, maxHpOf, STORM_RADIUS, CHARACTERS, isSpriteHero, moveSpeed, HERO_ANIMS, LEVELS, TICK_MS, VIEW_H, VIEW_W, dirOf, type Form, type SimEvent } from '@bc/shared';
 import { RAMIL_TIPS, RAMIL_FISTS, RAMIL_GRIP } from './ramil-tips.ts';
 import { VFX, VFX_IMAGES } from './vfx-data.ts';
 import type { EntitySnap, GameSession, Snapshot } from './session.ts';
@@ -960,7 +960,7 @@ export class GameScene extends Phaser.Scene {
       else this.drawStatus(v, sb, x, y - lift);
       const hitting = !v.sprite && (sb.anim === 'attack' || sb.anim === 'heavy');
       v.fist.setVisible(hitting).setPosition(x + sb.facing * (sb.anim === 'heavy' ? 16 : 12), y - 18).setSize(sb.anim === 'heavy' ? 14 : 10, 5).setDepth(y + 0.5);
-      const maxHp = sb.maxHp ?? (isPlayer ? PLAYER_HP : 100);
+      const maxHp = sb.maxHp ?? (isPlayer ? maxHpOf(sb.char) : 100);
       const head = v.sprite ? (isPlayer ? HEAD : HEAD * (ENEMY_SCALE[sb.boss || sb.kind || 'omon'] ?? 1)) : isPlayer ? 86 : 80;
       v.hp.setPosition(x - 20, y - head - lift).setDepth(y + 0.6).setSize(40 * Math.max(0, sb.hp) / maxHp, 3);
       v.label?.setPosition(x, y - head - 3 - lift).setDepth(y + 0.7);

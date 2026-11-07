@@ -1,7 +1,7 @@
 import { play } from './audio.ts';
 import { STORY } from './story.ts';
 import * as Phaser from 'phaser';
-import { NADYA_MOVE_NAMES, RAMIL_ID, RAMIL_MOVE_NAMES, CHAIN, CHARACTERS, HEAVY, HALT_MS, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, PLAYER_HP, STORM_MS, ULT_MS, VIEW_H } from '@bc/shared';
+import { NADYA_MOVE_NAMES, RAMIL_ID, RAMIL_MOVE_NAMES, CHAIN, CHARACTERS, HEAVY, HALT_MS, HERO_ID, KRIS_ID, MOVE_NAMES, NADYA_ID, maxHpOf, STORM_MS, ULT_MS, VIEW_H } from '@bc/shared';
 import type { Button, EntitySnap, GameSession } from './session.ts';
 
 // Интерфейс поверх боя: стик, кнопки, панели игроков. Отдельная сцена, поэтому встряска
@@ -403,7 +403,7 @@ export class UIScene extends Phaser.Scene {
     const g = p.bars.clear();
     const x = p.name.x;
     const barW = Math.min(BAR_W, width - x - 4);
-    this.bar(g, x, 16, barW, 6, Math.max(0, sb.hp) / (sb.maxHp ?? PLAYER_HP), HP_COLOR);
+    this.bar(g, x, 16, barW, 6, Math.max(0, sb.hp) / (sb.maxHp ?? maxHpOf(sb.char)), HP_COLOR);
     const full = !ultimate && (sb.ult ?? 0) >= 100;
     const flash = full && Math.floor(this.time.now / 160) % 2 === 0;
     this.bar(g, x, 26, barW, 3, ultimate ? (sb.formMs ?? 0) / ULT_MS : (sb.ult ?? 0) / 100, ultimate ? ULTIMATE_COLOR : flash ? CREAM : heroColor(sb.char));
