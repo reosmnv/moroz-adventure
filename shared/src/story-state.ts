@@ -1,8 +1,10 @@
 import { STORY_CONTENT } from './story-content.ts';
 import { clampToLane } from './levels.ts';
-import { CHARACTERS, TEST_TOOLS, addPlayer, stepActors, createWorld, testSummon, testHeal, encountersOf, prepareStoryEncounter, placeStoryFormation, stopStoryHeroes, step, type World } from './sim.ts';
+import { CHARACTERS, TEST_TOOLS, VIEW_W, addPlayer, stepActors, createWorld, testSummon, testHeal, encountersOf, prepareStoryEncounter, placeStoryFormation, stopStoryHeroes, step, type World } from './sim.ts';
 import type { EnemyKind } from './enemy-data.ts';
 import { storyScene, STORY_SCENES, type StoryStep } from './story-scenes.ts';
+
+const ACTOR_EXIT_MARGIN = 128;
 
 export interface StoryProgress { scene: string; index: number; completed: string[]; flags: Record<string, string>; actKey?: string; actMs?: number }
 export const createStoryProgress = (): StoryProgress => ({ scene: '', index: 0, completed: [], flags: {} });
@@ -30,7 +32,7 @@ function applyStoryState(story: StoryProgress, world?: World) {
     story.completed.push(scene.id); story.scene = ''; story.index = 0;
     story.actKey = undefined; story.actMs = undefined;
     if (world) {
-      for (const [id, actor] of Object.entries(world.actors)) if (!actor.keep || scene.id === 'sender') delete world.actors[id];
+      for (const [id, actor] of Object.entries(world.actors)) if (!actor.keep) delete world.actors[id];
       world.storyCamX = undefined;
       if (world.storyEncounter) world.storyEncounter.waiting = false;
       for (const enemy of Object.values(world.enemies)) if (enemy.storyWaiting) { enemy.storyWaiting = false; enemy.storyAdvanceMs = 600; }
@@ -48,7 +50,7 @@ export function advanceStory(story: StoryProgress, key: string, world?: World): 
 export function wantedStatus(world: { level: string; stage: number; enc: { cleared: number }; storyPizDown?: boolean }, story: StoryProgress) {
   if (world.level !== 'route' || story.flags.wanted === 'off') return { stars: 0, reward: 0 };
   const stage = world.stage, cleared = world.enc.cleared;
-  const stars = stage >= 5 ? 5 : world.storyPizDown ? 4 : stage >= 3 || stage === 2 && cleared >= 1 ? 3
+  const stars = stage > 5 || stage === 5 && cleared >= 1 ? 5 : stage >= 5 || world.storyPizDown ? 4 : stage >= 3 || stage === 2 && cleared >= 1 ? 3
     : stage >= 1 || cleared >= 2 ? 2 : cleared >= 1 ? 1 : 0;
   const reward = stage >= 4 || stage === 3 && cleared >= 1 ? 500000 : stars >= 3 ? 150000 : 0;
   return { stars, reward };
@@ -206,6 +208,15 @@ export function tickStory(story: StoryProgress, world: World, dtMs: number) {
               if (action.facing) actor.facing = action.facing;
               if (action.do === 'walk' || action.do === 'exit') {
                 actor.tx = targetX ?? actor.x; actor.ty = action.y ?? actor.y;
+                // Уход без координаты ведёт за край всех экранов, включая широкие.
+                if (action.do === 'exit' && action.x === undefined) {
+                  const players = Object.values(world.players).filter(p => p.connected && !p.away && p.hp > 0);
+                  const widths = players.map(p => p.viewW ?? VIEW_W);
+                  const center = world.storyCamX ?? base;
+                  const edges = players.map(p => (p.viewX ?? center - (p.viewW ?? VIEW_W) / 2) + (actor.facing > 0 ? p.viewW ?? VIEW_W : 0));
+                  actor.tx = actor.facing > 0 ? Math.max(actor.x, center + Math.max(VIEW_W, ...widths) / 2, ...edges) + ACTOR_EXIT_MARGIN
+                    : Math.min(actor.x, center - Math.max(VIEW_W, ...widths) / 2, ...edges) - ACTOR_EXIT_MARGIN;
+                }
                 actor.speed = Math.hypot(actor.tx - actor.x, actor.ty - actor.y) * 1000 / Math.max(1, action.ms ?? 0);
                 actor.anim = 'walk';
                 if (!action.ms) { actor.x = actor.tx; actor.y = actor.ty; actor.anim = 'idle'; }

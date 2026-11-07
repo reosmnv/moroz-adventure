@@ -72,6 +72,7 @@ export const STORY_SCENES: StoryScene[] = [
   ] },
   { id: 'city', trigger: 'stage:5', x: 700, steps: [
     focus(310),
+    { kind: 'line', id: 'cty.route', speaker: 'nadezhda' },
     { kind: 'phone', ids: ['cty.t1', 'cty.t2', 'cty.t3'], at: 'info_f' },
     { kind: 'line', id: 'cty.1', speaker: 'Инфоцыганка', at: 'info_f' }, { kind: 'line', id: 'cty.2', speaker: 'Инфоцыган', at: 'info_m' },
     { kind: 'line', id: 'cty.3', speaker: 'anastasia' }, { kind: 'line', id: 'cty.4', speaker: 'kris' },
@@ -80,12 +81,16 @@ export const STORY_SCENES: StoryScene[] = [
   { id: 'milonov', trigger: 'clear:6:2', x: 2280, steps: [
     focus(2530), face('milonov', -1),
     { kind: 'line', id: 'mil.1', speaker: 'Милонов', at: 'milonov' }, { kind: 'line', id: 'mil.2', speaker: 'anastasia' },
-    { kind: 'line', id: 'mil.3', speaker: 'Милонов', at: 'milonov' }, { kind: 'line', id: 'mil.p4', speaker: 'Милонов', at: 'milonov' },
+    { kind: 'line', id: 'mil.3', speaker: 'Милонов', at: 'milonov' },
+    { kind: 'line', id: 'mil.p2', speaker: 'Милонов', at: 'milonov' }, face('ramil', 1),
+    { kind: 'line', id: 'mil.p3', speaker: 'ramil' }, { kind: 'line', id: 'mil.p4', speaker: 'Милонов', at: 'milonov' },
     { kind: 'line', id: 'mil.p5', speaker: 'Милонов', at: 'milonov' },
   ] },
   { id: 'leverage', trigger: 'clear:6:2', x: 2280, steps: [
     focus(2530), face('kris', 1),
-    { kind: 'line', id: 'lev.1', speaker: 'kris' }, { kind: 'line', id: 'lev.3', speaker: 'kris' },
+    { kind: 'line', id: 'lev.1', speaker: 'kris' },
+    { kind: 'composition', id: 'lev.rec', images: ['ui/portrait-prime.png', 'ui/kris/portrait.png', 'ui/story/milonov-full.png'] },
+    { kind: 'line', id: 'lev.3', speaker: 'kris' },
     { kind: 'line', id: 'lev.4', speaker: 'Милонов', at: 'milonov' }, { kind: 'line', id: 'lev.5', speaker: 'anastasia' },
     { kind: 'line', id: 'lev.6', speaker: 'Милонов', at: 'milonov' },
     { kind: 'phone', ids: ['res.1', 'res.2'], at: 'milonov' }, { kind: 'state', id: 'wanted', value: 'off' },
@@ -97,6 +102,7 @@ export const STORY_SCENES: StoryScene[] = [
     { kind: 'line', id: 'hck.1', speaker: 'ramil' },
     { kind: 'phone', ids: ['hck.2', 'hck.3', 'hck.4', 'hck.5'], at: 'ramil' },
     { kind: 'line', id: 'hck.7', speaker: 'ramil' },
+    face('milonov', 1), { kind: 'act', actor: 'milonov', do: 'exit', ms: 2200 },
   ] },
   { id: 'katya', trigger: 'boss:katya', steps: [
     focus(2770),

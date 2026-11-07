@@ -36,9 +36,8 @@ for (const scene of STORY_SCENES) {
     const ref = step.kind === 'act' && step.actor !== 'camera' ? step.actor
       : step.kind === 'line' ? step.at ?? step.speaker : step.kind === 'phone' ? step.at : undefined;
     if (ref && !actors.has(ref)) { console.log('missing actor', scene.id, ref); refsValid = false; }
-    if (step.kind === 'act' && step.do === 'exit') actors.delete(step.actor);
+    if (step.kind === 'act' && step.do === 'exit') { actors.delete(step.actor); kept.delete(step.actor); }
   }
-  if (scene.id === 'sender') kept.clear();
 }
 check('все at и act ссылаются на героев или живых актёров', refsValid);
 check('ID, лимиты сцен и ссылки на ассеты', valid);
@@ -48,6 +47,72 @@ const phoneIndex = prologue.steps.findIndex(s => s.kind === 'phone');
 const reaction = prologue.steps[phoneIndex + 1];
 check('реакция Насти отдельной репликой после телефона', reaction.kind === 'line' && reaction.id === 'intro.button' && reaction.speaker === 'anastasia'
   && !prologue.steps.some(s => s.kind === 'phone' && s.ids.includes('intro.button')));
+
+const milonov = STORY_SCENES.find(s => s.id === 'milonov')!;
+const milLines = milonov.steps.filter(s => s.kind === 'line');
+const confession = milLines.findIndex(s => s.id === 'mil.3');
+check('B1 Милонов: mil.3 → mil.p2 → mil.p3 → mil.p4', milLines.slice(confession, confession + 4).map(s => s.id).join() === 'mil.3,mil.p2,mil.p3,mil.p4'
+  && milLines.find(s => s.id === 'mil.p2')?.speaker === 'Милонов' && milLines.find(s => s.id === 'mil.p3')?.speaker === 'ramil');
+check('B1 признание и вопрос дословно из V3', content['mil.p2'] === 'Да что вы хотите?! Мне пришёл донос! Я только исполняю!' && content['mil.p3'] === 'И кто донёс?');
+const city = STORY_SCENES.find(s => s.id === 'city')!;
+const cityOpening = city.steps.find(s => s.kind !== 'act' && s.kind !== 'state');
+check('B3 первая реплика Сити объясняет направление из местного МФЦ', cityOpening?.kind === 'line' && cityOpening.id === 'cty.route'
+  && cityOpening.speaker === 'nadezhda' && /Местный МФЦ.*в главный.*Москва-Сити/.test(content[cityOpening.id]));
+const leverage = STORY_SCENES.find(s => s.id === 'leverage')!;
+const recording = leverage.steps.findIndex(s => s.kind === 'composition' && s.id === 'lev.rec');
+const recordingStep = leverage.steps[recording];
+const recordingIds = leverage.steps.slice(recording - 1, recording + 3).map(s => 'id' in s ? s.id : '');
+check('B4 запись между lev.1 и lev.3, до реакции Милонова', recordingStep?.kind === 'composition'
+  && recordingIds.join() === 'lev.1,lev.rec,lev.3,lev.4'
+  && content['lev.rec'].startsWith('● REC') && recordingStep.images.length > 0
+  && recordingStep.images.includes('ui/story/milonov-full.png') && recordingStep.images.some(file => file.includes('portrait'))
+  && recordingStep.images.every(file => !/katya|pizdulina/.test(file)));
+{
+  const w = createWorld(23, true, 'route', 5), st = createStoryProgress(); addPlayer(w, 'a', 'nadezhda');
+  testStoryScene(st, w, 'city', true); tickStory(st, w, 20000);
+  check('B3 объяснение МФЦ показано до первого боя Сити', st.scene === 'city' && city.steps[st.index] === cityOpening
+    && w.enc.cleared === 0 && Object.values(w.enemies).every(e => e.storyWaiting));
+}
+{
+  const w = createWorld(23, false, 'route', 0);
+  const street = encountersOf(w);
+  check('B5 первый бой street: только ватники, число врагов 6/4/4 сохранено', street[0].waves.flat().every(e => e.kind === 'vatnik')
+    && street[0].waves.map(wave => wave.length).join() === '6,4,4');
+  const st = createStoryProgress(); st.completed.push('prologue', 'street_vat');
+  const p = addPlayer(w, 'a', 'anastasia'); p.x = 1400;
+  w.enc.index = w.enc.cleared = 1;
+  check('B5 arch запускается после первой встречи без оставшихся врагов', Object.keys(w.enemies).length === 0 && startStoryForWorld(st, w) && st.scene === 'arch');
+  const omon = Object.values(w.enemies).find(e => e.id.endsWith('--omon1'));
+  check('B5 omon1 создан из встречи 1 и ждёт завершения arch', !!omon && omon.kind === 'omon' && !!omon.storyWaiting && w.storyEncounter?.index === 1);
+}
+{
+  const w = createWorld(23, false, 'route', 6), st = createStoryProgress();
+  const a = addPlayer(w, 'a', 'anastasia'), b = addPlayer(w, 'b', 'ramil');
+  a.x = 2200; a.viewX = 1920; a.viewW = 560;
+  b.x = 2180; b.viewX = 1090; b.viewW = 2200;
+  w.enc.index = w.enc.cleared = 2;
+  st.completed = STORY_SCENES.slice(0, STORY_SCENES.indexOf(milonov)).map(s => s.id);
+  for (const id of ['milonov', 'leverage']) {
+    check(`B2 обычный запуск ${id}`, startStoryForWorld(st, w) && st.scene === id);
+    for (let n = 0; st.scene && n < 200; n++) { tickStory(st, w, 20000); advanceStory(st, storyStepKey(st), w); }
+    check(`B2 Милонов остаётся после ${id}`, !st.scene && !!w.actors.milonov);
+  }
+  check('B2 обычный запуск sender', startStoryForWorld(st, w) && st.scene === 'sender');
+  const sender = STORY_SCENES.find(s => s.id === 'sender')!;
+  const exitIndex = sender.steps.findIndex(s => s.kind === 'act' && s.actor === 'milonov' && s.do === 'exit');
+  for (let n = 0; st.scene && st.index < exitIndex - 1 && n < 200; n++) { tickStory(st, w, 20000); advanceStory(st, storyStepKey(st), w); }
+  const before = w.actors.milonov?.x ?? 0;
+  tickStory(st, w, 1100);
+  const actor = w.actors.milonov;
+  check('B2 уход показан: разворот, движение, актёр ещё существует', exitIndex > 0 && st.scene === 'sender'
+    && !!actor && actor.facing === 1 && actor.anim === 'walk' && actor.x > before && actor.x < actor.tx);
+  check('B2 цель ухода за краем обоих экранов', !!actor && actor.tx > Math.max(a.viewX + a.viewW, b.viewX + b.viewW) + 100);
+  check('B2 уход нельзя пропустить командой', !advanceStory(st, storyStepKey(st), w));
+  tickStory(st, w, 1099);
+  check('B2 актёр не удаляется раньше конца ухода', !!w.actors.milonov && st.scene === 'sender');
+  tickStory(st, w, 1);
+  check('B2 после sender Милонов ушёл и удалён', !st.scene && st.completed.includes('sender') && !w.actors.milonov);
+}
 for (const scene of STORY_SCENES) {
   const w = createWorld(42, true, 'route');
   for (const hero of CHARACTERS) addPlayer(w, hero.id, hero.id);
@@ -98,7 +163,8 @@ check('тестовые сцены запрещены вне testMode', !testSto
 check('портреты всех сюжетных героев', ['portrait-prime.png', 'nadya/portrait.png', 'kris/portrait.png', 'ramil/portrait.png'].every(file => existsSync(publicDir + 'ui/' + file)));
 check('ассеты боя Кати', ['idle', 'walk', 'hurt', 'fall', 'strike', 'cast', 'release'].every(clip => existsSync(publicDir + `sprites/enemies/katya-pl/${clip}-east.png`)));
 check('лимиты вставок врагов', Object.values(ENEMY_INTRO).every(e => e.name.length <= 16 && e.tag.length <= 40 && e.line.length <= 60));
-check('лимиты пушей и слов боя', Object.entries(content).every(([id, value]) => id.startsWith('push.') ? value.length <= 70 : /^(sh\.w\d|sh\.down|pz\.w\d|pz\.down|kat\.w\d|kat\.down)$/.test(id) ? value.length <= 12 : true));
+check('лимиты пушей и слов боя', Object.entries(content).every(([id, value]) => id.startsWith('push.') ? value.length <= 70 : /^(\w+\.w\d|\w+\.down|word\..+)$/.test(id) ? value.length <= 12 : true));
+check('B6 оба перекрёстных слова в словаре, максимум 12 знаков', ['word.crossBan', 'word.crossStage'].every(id => !!content[id] && content[id].length <= 12));
 check('лимиты карточек маршрута', LEVELS.route.stages.every(s => s.cards.every(([small, big]) => small.length <= 28 && big.length <= 14)));
 check('все текстовые вывески удалены', LEVELS.route.stages.every(s => s.signs.length === 0));
 check('старый сюжет отсутствует в игровых текстах', !/несуществующ|Вас нет|НАСТЯ ЕСТЬ|Тебя нет|Удалена мной|Как существовать|ОКНО 1|А-000|А-001|ожидайте вызова/i.test(Object.values(content).join('\n') + JSON.stringify(LEVELS.route.stages)));
@@ -136,7 +202,16 @@ check('150 тысяч и три звезды в вестибюле', status.star
 const later = wantedStatus({ ...world, stage: 3, enc: { cleared: 1 } }, story);
 check('500 тысяч и три звезды в вагоне', later.stars === 3 && later.reward === 500000);
 check('четыре после Пиздулины', wantedStatus({ ...world, stage: 4, storyPizDown: true }, story).stars === 4);
-check('пять в Сити', wantedStatus({ ...world, stage: 5 }, story).stars === 5);
+check('B7 четыре при входе в Сити', wantedStatus({ ...world, stage: 5, enc: { cleared: 0 } }, story).stars === 4);
+check('B7 пять после первой встречи в Сити', wantedStatus({ ...world, stage: 5, enc: { cleared: 1 } }, story).stars === 5);
+check('B7 пять сохраняются в главном МФЦ до снятия розыска', wantedStatus({ ...world, stage: 6, enc: { cleared: 0 } }, story).stars === 5);
+{
+  const w = createWorld(23, false, 'route', 5), st = createStoryProgress(); addPlayer(w, 'a', 'anastasia');
+  step(w, {});
+  check('B7 до первого боя Сити четыре звезды, пуша пяти ещё нет', wantedStatus(w, st).stars === 4 && !w.storyPushes?.[5]);
+  w.enc.index = w.enc.cleared = 1; step(w, {});
+  check('B7 пятая звезда и push.6 появляются в одном событии', wantedStatus(w, st).stars === 5 && !!w.storyPushes?.[5] && content['push.6'].includes('★★★★★'));
+}
 story.flags.wanted = 'off';
 check('розыск снят после Милонова', wantedStatus({ ...world, stage: 6 }, story).stars === 0);
 

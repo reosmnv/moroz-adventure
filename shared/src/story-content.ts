@@ -124,6 +124,7 @@ export const STORY_CONTENT = {
   "city.sign": "ГЛАВНЫЙ МФЦ →",
   "cty.p1": "СИТИ",
   "cty.p3": "+4 800",
+  "cty.route": "Местный МФЦ отправил нас в главный. В Москва-Сити.",
   "cty.t1": "В ЭФИРЕ: ПОИМКА ЭКСТРЕМИСТОВ",
   "cty.t2": "лови её!",
   "cty.t3": "донат 5000 ₽ за вилы",
@@ -161,6 +162,7 @@ export const STORY_CONTENT = {
   "mil.down": "В АРХИВ!",
   "mil.last": "Ненадолго! Придёт новый донос!",
   "lev.1": "Милонов, посмотри. Я снимала с утра.",
+  "lev.rec": "● REC · ЗАПИСЬ KRIS\nМилонов: «Я не читал! Я подписал!»",
   "lev.2": "Ты, ОМОН, Шаман в кожаных штанах, Пиздулина.",
   "lev.3": "„Не читал. Подписал“. Всё снято.",
   "lev.4": "Это нельзя выкладывать!",
@@ -207,6 +209,8 @@ export const STORY_CONTENT = {
   "fin.btn": "В главное меню",
   "line.stage.nastya": "Ещё не конец света.",
   "line.ready.nastya": "Включаю громкость",
+  "word.crossBan": "ПРОВЕРКА!",
+  "word.crossStage": "СВЕТ И ЗВУК!",
   "kat.withdraw": "Обращение № 4471\nОТОЗВАТЬ → ГОТОВО",
 } as const;
 export type StoryTextId = keyof typeof STORY_CONTENT;

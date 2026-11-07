@@ -207,7 +207,7 @@ export class GameScene extends Phaser.Scene {
         else if (e.attack === 'crossStage' || e.attack === 'crossBan') {
           this.fx('boss-ring',e.x,e.y,{...floor,scale:2});
           this.fx(e.attack === 'crossBan' ? 'boss-ban' : 'boss-pyro',e.x,e.y-45,{depth:e.y,scale:1.2});
-          this.bossWord(e.x,e.y-90,e.attack === 'crossBan' ? 'ПЕРЕКРЁСТНАЯ ПРОВЕРКА!' : 'СВЕТ И ЗВУК!');
+          this.bossWord(e.x,e.y-90,e.attack === 'crossBan' ? STORY_CONTENT['word.crossBan'] : STORY_CONTENT['word.crossStage']);
           shake(this.cameras.main,180,0.007);
         }
         else if (e.h) {
