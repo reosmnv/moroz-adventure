@@ -81,7 +81,7 @@ export const GameState = schema({
 }, 'GameState');
 export type GameState = SchemaType<typeof GameState>;
 
-const RECONNECT_SECONDS = 60;
+const RECONNECT_SECONDS = 180;
 const round = (v: number) => Math.round(v * 10) / 10;
 
 export class GameRoom extends Room<{ state: GameState }> {
@@ -92,15 +92,18 @@ export class GameRoom extends Room<{ state: GameState }> {
   private story = createStoryProgress();
   private storyHost = '';
 
+  // Переопределяется только отдельной локальной фикстурой сетевых тестов.
+  protected testToolsEnabled(): boolean { return TEST_TOOLS; }
+
   onCreate(options: { level?: unknown; stage?: unknown; testMode?: unknown } = {}) {
-    const testMode = TEST_TOOLS && options.testMode === true;
+    const testMode = this.testToolsEnabled() && options.testMode === true;
     const level = testMode && options.level === 'old' ? 'old' : 'route';
     const stage = testMode && typeof options.stage === 'number' && Number.isInteger(options.stage) && options.stage >= 0 && options.stage < LEVELS[level].stages.length ? options.stage : 0;
     this.world = createWorld(Date.now() & 0xffff, testMode, level, stage);
     this.sync();
     this.onMessage('warnings', (client: Client) => this.sendWarnings(client));
     this.onMessage('next', (client: Client) => {
-      if (this.world.testTools && this.world.players[client.sessionId]) nextStage(this.world);
+      if (this.testToolsEnabled() && this.world.testTools && this.world.players[client.sessionId]) nextStage(this.world);
     });
     // Короткий код комнаты для ссылки вместо стандартного длинного id
     this.roomId = Math.random().toString(36).slice(2, 7).toUpperCase();
@@ -164,10 +167,10 @@ export class GameRoom extends Room<{ state: GameState }> {
 
     // Тестовые команды доступны только в режиме комнаты
     this.onMessage('spawn', (client: Client) => {
-      if (this.world.testTools && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
+      if (this.testToolsEnabled() && this.world.testTools && this.world.players[client.sessionId]) spawnEnemies(this.world, 3);
     });
 
-    if (TEST_TOOLS) {
+    if (this.testToolsEnabled()) {
       this.onMessage('testScene', (client: Client, data: unknown) => {
         if (!this.world.testTools || !this.world.players[client.sessionId] || !data || typeof data !== 'object') return;
         const { id, strict } = data as { id?: unknown; strict?: unknown };
@@ -178,21 +181,21 @@ export class GameRoom extends Room<{ state: GameState }> {
       });
     }
     this.onMessage('summon', (client: Client) => {
-      if (this.world.testTools && this.world.players[client.sessionId]) testSummon(this.world);
+      if (this.testToolsEnabled() && this.world.testTools && this.world.players[client.sessionId]) testSummon(this.world);
     });
 
     this.onMessage('charge', (client: Client) => {
-      if (this.world.testTools) chargeUlt(this.world, client.sessionId);
+      if (this.testToolsEnabled() && this.world.testTools) chargeUlt(this.world, client.sessionId);
     });
 
     this.onMessage('heal', (client: Client) => {
-      if (this.world.testTools && this.world.players[client.sessionId]) testHeal(this.world);
+      if (this.testToolsEnabled() && this.world.testTools && this.world.players[client.sessionId]) testHeal(this.world);
     });
     this.onMessage('god', (client: Client, on: unknown) => {
-      if (this.world.testTools && typeof on === 'boolean') testGod(this.world, client.sessionId, on);
+      if (this.testToolsEnabled() && this.world.testTools && typeof on === 'boolean') testGod(this.world, client.sessionId, on);
     });
     this.onMessage('killall', (client: Client) => {
-      if (this.world.testTools && this.world.players[client.sessionId]) testKillAll(this.world);
+      if (this.testToolsEnabled() && this.world.testTools && this.world.players[client.sessionId]) testKillAll(this.world);
     });
 
     // Пауза общая на комнату: поставить и снять может любой из двоих

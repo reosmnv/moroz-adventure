@@ -1,3 +1,4 @@
+import { STORY_SCENES } from './story-scenes.ts';
 import { LINES, LINE_HEROES, CALL_NAMES } from './lines.ts';
 // Общая симуляция боя: одна и та же для сервера (онлайн) и браузера (офлайн).
 // Чистые данные и функции, без Phaser и Colyseus.
@@ -19,7 +20,7 @@ export const VIEW_W = 480;
 export const VIEW_H = 270;
 
 // Доступность тест-режима в меню. Режим игры хранится в world.testTools
-export const TEST_TOOLS = true;
+export const TEST_TOOLS = false;
 
 const PLAYER_SPEED = 90; // единиц в секунду
 const ENEMY_DMG = 7;
@@ -192,6 +193,7 @@ export interface World {
   players: Record<string, Player>;
   enemies: Record<string, Enemy>;
   testTools: boolean;
+  storyCompleted: string[];
   events?: SimEvent[]; // события команд до ближайшего тика
   pending: Pending[]; // отложенные удары: долетевшая вспышка, взрыв шара, урон после рывка, луч, летящий поцелуй
 }
@@ -270,7 +272,7 @@ function focusX(w: World): number {
 
 export function createWorld(seed = 1, testTools = false, level: 'route' | 'old' = 'route', stage = 0): World {
   stage = Number.isInteger(stage) && stage >= 0 && stage < LEVELS[level].stages.length ? stage : 0;
-  return { actors: {}, halt: -1, introduced: [], shots: [], zones: [], timeMs: 0, tokenReleased: {}, won: false, enc: { stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 }, level, stage, tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
+  return { storyCompleted: [], actors: {}, halt: -1, introduced: [], shots: [], zones: [], timeMs: 0, tokenReleased: {}, won: false, enc: { stage, index: 0, wave: 0, queue: [], lock: null, cleared: 0 }, level, stage, tick: 0, seed, wave: 0, nextEnemyId: 1, players: {}, enemies: {}, testTools, pending: [] };
 }
 
 export function takenChars(w: World): string[] {
@@ -1964,12 +1966,19 @@ function stepCore(w: World, inputs: Record<string, Input>, dtMs = TICK_MS): SimE
     w.halt = w.halt < 0 ? 0 : Math.min(HALT_MS, w.halt + dtMs);
   }
   const exit = stageOf(w).exit;
-  if ((!stageOf(w).tunnel || w.halt >= HALT_MS) && (w.level !== 'route' || w.enc.cleared === encountersOf(w).length) && exit && w.stage + 1 < LEVELS[w.level].stages.length && active.some(p => p.hp > 0 && p.x >= exit.x0 && p.x <= exit.x1 && p.y <= exit.y1)) {
+  if ((!stageOf(w).tunnel || w.halt >= HALT_MS) && (w.level !== 'route' || w.enc.cleared === encountersOf(w).length) && exit && w.stage + 1 < LEVELS[w.level].stages.length && stageStoryComplete(w) && active.some(p => p.hp > 0 && p.x >= exit.x0 && p.x <= exit.x1 && p.y <= exit.y1)) {
     w.trans = { ms: 900, to: w.stage + 1 };
     ev.push({ t: 'exit', to: w.trans.to });
   }
 
   return ev;
+}
+
+// Сцены стадии и её боссов обязательны даже до срабатывания их триггеров.
+export function stageStoryComplete(w: World): boolean {
+  if (w.level !== 'route') return true;
+  const triggers = new Set([`stage:${w.stage}`, ...encountersOf(w).flatMap(e => (e.bosses ?? []).map(id => `boss:${id}`))]);
+  return STORY_SCENES.every(scene => !(triggers.has(scene.trigger) || scene.trigger.startsWith(`clear:${w.stage}:`)) || w.storyCompleted.includes(scene.id));
 }
 
 // Сюжетные события используют то же время и seed, что бой.

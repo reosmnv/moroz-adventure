@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 let now = 1000, timerId = 0, contexts = 0;
+let missingAvailable = false, corruptAvailable = false, manifestAttempts = 0;
 const timers = new Map<number, { at: number; run: () => void }>();
 const flush = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
 const advance = async (ms = 1000) => {
@@ -43,18 +44,22 @@ class Context {
   destination = new Node();
   constructor() { contexts++; }
   get currentTime() { return now / 1000; }
-  resume() { this.state = 'running'; return Promise.resolve(); }
+  resume() { return Promise.resolve().then(() => { this.state = 'running'; }); }
   suspend() { this.state = 'suspended'; return Promise.resolve(); }
   createGain() { const node = new Gain(); gains.push(node); return node; }
   createBufferSource() { return new Source(); }
   createStereoPanner() { return new Panner(); }
   createMediaElementSource(element: Media) { return element.source = new Node(); }
-  async decodeAudioData(data: { file: string }) { decodes.push(data.file); if (data.file.includes('corrupt')) throw Error('decode failed'); return data; }
+  async decodeAudioData(data: { file: string }) { decodes.push(data.file); if (data.file.includes('corrupt') && !corruptAvailable) throw Error('decode failed'); return data; }
 }
 class Media extends EventTarget {
-  src = ''; preload = ''; loop = false; paused = true; plays = 0; source?: Node;
+  src = ''; preload = ''; loop = false; paused = true; plays = 0; denied = false; source?: Node;
   constructor() { super(); media.push(this); }
-  play() { this.paused = false; this.plays++; return Promise.resolve(); }
+  play() {
+    this.plays++;
+    if (this.denied) return Promise.reject(Object.assign(Error('gesture required'), { name: 'NotAllowedError' }));
+    this.paused = false; return Promise.resolve();
+  }
   pause() { this.paused = true; }
   load() {}
   removeAttribute(name: string) { if (name === 'src') this.src = ''; }
@@ -76,23 +81,38 @@ Object.defineProperties(globalThis, {
   localStorage: { value: { getItem: (key: string) => stored.get(key), setItem: (key: string, value: string) => stored.set(key, value) } },
   fetch: { value: async (url: URL) => {
     const file = url.pathname.split('/').at(-1)!; requests.push(file);
-    if (file === 'manifest.json') return { ok: true, json: async () => fixture };
-    return { ok: file !== 'missing.mp3', arrayBuffer: () => file === 'slow.mp3' ? new Promise(resolve => { resolveSlow = resolve; }) : Promise.resolve({ file }) };
+    if (file === 'manifest.json') return { ok: ++manifestAttempts > 1, json: async () => fixture };
+    return { ok: file !== 'missing.mp3' || missingAvailable, arrayBuffer: () => file === 'slow.mp3' ? new Promise(resolve => { resolveSlow = resolve; }) : Promise.resolve({ file }) };
   } },
 });
 const audio = await import('../src/audio.ts');
 const { settings, updateSettings } = await import('../src/settings.ts');
 assert.equal(settings.sound, false); assert.equal(settings.music, 100); assert.equal(settings.sounds, 100); assert.equal(settings.ambience, 100);
 assert.equal(settings.flashes, 'off'); assert.equal(settings.shake, false);
+await flush();
+assert.equal((await audio.soundManifest()).music_menu, undefined, 'ошибка манифеста допустима');
+await advance(4999); await audio.soundManifest(); assert.equal(manifestAttempts, 1, 'манифест не запрашивается каждый кадр');
+await advance(1); await audio.soundManifest(); assert.equal(manifestAttempts, 2, 'манифест повторяется через 5 с');
 updateSettings({ sound: true });
 audio.playMusic('music_menu'); audio.playAmb('amb_street'); await flush();
 assert.equal(media.length, 0, 'media не создаётся до жеста');
-audio.unlockAudio(); await flush();
+audio.unlockAudio();
+assert.equal(media.length, 2);
+assert.ok(media.every(m => m.plays > 0), 'play музыки и фона вызван синхронно до завершения resume');
+await flush();
 assert.equal(contexts, 1); assert.equal(nav.audioSession.type, 'playback'); assert.equal(media.length, 2);
 assert.ok(media.every(m => m.loop && !m.paused));
 assert.equal(decodes.filter(f => /music_|amb_/.test(f)).length, 0, 'длинные файлы не декодируются');
 audio.unlockAudio(); audio.playMusic('music_menu'); await flush(); assert.equal(contexts, 1); assert.equal(media.length, 2);
-const first = media[0]; audio.playMusic('music_route1'); await flush();
+const first = media[0];
+first.pause(); first.denied = true;
+let attempts = first.plays;
+audio.unlockAudio(); assert.ok(first.plays > attempts, 'play вызван внутри жеста'); await flush();
+assert.ok(first.paused && first.src, 'NotAllowedError сохраняет текущий трек для повтора');
+first.denied = false; attempts = first.plays;
+audio.unlockAudio(); assert.ok(first.plays > attempts, 'повтор на следующем жесте синхронный'); await flush();
+assert.ok(!first.paused);
+audio.playMusic('music_route1'); await flush();
 assert.equal(media.length, 3); assert.ok(!first.paused, 'старая музыка звучит во время fade');
 await advance(799); assert.ok(!first.paused); await advance(1); assert.ok(first.paused && first.source?.disconnected);
 const music = gains[4], amb = gains[3];
@@ -121,6 +141,11 @@ assert.equal(requests.filter(f => f === played[0].buffer?.file).length, 1, 'Audi
 audio.stopSound('impact_light'); assert.ok(played.every(p => p.stopped));
 const count = played.length; audio.play('missing'); audio.play('corrupt'); audio.play('absent_id'); await flush(); assert.equal(played.length, count);
 const cancel = audio.play('slow'); await flush(); cancel(); resolveSlow({ file: 'slow.mp3' }); await flush(); assert.equal(played.length, count, 'отменённая загрузка не начинает звук');
+missingAvailable = true; corruptAvailable = true;
+audio.play('missing'); audio.play('corrupt'); await flush();
+assert.equal(played.length, count + 2, 'ошибки fetch и decode не остаются в кэше');
+assert.equal(requests.filter(file => file === 'missing.mp3').length, 2);
+assert.equal(decodes.filter(file => file === 'corrupt.mp3').length, 2);
 audio.play('ramil_spin'); await flush(); assert.equal(played.at(-1)?.loop, true); audio.stopSound('ramil_spin'); assert.equal(played.at(-1)?.stopped, true);
 audio.play('ui_charge_step', { rate: 1.4 }); await flush(); assert.equal(played.at(-1)?.playbackRate.value, 1.4);
 doc.hidden = true; doc.dispatchEvent(new Event('visibilitychange')); await flush();
@@ -130,6 +155,10 @@ assert.equal(audio.audioState(), 'running'); assert.ok(media.some(m => !m.paused
 audio.playMusic('music_katya'); await flush(); const broken = media.at(-1)!;
 broken.dispatchEvent(new Event('error')); await flush(); const mediaCount = media.length;
 for (let i = 0; i < 5; i++) audio.playMusic('music_katya'); await flush(); assert.equal(media.length, mediaCount, 'нет бесконечных повторов отсутствующего media');
+await advance(4999); audio.playMusic('music_katya'); await flush(); assert.equal(media.length, mediaCount);
+await advance(1); audio.playMusic('music_katya'); await flush();
+assert.equal(media.length, mediaCount + 1, 'ошибка media разрешает повтор через 5 с');
+assert.ok(media.at(-1)?.src.endsWith('music_katya.mp3') && !media.at(-1)?.paused);
 audio.setAudioPaused(true); audio.setAudioPreview(true); await flush(); audio.play('amb_mfc'); await flush();
 assert.ok(media.at(-1)?.src.endsWith('amb_mfc.mp3') && !media.at(-1)?.paused, 'окружение прослушивается на паузе');
 audio.setAudioPreview(false); audio.setAudioPaused(false); await advance();

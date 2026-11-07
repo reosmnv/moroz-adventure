@@ -2,7 +2,7 @@ import { STORY_CONTENT } from './story-content.ts';
 import { clampToLane } from './levels.ts';
 import { ROUTE } from './route-data.ts';
 import { VOKZAL_ARENA } from './encounters.ts';
-import { CHARACTERS, TEST_TOOLS, VIEW_W, addPlayer, stepActors, createWorld, testSummon, testHeal, encountersOf, prepareStoryEncounter, placeStoryFormation, stopStoryHeroes, step, type World } from './sim.ts';
+import { CHARACTERS, VIEW_W, addPlayer, stepActors, createWorld, testSummon, testHeal, encountersOf, prepareStoryEncounter, placeStoryFormation, stopStoryHeroes, step, type World } from './sim.ts';
 import type { EnemyKind } from './enemy-data.ts';
 import { storyScene, STORY_SCENES, type StoryStep } from './story-scenes.ts';
 
@@ -31,7 +31,9 @@ function applyStoryState(story: StoryProgress, world?: World) {
   }
   const scene = storyScene(story.scene);
   if (scene && story.index >= scene.steps.length) {
-    story.completed.push(scene.id); story.scene = ''; story.index = 0;
+    story.completed.push(scene.id);
+    if (world) world.storyCompleted = [...story.completed];
+    story.scene = ''; story.index = 0;
     story.actKey = undefined; story.actMs = undefined;
     if (world) {
       for (const [id, actor] of Object.entries(world.actors)) if (!actor.keep) delete world.actors[id];
@@ -95,6 +97,7 @@ function prepareScene(world: World, scene: NonNullable<ReturnType<typeof storySc
   }
 }
 export function startStoryForWorld(story: StoryProgress, world: StoryWorld): boolean {
+  if ('storyCompleted' in world) (world as World).storyCompleted = [...story.completed];
   const scene = pendingStory(story, world);
   if (!scene) return false;
   const alive = Object.values(world.players).filter(p => p.hp > 0 && p.connected && !p.away);
@@ -113,7 +116,7 @@ export function startStoryForWorld(story: StoryProgress, world: StoryWorld): boo
 
 // Единственное перемещение группы в сюжете разрешено только тестовым запуском.
 export function testStoryScene(story: StoryProgress, world: World, id: string, strict: boolean): boolean {
-  if (!TEST_TOOLS || !world.testTools || typeof strict !== 'boolean') return false;
+  if (!world.testTools || typeof strict !== 'boolean') return false;
   const scene = storyScene(id);
   if (!scene) return false;
   const vokzal = ROUTE.findIndex(stage => stage.id === 'vokzal');
@@ -168,7 +171,7 @@ export function testStoryScene(story: StoryProgress, world: World, id: string, s
   return true;
 }
 export function testStoryStrict(world: World, strict: boolean) {
-  if (TEST_TOOLS && world.testTools && typeof strict === 'boolean') world.storyStrict = strict;
+  if (world.testTools && typeof strict === 'boolean') world.storyStrict = strict;
 }
 
 // Команды не могут пропустить act. Все клиенты получают уже рассчитанное состояние.

@@ -1,4 +1,4 @@
-import { bossWarningEvents, stopStoryHeroes, LINES, CALL_NAMES, createStoryProgress, wantedStatus, startStoryForWorld } from '@bc/shared';
+import { STORY_SCENES, bossWarningEvents, stopStoryHeroes, LINES, CALL_NAMES, createStoryProgress, wantedStatus, startStoryForWorld } from '@bc/shared';
 // Сценарии боя Анастасии прямо на shared/sim, без сервера: `npm run test:sim`.
 import { CHARACTERS, HERO_FORM, PLAYER_HP, switchHero, testHeal, testGod, testKillAll, chargeUlt, nextStage, RAMIL, flurryTiming, flurryPose, BOSS, BOSS_ATTACK, type BossId, ENTER_SPEED, ENTER_OFF, HALT_MS, ROLE, ENCOUNTERS, LEVELS, stageOf, stageProp, encountersOf, HERO_ID, KRIS_ID, NADYA_ID, ULT_MS, TICK_MS, addPlayer, createWorld, emptyInput, spawnEnemies, step, moveDurMs, hitTimesMs, CHAIN, HEAVY, STRIKES, FREEZE_MS, STORM_MS, RANGE_MULT, JUGGLE_MAX_MS, KILL_EXTEND_MS, type Input, type World } from '@bc/shared';
 
@@ -577,6 +577,7 @@ for (const front of [true, false]) {
 }
 {
   const w = createWorld(11, true), p = addPlayer(w, 'h', HERO_ID);
+  w.storyCompleted = STORY_SCENES.map(scene => scene.id);
   let ticks = 0, locks = 0, clears = 0, ordered = true, lastStage = 0;
   const bosses: string[] = [];
   const done: number[] = [];
@@ -709,6 +710,7 @@ function forceBossAttack(e: ReturnType<typeof bossSetup>['e'], atk: string) {
   check('TZ06 R9.7: чекпойнт Пиздулины без волн и Шамана', restart.some(v => v.t === 'restart') && Object.values(w.enemies).length === 3 && Object.values(w.enemies).filter(e=>e.kind==='omon' && !e.boss).length===2 && Object.values(w.enemies)[0].boss === 'pizdulina');
   for(const e of Object.values(w.enemies)) e.hp = 0; step(w, {}); run(w, 2300);
   check('TZ06 R9.1: clear только после второго босса', w.enc.cleared === 1 && !w.enc.lock);
+  w.storyCompleted = STORY_SCENES.map(scene => scene.id);
   const exit = stageOf(w).exit!; p.x = exit.x0 + 2; p.y = exit.y1; const ev = step(w, {});
   check('TZ06 R9.1: выход доступен после боссов', ev.some(e => e.t === 'exit'));
 }
@@ -880,6 +882,7 @@ for (const dodge of [false, true]) {
 {
   const w = createWorld(35, false, 'route', 3), p = addPlayer(w, 'h', HERO_ID);
   w.enc.index = w.enc.cleared = encountersOf(w).length;
+  w.storyCompleted = STORY_SCENES.map(scene => scene.id);
   const exit = stageOf(w).exit!; p.x = exit.x0 + 2; p.y = exit.y1;
   step(w, {});
   check('TZ07: торможение начинается с нуля', w.halt === 0 && !w.trans);

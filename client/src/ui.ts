@@ -128,7 +128,7 @@ export class UIScene extends Phaser.Scene {
     this.shownHits = 0;
     this.hitText = this.add.text(0, HITS_Y, '', { ...textStyle(), fontSize: HITS_FONT }).setOrigin(1, 0).setScrollFactor(0);
     this.testLabel = this.add.text(0, PANEL_Y + 33, 'ТЕСТ', textStyle(8, '#f2a541')).setScrollFactor(0);
-    this.waveText = this.add.text(0, 44, '', textStyle()).setOrigin(0.5, 0);
+    this.waveText = this.add.text(0, 68, '', textStyle()).setOrigin(0.5, 0);
     this.wantedText = this.add.text(0, 6, '', textStyle(8, '#ffe45c')).setOrigin(1, 0);
     this.recText = this.add.text(6, 55, '● REC', textStyle(8, '#ff4343'));
     for (let i = 0; i < 4; i++) this.panels.push(this.makePanel(PANEL_X + i * (PANEL_W + PANEL_GAP), PANEL_Y));

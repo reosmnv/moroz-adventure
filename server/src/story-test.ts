@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { CHARACTERS, LEVELS, STORY_CONTENT, STORY_SCENES, advanceStory, createStoryProgress, startStory, startStoryForWorld, storyStepKey, wantedStatus, createWorld, addPlayer, tickStory, testStoryScene, testStoryStrict, step, emptyInput, encountersOf, stageOf } from '@bc/shared';
+import { CHARACTERS, LEVELS, STORY_CONTENT, STORY_SCENES, advanceStory, createStoryProgress, startStory, startStoryForWorld, storyStepKey, wantedStatus, createWorld, addPlayer, tickStory, testStoryScene, testStoryStrict, step, emptyInput, encountersOf, stageOf, stageStoryComplete } from '@bc/shared';
 import { ROUTE } from '../../shared/src/route-data.ts';
 
 let failed = 0;
@@ -308,6 +308,47 @@ check('финал открыт после отзыва доноса', route.flag
   check('TZ26 после sender выход ведёт на вокзал', w.trans?.to === vokzal);
   for (let n = 0; n < 60; n++) step(w, {});
   check('TZ26 группа перешла на вокзал без преждевременной победы', w.stage === vokzal && !w.won);
+}
+
+// TZ28: выход проверяется и до старта сцены, включая отставших друзей.
+for (const count of [1, 4]) {
+  const mfc = ROUTE.findIndex(stage => stage.id === 'mfc');
+  const w = createWorld(28, false, 'route', mfc), st = createStoryProgress();
+  const heroes = CHARACTERS.slice(0, count).map(hero => addPlayer(w, hero.id, hero.id));
+  const exit = stageOf(w).exit!;
+  w.enc.index = w.enc.cleared = encountersOf(w).length;
+  heroes.forEach((p, i) => { p.x = i ? 1000 : exit.x0 + 10; p.y = 255; });
+  step(w, {});
+  check(`TZ28 ${count}P: у выхода до Милонова перехода нет`, !w.trans && !stageStoryComplete(w));
+  st.completed = STORY_SCENES.slice(0, STORY_SCENES.findIndex(s => s.id === 'sender')).map(s => s.id);
+  startStoryForWorld(st, w);
+  check(`TZ28 ${count}P: sender ждёт всех живых`, count === 1 ? st.scene === 'sender' : !st.scene);
+  step(w, {});
+  check(`TZ28 ${count}P: sender не завершён, выход закрыт`, !w.trans);
+  heroes.forEach((p, i) => { p.x = i ? 2200 : exit.x0 + 10; });
+  startStoryForWorld(st, w);
+  for (let n = 0; st.scene && n < 200; n++) {
+    tickStory(st, w, 20000); advanceStory(st, storyStepKey(st), w);
+  }
+  check(`TZ28 ${count}P: sender завершён, сцены стадии пройдены`, st.completed.includes('sender') && stageStoryComplete(w));
+  // Поражение команды не должно терять уже завершённый сюжет.
+  heroes.forEach(p => { p.hp = 0; });
+  const restart = step(w, {});
+  check(`TZ28 ${count}P: рестарт сохраняет завершённые сцены`, restart.some(e => e.t === 'restart') && stageStoryComplete(w));
+  heroes[0].x = exit.x0 + 10; heroes[0].y = 255;
+  step(w, {});
+  check(`TZ28 ${count}P: после sender выход на нижней границе ведёт на вокзал`, w.trans?.to === vokzal);
+}
+for (const [stage, data] of ROUTE.entries()) {
+  const w = createWorld(28, false, 'route', stage);
+  w.storyCompleted = STORY_SCENES.map(scene => scene.id);
+  check(`TZ28 ${data.id}: завершённые сцены разрешают выход`, stageStoryComplete(w));
+  const scene = STORY_SCENES.find(scene => scene.trigger === `stage:${stage}` || scene.trigger.startsWith(`clear:${stage}:`)
+    || encountersOf(w).some(e => e.bosses?.some(id => scene.trigger === `boss:${id}`)));
+  if (scene) {
+    w.storyCompleted = w.storyCompleted.filter(id => id !== scene.id);
+    check(`TZ28 ${data.id}: незавершённая ${scene.id} блокирует выход`, !stageStoryComplete(w));
+  }
 }
 
 // Кампания вместе с постановкой: четыре героя идут обычным вводом, враги снимаются тестом.

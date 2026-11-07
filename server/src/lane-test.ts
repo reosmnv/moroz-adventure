@@ -1,4 +1,4 @@
-import {
+import { STORY_SCENES,
   LEVELS, HERO_ID, NADYA_ID, TICK_MS, addPlayer, createWorld, emptyInput,
   spawnEnemies, nextStage, step, stageOf, encountersOf, laneTop, laneBottom, levelW, walkBounds, clampToLane, HALT_MS,
   type World,
@@ -80,6 +80,7 @@ for (let stage = 0; stage < LEVELS.route.stages.length; stage++) {
 
   if (data.exit) {
     const trans = createWorld(7, true, 'route', stage);
+    trans.storyCompleted = STORY_SCENES.map(scene => scene.id);
     const first = addPlayer(trans, 'a', HERO_ID), second = addPlayer(trans, 'b', NADYA_ID);
     trans.enc.index = trans.enc.cleared = encountersOf(trans).length;
     first.hp = 73; first.form = 'ultimate'; first.formMs = 10000;

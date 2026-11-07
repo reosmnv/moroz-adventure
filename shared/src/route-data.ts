@@ -129,7 +129,7 @@ export const ROUTE: Stage[] = [
     lane: flat(4320),
     laneBottom: 255,
     spawn: [80, 200],
-    exit: { x0: 4200, x1: 4310, y1: 200 }, // после сцены «sender» группа уходит на вокзал
+    exit: { x0: 4200, x1: 4310, y1: 255 }, // после сцены «sender» группа уходит на вокзал
     layers: [{ file: 'route/mfc.png' }],
     props: [],
     signs: [],

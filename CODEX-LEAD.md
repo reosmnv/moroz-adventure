@@ -21,7 +21,7 @@ timeout 2400 codex exec -s workspace-write --skip-git-repo-check -c model_reason
 
 ## Приёмка (делает Claude)
 - `npx tsc -p tsconfig.json --noEmit`; `node --import tsx server/src/{sim,story,lane,boss-crowd,enemy-sheets,hero-controls}-test.ts`; сборка `cd client && node ../node_modules/vite/bin/vite.js build`.
-- После правок `shared/`/`server/`: свой сервер `HOST=127.0.0.1 PORT=2568 node --import tsx server/src/index.ts`, затем `SERVER_URL=http://127.0.0.1:2568 node --import tsx server/src/net-test.ts`; `story-actors-net-test` (фикстура `PORT=2569 ... --serve`, затем клиент). Боевой :2567 (systemd `birthday-coop`) не трогать, `ops/dev.sh` при живом боевом не запускать, процессы останавливать по PID.
+- После правок `shared/`/`server/`: фикстура `node --import tsx server/src/net-test-server.ts` (:2568, тест-команды включены только в ней), затем `SERVER_URL=http://127.0.0.1:2568 node --import tsx server/src/net-test.ts`; `story-actors-net-test` (фикстура `PORT=2569 ... --serve`, затем клиент). Боевой :2567 (systemd `birthday-coop`) не трогать, `ops/dev.sh` при живом боевом не запускать, процессы останавливать по PID.
 - Браузер: Playwright импортом `/home/agent/node_modules/playwright/index.mjs` (пример `scratchpad/tz22b-main.mjs`), vite dev на своём порту, 844x390 и 667x375. Механический прогон можно отдать Haiku: `ops/haiku.sh playtester <отчёт> '<полный сценарий>'`.
 - Звук и iPhone проверяет только mr.R: не писать «работает на iPhone».
 

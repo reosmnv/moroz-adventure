@@ -19,7 +19,7 @@ let session: GameSession | null = null;
 let game: ReturnType<typeof startGame> | null = null;
 let busy = false;
 let testOnline = localStorage.getItem('bc-online') !== '0';
-let selectedStage = Number(params.get('stage'));
+let selectedStage = TEST_TOOLS ? Number(params.get('stage')) : 0;
 let pausePanel = '';
 let picking = false;
 let changingHero = false;
@@ -266,7 +266,7 @@ $('closeShareBtn').onclick = () => { visible('shareBox', false); pausePanel = ''
 
 setInterval(() => {
   if (!session || !game) { if (!busy) refreshContinue(); return; }
-  visible('testBtn', session.testMode);
+  visible('testBtn', TEST_TOOLS && session.testMode);
   $('topbar').style.zIndex = session.testMode && session.snapshots.at(-1)?.storyScene ? '13' : '';
   $('testBtn').setAttribute('aria-expanded', String(!$('testPanel').classList.contains('hidden')));
   if (!session.testMode) closeTest();

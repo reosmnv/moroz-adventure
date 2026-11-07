@@ -1,9 +1,10 @@
 // Сетевые сценарии без браузера: два бота на @colyseus/sdk против живого сервера.
-// Запуск: сервер уже работает, затем `npm run test:net` (SERVER_URL переопределяет адрес).
+// Запуск: node --import tsx server/src/net-test-server.ts, затем этот файл.
 import { STORY_SCENES, STORY_CONTENT } from '@bc/shared';
 import { Client, type Room } from '@colyseus/sdk';
 
-const URL = process.env.SERVER_URL ?? 'http://100.118.72.60:2567';
+const URL = process.env.SERVER_URL ?? 'http://127.0.0.1:2568';
+if (URL !== 'http://127.0.0.1:2568') throw new Error('net-test требует отдельную фикстуру на http://127.0.0.1:2568');
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 let failed = 0;
 function check(name: string, ok: boolean, info = '') {

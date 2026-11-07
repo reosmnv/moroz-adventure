@@ -25,7 +25,9 @@
 Обнови `HANDOFF.md` (коротко: текущее состояние, следующий шаг, открытые вопросы), ход работ и детали дописывай в `HANDOFF-archive.md`. Если менялись `shared/` или `server/`, перед этим прогони `npm run test:net`.
 
 ## Команды
-- `ops/dev.sh` перезапуск сервера (:2567) и клиента (:5173) на Tailscale-IP 100.118.72.60. Убивает процессы сервера без проверки порта: при живом боевом (systemd `birthday-coop`, :2567) НЕ запускать. Для проверок свой сервер: `HOST=127.0.0.1 PORT=2568 node --import tsx server/src/index.ts`.
+- `ops/dev.sh` перезапуск сервера (:2567) и клиента (:5173) на Tailscale-IP 100.118.72.60. Убивает процессы сервера без проверки порта: при живом боевом (systemd `birthday-coop`, :2567) НЕ запускать. Для проверок свой сервер: `HOST=127.0.0.1 PORT=2568 node --import tsx server/src/index.ts` (релизный, без тест-команд); для `net-test` фикстура с тест-командами `node --import tsx server/src/net-test-server.ts` (:2568).
+- Боевой сервер запускается из отдельного worktree `/home/agent/games/birthday-coop-prod` (detached на main). Выкладка сервера: `git -C ../birthday-coop-prod fetch && git -C ../birthday-coop-prod checkout --detach origin/main`, при смене lock `npm ci` там же, затем `systemctl restart birthday-coop` и сверка `git -C ../birthday-coop-prod rev-parse HEAD` с origin/main.
+- Тест-режим в релизе выключен: `TEST_TOOLS=false` в `shared/src/sim.ts` (TZ-28). Для локальных проверок с панелью ТЕСТ временно true, в main не коммитить.
 - `npm run test:net` сетевые сценарии ботами. Гонять после любых правок `shared/` и `server/`; все проверки должны быть OK.
 - `npm run test:sim` сценарии боя Анастасии на `shared/sim` без сервера (гонять после правок sim и `hero-data`).
 - `python3 tools/gen_anims_ts.py` после пересборки спрайтов: обновляет `shared/src/anims-data.ts` и копирует полосы в `client/public/sprites/`.

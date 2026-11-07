@@ -140,13 +140,15 @@ export class LocalSession implements GameSession {
 }
 
 const TOKEN_KEY = 'bc-reconnect';
-const TOKEN_LIFETIME = 60_000;
-export function clearReconnect() { sessionStorage.removeItem(TOKEN_KEY); }
+const TOKEN_LIFETIME = 180_000;
+export function clearReconnect() {
+  try { localStorage.removeItem(TOKEN_KEY); } catch { /* хранилище недоступно */ }
+}
 export function savedReconnect(): { roomId: string; token: string } | null {
   try {
-    const saved = JSON.parse(sessionStorage.getItem(TOKEN_KEY) ?? 'null');
+    const saved = JSON.parse(localStorage.getItem(TOKEN_KEY) ?? 'null');
     if (typeof saved?.roomId === 'string' && typeof saved?.token === 'string' &&
-        typeof saved?.at === 'number' && Date.now() - saved.at < TOKEN_LIFETIME) return saved;
+        typeof saved?.at === 'number' && saved.at <= Date.now() && Date.now() - saved.at < TOKEN_LIFETIME) return saved;
   } catch { /* повреждённый токен */ }
   clearReconnect();
   return null;
@@ -212,7 +214,9 @@ export class OnlineSession implements GameSession {
   }
 
   private saveToken() {
-    if (!this.left && this.room?.connection?.isOpen) sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ roomId: this.roomId, token: this.room.reconnectionToken, at: Date.now() }));
+    try {
+      if (!this.left && this.room?.connection?.isOpen) localStorage.setItem(TOKEN_KEY, JSON.stringify({ roomId: this.roomId, token: this.room.reconnectionToken, at: Date.now() }));
+    } catch { /* запрет хранилища не прерывает игру */ }
   }
 
   private bind(room: Room) {
@@ -225,7 +229,7 @@ export class OnlineSession implements GameSession {
     this.saveToken();
     room.onStateChange((state: any) => {
       if (this.room !== room || this.left) return;
-      this.testMode = state.testMode === true;
+      this.testMode = TEST_TOOLS && state.testMode === true;
       const players = new Map<string, EntitySnap>();
       state.players.forEach((p: any, id: string) => players.set(id, { god: p.god, ultLevel: p.ultLevel, ultWindow: p.ultWindow, x: p.x, y: p.y, hp: p.hp, facing: p.facing, anim: p.anim, char: p.char, ult: p.ult, fDashMs: p.fDashMs, idleInput: p.idleInput, hiddenMs: p.hiddenMs, heavySmokeMs: p.heavySmokeMs, fireMs: p.fireMs, form: p.form, move: p.move, moveT: p.moveT, formMs: p.formMs, combo: p.combo, bCombo: p.bCombo, hitCount: p.hitCount, charge2: p.charge2, bCooldownMs: p.bCooldownMs, bChainActive: p.bChainActive, fireFacing: p.fireFacing, shooting: p.shooting, storm: p.storm, invuln: p.invuln, connected: p.connected, away: p.away }));
       const enemies = new Map<string, EntitySnap>();
@@ -343,7 +347,7 @@ export class OnlineSession implements GameSession {
     this.left = true;
     document.removeEventListener('visibilitychange', this.visibility);
     clearInterval(this.pingTimer);
-    sessionStorage.removeItem(TOKEN_KEY);
+    clearReconnect();
     this.room.leave(true);
   }
 }

@@ -6,6 +6,7 @@ export interface PlayOptions { x?: number; vol?: number; delay?: number; rate?: 
 type Stop = () => void;
 interface Stream { id: string; element: HTMLAudioElement; source: MediaElementAudioSourceNode; gain: GainNode }
 const FADE_MS = 800;
+const RETRY_MS = 5000;
 const DB6 = 10 ** (-6 / 20), DB10 = 10 ** (-10 / 20);
 const BASE = new URL('audio/', document.baseURI);
 let ctx: AudioContext | null = null;
@@ -21,19 +22,29 @@ const current: Partial<Record<'music' | 'amb', Stream>> = {};
 let cameraX = 0, cameraWidth = 480, paused = false, fighting = false, unlocked = false;
 let duckUntil = 0, duckTimer = 0, uiPreloaded = false, preview = false, menu = false;
 let beforePreview: typeof desired | undefined;
-const failedStreams = new Set<string>();
+const failedStreams = new Map<string, number>();
+let manifestReady = false, manifestRetryAt = 0;
+let manifestRequest: Promise<void> | undefined;
 // Отсутствующий манифест или файл допустимы во время производства ассетов.
-const ready = fetch(new URL('manifest.json', BASE)).then(async r => {
-  if (!r.ok) return;
-  const data: unknown = await r.json();
-  if (!data || typeof data !== 'object') return;
-  for (const [id, value] of Object.entries(data)) {
-    const d = value as SoundEntry;
-    if (d && Array.isArray(d.files) && ['ui', 'sfx', 'amb', 'music'].includes(d.bus)) {
-      manifest[id] = { ...d, files: d.files.filter(f => typeof f === 'string') };
+function ready(): Promise<void> {
+  if (manifestReady || performance.now() < manifestRetryAt) return Promise.resolve();
+  if (manifestRequest) return manifestRequest;
+  manifestRequest = fetch(new URL('manifest.json', BASE)).then(async r => {
+    if (!r.ok) throw new Error('manifest');
+    const data: unknown = await r.json();
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('manifest');
+    for (const [id, value] of Object.entries(data)) {
+      const d = value as SoundEntry;
+      if (d && Array.isArray(d.files) && ['ui', 'sfx', 'amb', 'music'].includes(d.bus)) {
+        manifest[id] = { ...d, files: d.files.filter(f => typeof f === 'string') };
+      }
     }
-  }
-}).catch(() => {});
+    manifestReady = true;
+  }).catch(() => { manifestRetryAt = performance.now() + RETRY_MS; })
+    .finally(() => { manifestRequest = undefined; });
+  return manifestRequest;
+}
+void ready();
 const clamp = (v: number, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
 function ramp(node: GainNode, value: number, seconds = .05) {
   if (!ctx) return;
@@ -68,8 +79,14 @@ export function unlockAudio() {
     if (!document.hidden) {
       // Вызов resume остаётся синхронно внутри обработчика жеста.
       void ctx.resume().then(resumeMedia).catch(() => {});
+      syncStream('music'); syncStream('amb');
+      // play тоже вызывается в стеке жеста, даже если resume ещё не завершён.
+      for (const bus of ['music', 'amb'] as const) {
+        const stream = current[bus];
+        if (stream && !(bus === 'amb' && paused && !preview)) startStream(stream, bus);
+      }
     }
-    void ready.then(() => { syncStream('music'); syncStream('amb'); });
+    void ready().then(() => { syncStream('music'); syncStream('amb'); });
   } catch { /* устройство без Web Audio остаётся без звука */ }
 }
 for (const gesture of ['pointerdown', 'touchend', 'keydown']) {
@@ -87,13 +104,16 @@ function buffer(file: string): Promise<AudioBuffer | null> {
     cached = fetch(new URL(file, BASE)).then(async r => {
       if (!r.ok || !ctx) return null;
       return await ctx.decodeAudioData(await r.arrayBuffer());
-    }).catch(() => null);
+    }).catch(() => null).then(data => {
+      if (!data) buffers.delete(file);
+      return data;
+    });
     buffers.set(file, cached);
   }
   return cached;
 }
 export async function preloadBank(bank: 'ui' | 'game') {
-  await ready;
+  await ready();
   if (!ctx) return;
   const files = [...new Set(Object.values(manifest).filter(d => bank === 'ui' ? d.bus === 'ui' : d.bus === 'sfx').flatMap(d => d.files))];
   // Не запускаем сотню запросов одновременно.
@@ -111,7 +131,7 @@ export function play(id: string, opts: PlayOptions = {}): Stop {
     source?.disconnect(); gain?.disconnect(); pan?.disconnect(); voices.get(id)?.delete(stop);
   };
   const requested = performance.now();
-  void ready.then(async () => {
+  void ready().then(async () => {
     const d = manifest[id];
     if (cancelled || !d?.files.length || (!settings.sound && !(opts.loop ?? d.loop)) || !ctx || ctx.state !== 'running' || document.hidden) return;
     if (d.bus === 'music') { playMusic(id); return; }
@@ -171,7 +191,7 @@ function syncStream(bus: 'music' | 'amb') {
   if (old) fadeOut(old);
   if (!id) return;
   const d = manifest[id];
-  if (!d?.files.length || d.bus !== bus || failedStreams.has(id)) return;
+  if (!d?.files.length || d.bus !== bus || (failedStreams.get(id) ?? 0) > performance.now()) return;
   try {
     const element = new Audio(); element.preload = 'none'; element.loop = true;
     element.src = new URL(variant(id, d.files), BASE).href;
@@ -179,7 +199,7 @@ function syncStream(bus: 'music' | 'amb') {
     gain.gain.value = 0; source.connect(gain).connect(buses[bus]);
     const s: Stream = { id, element, source, gain }; streams.add(s); current[bus] = s;
     element.addEventListener('error', () => {
-      failedStreams.add(id);
+      failedStreams.set(id, performance.now() + RETRY_MS);
       if (current[bus] === s) delete current[bus];
       dispose(s);
     }, { once: true });
@@ -188,7 +208,7 @@ function syncStream(bus: 'music' | 'amb') {
 }
 function requestStream(bus: 'music' | 'amb', id: string | null) {
   desired[bus] = id;
-  void ready.then(() => syncStream(bus));
+  void ready().then(() => syncStream(bus));
 }
 export const playMusic = (id: string | null) => requestStream('music', id);
 export const playAmb = (id: string | null) => requestStream('amb', id);
@@ -223,5 +243,5 @@ export function setAudioPreview(on: boolean) {
   }
   applySettings();
 }
-export async function soundManifest() { await ready; return manifest; }
+export async function soundManifest() { await ready(); return manifest; }
 export function audioState() { return ctx?.state ?? 'нет'; }
