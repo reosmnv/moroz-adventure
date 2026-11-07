@@ -8,9 +8,9 @@ export interface BossAttack {
 }
 export interface BossInfo { name: string; hp: number; speed: number; phase2At: number; attacks: [string[], string[]]; kissLine?: string }
 export const BOSS: Record<BossId, BossInfo> = {
-  shaman: { name: 'ШАМАН', hp: 3500, speed: 40, phase2At: 0.5, attacks: [['mic', 'vstayu', 'pyro', 'chorus'], ['mic', 'vstayu', 'pyro', 'chorus', 'salute', 'crossStage', 'fans']], kissLine: 'Я люблю только Катеньку' },
-  pizdulina: { name: 'ПИЗДУЛИНА', hp: 3000, speed: 46, phase2At: 0.5, attacks: [['slap', 'banStrike', 'shots', 'zones'], ['slap', 'banStrike', 'grid', 'crossBan', 'zones', 'shots', 'omon']] },
-  katya: { name: 'КАТЯ', hp: 4000, speed: 58, phase2At: 0.5, attacks: [['katHeavy', 'katGround'], ['katHeavy2', 'katGround2', 'katRush']] },
+  shaman: { name: 'ШАМАН', hp: 2333, speed: 40, phase2At: 0.5, attacks: [['mic', 'vstayu', 'pyro', 'chorus'], ['mic', 'vstayu', 'pyro', 'chorus', 'salute', 'crossStage', 'fans']], kissLine: 'Я люблю только Катеньку' },
+  pizdulina: { name: 'ПИЗДУЛИНА', hp: 2000, speed: 46, phase2At: 0.5, attacks: [['slap', 'banStrike', 'shots', 'zones'], ['slap', 'banStrike', 'grid', 'crossBan', 'zones', 'shots', 'omon']] },
+  katya: { name: 'КАТЯ', hp: 2667, speed: 58, phase2At: 0.5, attacks: [['katHeavy', 'katGround'], ['katHeavy2', 'katGround2', 'katRush']] },
 };
 export const BOSS_ATTACK: Record<string, BossAttack> = {
   mic: { id: 'mic', kind: 'melee', windupMs: 350, activeMs: 120, recoverMs: 200, dmg: 24, reach: 52, depth: 16, cdMs: 450 },

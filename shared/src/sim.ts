@@ -27,6 +27,7 @@ const ENEMY_DMG = 7;
 export const PLAYER_HP = 150;
 // Здоровье по героям (mr.R 07.11): Настя 100, остальные 75. PLAYER_HP остаётся базой для старых проверок.
 export const HERO_HP: Record<string, number> = { anastasia: 100, nadezhda: 75, kris: 75, ramil: 75 };
+export const LIFESTEAL = 1; // доля нанесённого урона, возвращаемая герою в HP
 export const maxHpOf = (char?: string) => HERO_HP[char ?? ''] ?? PLAYER_HP;
 const REVIVE_MS = 5000;
 const TAUNT_CD_MS = 3000;
@@ -444,7 +445,14 @@ function applyHit(w: World, p: Player, e: Enemy, dmg: number, dir: number, ev: S
     if (airborne) e.airHits = (e.airHits ?? 0) + 1;
     if (!opts.silent) { p.hitCount++; p.hitCountMs = HIT_CHAIN_MS; }
   }
+  const dealt = Math.max(0, Math.min(dmg, e.hp));
   e.hp -= dmg;
+  // Все герои лечатся от нанесённого урона (mr.R 07.11); овердамаг не считается
+  if (dealt > 0 && p.hp > 0 && p.hp < maxHpOf(p.char)) {
+    const heal = Math.min(maxHpOf(p.char) - p.hp, dealt * LIFESTEAL);
+    p.hp += heal;
+    if (heal >= 1) ev.push({ t: 'heal', id: p.id, amount: heal });
+  }
   if (e.hp <= 0 && !e.dummy && p.char === HERO_ID && p.form === 'ultimate') {
     const extra = Math.min(KILL_EXTEND_MS, ULT_MS - p.ultimateExtraMs);
     p.formMs += extra; p.ultimateExtraMs += extra;
@@ -1175,7 +1183,6 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       if (strike.kind) { special(w, p, strike, ev); continue; }
       const opts = strikeOpts(p, strike);
       if (p.char === HERO_ID && p.move === 'hurricane' && tm === hitTimesMs(p.form, p.move, p.facing).at(-1)) { opts.slam = true; opts.down = true; }
-      const eventStart = ev.length;
       let n = 0;
       if (strike.rush && ap?.rush) {
         for (const e of Object.values(w.enemies)) {
@@ -1188,12 +1195,6 @@ function stepHero(w: World, p: Player, inp: Input, dtMs: number, ev: SimEvent[])
       } else n = hitEnemies(w, p, strike.range * (p.form === 'kris' && strike.stunMs ? 1 : RANGE_MULT), strike.dmg, ev, !!strike.around, opts);
       if (n > 0) {
         p.hitstopMs = strike.down ? HITSTOP_HEAVY_MS : HITSTOP_MS;
-        // Ultimate: сколько нанесла, столько и вылечила
-        if (p.form === 'ultimate') {
-          const damage = ev.slice(eventStart).reduce((sum, e) => sum + (e.t === 'hit' ? e.dmg : 0), 0);
-          const heal = Math.min(maxHpOf(p.char) - p.hp, damage);
-          if (heal > 0) { p.hp += heal; ev.push({ t: 'heal', id: p.id, amount: heal }); }
-        }
       }
     }
   }
