@@ -27,7 +27,7 @@ const ENEMY_DMG = 7;
 export const PLAYER_HP = 150;
 // Здоровье по героям (mr.R 07.11): Настя 100, остальные 75. PLAYER_HP остаётся базой для старых проверок.
 export const HERO_HP: Record<string, number> = { anastasia: 100, nadezhda: 75, kris: 75, ramil: 75 };
-export const LIFESTEAL = 1; // доля нанесённого урона, возвращаемая герою в HP
+export const LIFESTEAL = 0.5; // доля нанесённого урона, возвращаемая герою в HP
 export const maxHpOf = (char?: string) => HERO_HP[char ?? ''] ?? PLAYER_HP;
 const REVIVE_MS = 5000;
 const TAUNT_CD_MS = 3000;
